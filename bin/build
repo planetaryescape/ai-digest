@@ -7,4 +7,4 @@ trap 'echo "Error: Script failed at line $LINENO"; exit 1;' ERR
 
 bun install &&
 rm -rf terraform/artifacts/ &&
-doppler run -c prd -p ai-digest -- bun run scripts/build.js
+doppler run -c prd -p ai-digest -- bun run build:all
