@@ -2,7 +2,7 @@ import type { DigestResult } from "../../core/digest-processor";
 import { DigestProcessor } from "../../core/digest-processor";
 import type { ILogger } from "../../lib/interfaces/logger";
 import type { IStorageClient } from "../../lib/interfaces/storage";
-import { metrics } from "../../lib/metrics";
+import { getMetrics } from "../../lib/metrics";
 import type { IPlatformAdapter } from "./IPlatformAdapter";
 import type { UnifiedContext, UnifiedRequest } from "./types";
 
@@ -23,11 +23,14 @@ export abstract class BaseHandler {
 
     try {
       // Log request
-      unifiedContext.logger.info(`Function invoked - ${unifiedContext.invocationId}`, {
-        type: request.type,
-        cleanup: request.cleanup,
-        functionName: unifiedContext.functionName,
-      });
+      unifiedContext.logger.info(
+        `Function invoked - ${unifiedContext.invocationId}`,
+        {
+          type: request.type,
+          cleanup: request.cleanup,
+          functionName: unifiedContext.functionName,
+        }
+      );
 
       // Process request
       const result = await this.processRequest(request, unifiedContext);
@@ -49,7 +52,10 @@ export abstract class BaseHandler {
         return adapter.formatError(error, unifiedContext);
       }
 
-      return adapter.formatError(new Error("An unknown error occurred"), unifiedContext);
+      return adapter.formatError(
+        new Error("An unknown error occurred"),
+        unifiedContext
+      );
     }
   }
 
@@ -63,7 +69,11 @@ export abstract class BaseHandler {
     const storage = this.getStorage();
     const logger = this.createLogger(context);
 
-    const processor = new DigestProcessor({ storage, logger, platform: this.getPlatformName() });
+    const processor = new DigestProcessor({
+      storage,
+      logger,
+      platform: this.getPlatformName(),
+    });
 
     // Track metrics
     const timer = Date.now();
@@ -80,15 +90,16 @@ export abstract class BaseHandler {
       }
 
       // Record metrics
-      metrics.increment("digest.processed", {
+      const metricsCollector = getMetrics();
+      metricsCollector.increment("digest.processed", {
         success: result.success ? "true" : "false",
         mode: request.cleanup ? "cleanup" : "weekly",
         platform: this.getPlatformName(),
       });
 
-      metrics.gauge("digest.emails_found", result.emailsFound);
-      metrics.gauge("digest.emails_processed", result.emailsProcessed);
-      metrics.gauge("digest.duration_ms", Date.now() - timer);
+      metricsCollector.gauge("digest.emails_found", result.emailsFound);
+      metricsCollector.gauge("digest.emails_processed", result.emailsProcessed);
+      metricsCollector.gauge("digest.duration_ms", Date.now() - timer);
 
       return {
         ...result,
@@ -96,7 +107,7 @@ export abstract class BaseHandler {
       };
     } catch (error) {
       // Record error metrics
-      metrics.increment("digest.errors", {
+      getMetrics().increment("digest.errors", {
         platform: this.getPlatformName(),
         mode: request.cleanup ? "cleanup" : "weekly",
       });
@@ -146,5 +157,7 @@ export abstract class BaseHandler {
   /**
    * Handle async invocation for cleanup mode (AWS specific)
    */
-  protected async handleAsyncInvocation?(request: UnifiedRequest): Promise<void>;
+  protected async handleAsyncInvocation?(
+    request: UnifiedRequest
+  ): Promise<void>;
 }
