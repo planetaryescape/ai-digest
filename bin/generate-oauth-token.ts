@@ -55,10 +55,11 @@ async function generateOAuthToken() {
     console.log("\n📝 Your refresh token:");
     console.log(tokens.refresh_token);
     console.log("\n🔧 Update it in Key Vault with:");
-    console.log(`az keyvault secret set --vault-name kv-ai-digest-unique --name gmail-refresh-token --value "${tokens.refresh_token}"`);
+    console.log(
+      `az keyvault secret set --vault-name kv-ai-digest-unique --name gmail-refresh-token --value "${tokens.refresh_token}"`
+    );
     console.log("\n💡 You can also add it to your .env file:");
     console.log(`GMAIL_REFRESH_TOKEN=${tokens.refresh_token}`);
-    
   } catch (error) {
     console.error("\n❌ Error:", error instanceof Error ? error.message : "Unknown error");
   } finally {

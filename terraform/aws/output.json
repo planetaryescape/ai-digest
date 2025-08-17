@@ -1,1 +1,9 @@
-{"errorType":"Error","errorMessage":"Cannot read properties of undefined (reading 'length')","trace":["Error: Cannot read properties of undefined (reading 'length')","    at Runtime.handler (/var/task/weekly-digest.js:771063:13)","    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"]}
+{
+  "errorType": "Error",
+  "errorMessage": "Cannot read properties of undefined (reading 'length')",
+  "trace": [
+    "Error: Cannot read properties of undefined (reading 'length')",
+    "    at Runtime.handler (/var/task/weekly-digest.js:771063:13)",
+    "    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)"
+  ]
+}

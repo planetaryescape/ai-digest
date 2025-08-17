@@ -1,16 +1,19 @@
 # Cleanup Mode Implementation
 
 ## Overview
+
 Added support for processing ALL unarchived AI emails in cleanup mode with intelligent batching to avoid rate limits and context window exhaustion.
 
 ## Changes Made
 
 ### 1. Gmail Client (`functions/lib/gmail.ts`)
+
 - Added `getAllAIEmails()` method to fetch ALL emails from inbox (not just last 7 days)
 - Added `archiveOldEmails()` method to archive old AI emails after processing
 - Updated `archiveMessages()` to process in batches of 100 to avoid API limits
 
 ### 2. Digest Processor (`functions/core/digest-processor.ts`)
+
 - Added `processCleanupDigest()` method for cleanup mode
 - Implements batching with 50 emails per batch
 - 5-second delay between batches to avoid rate limits
@@ -18,17 +21,20 @@ Added support for processing ALL unarchived AI emails in cleanup mode with intel
 - Archives all processed emails after completion
 
 ### 3. Storage Interface (`functions/lib/interfaces/storage.ts`)
+
 - Added `getAllProcessedIds()` method to get all previously processed email IDs
 
 ### 4. Storage Implementations
+
 - **S3 Storage** (`functions/lib/aws/s3-storage.ts`): Added `getAllProcessedIds()` method
 - **DynamoDB Storage** (`functions/lib/aws/storage.ts`): Added `getAllProcessedIds()` method
 
 ### 5. Lambda Handlers
+
 - **weekly-digest** (`functions/handlers/aws/weekly-digest.ts`):
   - Now accepts `cleanup` flag in event payload
   - Routes to cleanup or weekly processing based on flag
-  
+
 - **run-now** (`functions/handlers/aws/run-now.ts`):
   - Accepts `cleanup` parameter via query string or request body
   - Passes cleanup flag to weekly-digest Lambda
@@ -36,6 +42,7 @@ Added support for processing ALL unarchived AI emails in cleanup mode with intel
 ## Usage
 
 ### Regular Weekly Processing (Default)
+
 ```bash
 # Via API Gateway
 curl https://your-api-gateway/run-now
@@ -48,6 +55,7 @@ aws lambda invoke \
 ```
 
 ### Cleanup Mode (Process ALL Unarchived Emails)
+
 ```bash
 # Via API Gateway with query parameter
 curl https://your-api-gateway/run-now?cleanup=true
@@ -76,6 +84,7 @@ To avoid rate limits and context window exhaustion:
 ## Example Response
 
 ### Weekly Mode Response
+
 ```json
 {
   "success": true,
@@ -94,6 +103,7 @@ To avoid rate limits and context window exhaustion:
 ```
 
 ### Cleanup Mode Response
+
 ```json
 {
   "success": true,
@@ -115,11 +125,13 @@ To avoid rate limits and context window exhaustion:
 ## Deployment
 
 1. Build the Lambda functions:
+
 ```bash
 npm run build:aws
 ```
 
 2. Deploy with Terraform:
+
 ```bash
 cd terraform/aws
 terraform plan
@@ -137,6 +149,7 @@ terraform apply
 4. **Archiving**: After processing, emails are automatically archived to keep the inbox clean.
 
 5. **AWS Credentials**: Ensure AWS credentials are configured before deploying:
+
 ```bash
 export AWS_ACCESS_KEY_ID=your_key
 export AWS_SECRET_ACCESS_KEY=your_secret

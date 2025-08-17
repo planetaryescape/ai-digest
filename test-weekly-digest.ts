@@ -1,14 +1,14 @@
-import weeklyDigest from "./functions/weekly-digest";
 import type { InvocationContext, Timer } from "@azure/functions";
+import weeklyDigest from "./functions/weekly-digest";
 
 async function testWeeklyDigest() {
   console.log("Testing weekly-digest function...");
-  
+
   const mockTimer: Timer = {
     isPastDue: false,
     schedule: { adjustForDST: true },
   };
-  
+
   const mockContext: InvocationContext = {
     invocationId: "test-" + Date.now(),
     functionName: "weekly-digest",
@@ -17,7 +17,7 @@ async function testWeeklyDigest() {
     traceContext: {
       traceParent: null,
       traceState: null,
-      attributes: {}
+      attributes: {},
     },
     triggerMetadata: {},
     log: console.log as any,
@@ -27,7 +27,7 @@ async function testWeeklyDigest() {
     warn: console.warn as any,
     error: console.error as any,
   };
-  
+
   try {
     await weeklyDigest(mockTimer, mockContext);
     console.log("✅ Weekly digest completed successfully");
