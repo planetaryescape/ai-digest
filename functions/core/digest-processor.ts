@@ -12,6 +12,7 @@ import { type Result, ResultUtils } from "../lib/types/Result";
 export interface DigestProcessorOptions {
   storage: IStorageClient;
   logger: ILogger;
+  platform?: string;
 }
 
 export interface DigestResult {
@@ -30,10 +31,12 @@ export class DigestProcessor {
   private storage: IStorageClient;
   private logger: ILogger;
   private emailRepository: EmailRepository;
+  private platform?: string;
 
   constructor(options: DigestProcessorOptions) {
     this.storage = options.storage;
     this.logger = options.logger;
+    this.platform = options.platform;
     this.emailRepository = new EmailRepository(this.storage);
   }
 
@@ -59,7 +62,7 @@ export class DigestProcessor {
     const summary = await metrics.apiCall("openai", "summarize", () => summarize(emails));
 
     // Send digest for this batch with timing
-    await metrics.apiCall("resend", "sendDigest", () => sendDigest(summary));
+    await metrics.apiCall("resend", "sendDigest", () => sendDigest(summary, this.platform));
 
     // Track digest generation metrics
     const duration = Date.now() - startTime;
@@ -324,7 +327,7 @@ export class DigestProcessor {
 
     // Send digest email
     this.logger.info("Sending digest email...");
-    const sendResult = await ResultUtils.try(() => sendDigest(summary));
+    const sendResult = await ResultUtils.try(() => sendDigest(summary, this.platform));
     if (!sendResult.ok) {
       return ResultUtils.err(sendResult.error);
     }

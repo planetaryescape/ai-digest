@@ -19,9 +19,10 @@ import { MarkdownRenderer } from "./components/MarkdownRenderer";
 
 interface WeeklyDigestEmailProps {
   summary: Summary;
+  platform?: string;
 }
 
-export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
+export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps) => {
   // Parse markdown sections from the digest
   const digestString =
     typeof summary.digest === "string" ? summary.digest : JSON.stringify(summary.digest);
@@ -153,7 +154,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
 
             <Hr className="my-8" />
 
-            <EmailFooter />
+            <EmailFooter platform={platform} />
           </Container>
         </Body>
       </Tailwind>

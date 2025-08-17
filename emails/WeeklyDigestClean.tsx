@@ -16,13 +16,14 @@ import type { Summary } from "../functions/lib/types";
 
 interface WeeklyDigestEmailProps {
   summary: Summary;
+  platform?: string;
 }
 
-export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
+export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps) => {
   const digest = summary.digest as DigestOutput;
 
   if (!digest || typeof digest === "string") {
-    return <FallbackEmail summary={summary} />;
+    return <FallbackEmail summary={summary} platform={platform} />;
   }
 
   return (
@@ -636,6 +637,12 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                 }}
               >
                 Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
+                {platform && (
+                  <>
+                    <br />
+                    📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
+                  </>
+                )}
                 <br />
                 <Link
                   href="mailto:digest@bhekani.com"
@@ -676,7 +683,7 @@ function getWeekNumber(): string {
 }
 
 // Fallback for old format
-function FallbackEmail({ summary }: { summary: Summary }) {
+function FallbackEmail({ summary, platform }: { summary: Summary; platform?: string }) {
   const digestText = typeof summary.digest === "string" ? summary.digest : "";
 
   return (
@@ -690,6 +697,12 @@ function FallbackEmail({ summary }: { summary: Summary }) {
           <Hr />
           <Text style={{ fontSize: "12px", color: "#666" }}>
             Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
+            {platform && (
+              <>
+                <br />
+                📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
+              </>
+            )}
           </Text>
         </Container>
       </Body>

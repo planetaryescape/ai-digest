@@ -63,7 +63,7 @@ export abstract class BaseHandler {
     const storage = this.getStorage();
     const logger = this.createLogger(context);
 
-    const processor = new DigestProcessor({ storage, logger });
+    const processor = new DigestProcessor({ storage, logger, platform: this.getPlatformName() });
 
     // Track metrics
     const timer = Date.now();

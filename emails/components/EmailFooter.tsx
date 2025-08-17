@@ -4,12 +4,14 @@ interface EmailFooterProps {
   unsubscribeUrl?: string;
   showPoweredBy?: boolean;
   className?: string;
+  platform?: string;
 }
 
 export const EmailFooter = ({
   unsubscribeUrl,
   showPoweredBy = true,
   className = "mt-8",
+  platform,
 }: EmailFooterProps) => {
   return (
     <Section className={className}>
@@ -18,6 +20,11 @@ export const EmailFooter = ({
         {showPoweredBy && (
           <Text className="text-xs text-gray-500 mb-2">
             Powered by AI Digest - Your weekly AI newsletter companion
+          </Text>
+        )}
+        {platform && (
+          <Text className="text-xs text-gray-400 mb-2">
+            📍 Generated via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
           </Text>
         )}
         {unsubscribeUrl && (
