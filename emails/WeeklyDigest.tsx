@@ -19,7 +19,8 @@ interface WeeklyDigestEmailProps {
 
 export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
   // Parse markdown sections from the digest
-  const digestString = typeof summary.digest === 'string' ? summary.digest : JSON.stringify(summary.digest);
+  const digestString =
+    typeof summary.digest === "string" ? summary.digest : JSON.stringify(summary.digest);
   const sections = parseDigestSections(digestString);
 
   return (
@@ -134,17 +135,23 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
               </Heading>
               <div className="bg-gray-50 p-4 rounded-lg">
                 <Text className="text-sm text-gray-600 mb-3">
-                  This digest was generated from {summary.items.length} AI newsletters. Click any email below to view it in Gmail:
+                  This digest was generated from {summary.items.length} AI newsletters. Click any
+                  email below to view it in Gmail:
                 </Text>
                 <div>
                   {summary.items.map((item, i) => (
-                    <div key={i} className={i < summary.items.length - 1 ? "border-b border-gray-200 pb-2 mb-2" : "pb-2"}>
+                    <div
+                      key={i}
+                      className={
+                        i < summary.items.length - 1 ? "border-b border-gray-200 pb-2 mb-2" : "pb-2"
+                      }
+                    >
                       <Text className="text-xs mb-1">
                         {item.gmailLink ? (
-                          <Link 
-                            href={item.gmailLink} 
+                          <Link
+                            href={item.gmailLink}
                             className="text-accent font-medium"
-                            style={{ textDecoration: 'underline' }}
+                            style={{ textDecoration: "underline" }}
                           >
                             {item.subject}
                           </Link>
@@ -161,7 +168,8 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                 </div>
                 {summary.items.length > 10 && (
                   <Text className="text-xs text-gray-500 italic mt-3">
-                    Note: All {summary.items.length} source emails have been archived in Gmail for your reference.
+                    Note: All {summary.items.length} source emails have been archived in Gmail for
+                    your reference.
                   </Text>
                 )}
               </div>

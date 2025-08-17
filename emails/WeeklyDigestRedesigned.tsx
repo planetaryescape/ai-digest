@@ -1,8 +1,8 @@
 import {
   Body,
   Button,
-  Container,
   Column,
+  Container,
   Head,
   Heading,
   Hr,
@@ -15,8 +15,8 @@ import {
   Text,
 } from "@react-email/components";
 import { Tailwind } from "@react-email/tailwind";
-import type { Summary } from "../functions/lib/types";
 import type { DigestOutput } from "../functions/lib/schemas/digest";
+import type { Summary } from "../functions/lib/types";
 
 interface WeeklyDigestEmailProps {
   summary: Summary;
@@ -24,7 +24,7 @@ interface WeeklyDigestEmailProps {
 
 export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
   const digest = summary.digest as DigestOutput;
-  
+
   if (!digest || typeof digest === "string") {
     return <FallbackEmail summary={summary} />;
   }
@@ -77,18 +77,14 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
             {/* Header */}
             <Section className="mb-8">
               <div className="bg-gradient-to-r from-primary to-secondary rounded-t-2xl p-8 text-center">
-                <Heading className="text-white text-4xl font-bold m-0 mb-2">
-                  AI Weekly
-                </Heading>
+                <Heading className="text-white text-4xl font-bold m-0 mb-2">AI Weekly</Heading>
                 <Text className="text-white/90 text-sm m-0">{currentDate}</Text>
               </div>
               <div className="bg-card rounded-b-2xl shadow-lg p-6 -mt-4">
                 <Heading as="h2" className="text-2xl font-bold text-brand mb-2">
                   {digest.headline}
                 </Heading>
-                <Text className="text-muted text-base leading-relaxed">
-                  {digest.summary}
-                </Text>
+                <Text className="text-muted text-base leading-relaxed">{digest.summary}</Text>
               </div>
             </Section>
 
@@ -127,9 +123,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                         i < digest.whatHappened.length - 1 ? "mb-4 pb-4 border-b border-border" : ""
                       }`}
                     >
-                      <Text className="font-semibold text-brand text-base mb-1">
-                        {item.title}
-                      </Text>
+                      <Text className="font-semibold text-brand text-base mb-1">{item.title}</Text>
                       <Text className="text-sm text-primary mb-2">
                         {item.source}
                         {item.category && (
@@ -138,9 +132,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                           </span>
                         )}
                       </Text>
-                      <Text className="text-muted text-sm leading-relaxed">
-                        {item.description}
-                      </Text>
+                      <Text className="text-muted text-sm leading-relaxed">{item.description}</Text>
                     </div>
                   ))}
                 </div>
@@ -166,14 +158,16 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                       risk: { bg: "bg-danger/10", text: "text-danger", icon: "⚠️" },
                     };
                     const style = colors[takeaway.category];
-                    
+
                     return (
                       <Column key={i} className="w-full mb-4">
                         <div className={`${style.bg} rounded-xl p-4`}>
                           <div className="flex items-start">
                             <Text className="text-xl mr-3 mt-1">{style.icon}</Text>
                             <div className="flex-1">
-                              <Text className={`${style.text} font-semibold text-sm uppercase tracking-wide mb-1`}>
+                              <Text
+                                className={`${style.text} font-semibold text-sm uppercase tracking-wide mb-1`}
+                              >
                                 {takeaway.category}
                               </Text>
                               <Text className="font-semibold text-brand mb-2">
@@ -215,17 +209,15 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                       className="bg-gradient-to-r from-secondary/5 to-primary/5 rounded-xl p-5 border border-secondary/20 mb-4"
                     >
                       <div className="flex items-start justify-between mb-3">
-                        <Text className="font-bold text-lg text-brand m-0">
-                          {play.appName}
-                        </Text>
+                        <Text className="font-bold text-lg text-brand m-0">{play.appName}</Text>
                         <div className="flex gap-2">
                           <span
                             className={`text-xs px-2 py-1 rounded ${
                               play.effort === "quick-win"
                                 ? "bg-success/10 text-success"
                                 : play.effort === "1-2-days"
-                                ? "bg-warning/10 text-warning"
-                                : "bg-primary/10 text-primary"
+                                  ? "bg-warning/10 text-warning"
+                                  : "bg-primary/10 text-primary"
                             }`}
                           >
                             {play.effort}
@@ -235,20 +227,16 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                               play.impact === "high"
                                 ? "bg-accent/10 text-accent"
                                 : play.impact === "medium"
-                                ? "bg-primary/10 text-primary"
-                                : "bg-muted/10 text-muted"
+                                  ? "bg-primary/10 text-primary"
+                                  : "bg-muted/10 text-muted"
                             }`}
                           >
                             {play.impact} impact
                           </span>
                         </div>
                       </div>
-                      <Text className="font-semibold text-secondary mb-2">
-                        {play.feature}
-                      </Text>
-                      <Text className="text-muted text-sm leading-relaxed">
-                        {play.description}
-                      </Text>
+                      <Text className="font-semibold text-secondary mb-2">{play.feature}</Text>
+                      <Text className="text-muted text-sm leading-relaxed">{play.description}</Text>
                     </div>
                   ))}
                 </div>
@@ -269,9 +257,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                 <div>
                   {digest.rolePlays.map((role, i) => (
                     <div key={i} className="bg-card rounded-xl border border-border p-5 mb-4">
-                      <Text className="font-bold text-lg text-brand mb-3">
-                        {role.role}
-                      </Text>
+                      <Text className="font-bold text-lg text-brand mb-3">{role.role}</Text>
                       {role.plays.map((play, j) => (
                         <div
                           key={j}
@@ -286,9 +272,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                             {play.description}
                           </Text>
                           {play.timeframe && (
-                            <Text className="text-xs text-warning mt-1">
-                              ⏰ {play.timeframe}
-                            </Text>
+                            <Text className="text-xs text-warning mt-1">⏰ {play.timeframe}</Text>
                           )}
                         </div>
                       ))}
@@ -320,9 +304,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                               {tool.category}
                             </span>
                           </Text>
-                          <Text className="text-muted text-sm mb-2">
-                            {tool.description}
-                          </Text>
+                          <Text className="text-muted text-sm mb-2">{tool.description}</Text>
                           <Text className="text-primary text-sm font-medium">
                             💡 {tool.useCase}
                           </Text>
@@ -382,7 +364,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                           <Link
                             href={item.gmailLink}
                             className="text-primary text-xs"
-                            style={{ textDecoration: 'underline' }}
+                            style={{ textDecoration: "underline" }}
                           >
                             {item.subject}
                           </Link>
@@ -403,7 +385,8 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
             {/* Footer */}
             <Section className="text-center">
               <Text className="text-xs text-muted">
-                AI Weekly Digest • Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
+                AI Weekly Digest • Generated{" "}
+                {new Date(summary.generatedAt || Date.now()).toLocaleString()}
               </Text>
               <Text className="text-xs text-muted mt-2">
                 <Link href="mailto:digest@bhekani.com" className="text-primary">
@@ -429,7 +412,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
 // Fallback for old string-based digest format
 function FallbackEmail({ summary }: { summary: Summary }) {
   const digestText = typeof summary.digest === "string" ? summary.digest : "";
-  
+
   return (
     <Html>
       <Head />
