@@ -37,8 +37,11 @@ async function generateOAuthToken() {
       prompt: "consent", // Force consent to ensure refresh token is returned
     });
 
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n🔗 Open this URL in your browser to authorize the application:");
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log(authUrl);
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n");
 
     // Get authorization code
@@ -51,16 +54,24 @@ async function generateOAuthToken() {
       );
     }
 
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n✅ Successfully generated tokens!");
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n📝 Your refresh token:");
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log(tokens.refresh_token);
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n🔧 Update it in Key Vault with:");
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log(
       `az keyvault secret set --vault-name kv-ai-digest-unique --name gmail-refresh-token --value "${tokens.refresh_token}"`
     );
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log("\n💡 You can also add it to your .env file:");
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.log(`GMAIL_REFRESH_TOKEN=${tokens.refresh_token}`);
   } catch (error) {
+    // biome-ignore lint/suspicious/noConsole: CLI tool needs console output
     console.error("\n❌ Error:", error instanceof Error ? error.message : "Unknown error");
   } finally {
     rl.close();

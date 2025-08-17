@@ -11,18 +11,22 @@ export class CloudWatchLogger implements ILogger {
   }
 
   info(message: string, ...args: unknown[]): void {
+    // biome-ignore lint/suspicious/noConsole: CloudWatch logger needs console for Lambda
     console.log(`[${this.context}] INFO:`, message, ...args);
   }
 
   warn(message: string, ...args: unknown[]): void {
+    // biome-ignore lint/suspicious/noConsole: CloudWatch logger needs console for Lambda
     console.warn(`[${this.context}] WARN:`, message, ...args);
   }
 
   error(message: string, ...args: unknown[]): void {
+    // biome-ignore lint/suspicious/noConsole: CloudWatch logger needs console for Lambda
     console.error(`[${this.context}] ERROR:`, message, ...args);
   }
 
   debug(message: string, ...args: unknown[]): void {
+    // biome-ignore lint/suspicious/noConsole: CloudWatch logger needs console for Lambda
     console.debug(`[${this.context}] DEBUG:`, message, ...args);
   }
 }
