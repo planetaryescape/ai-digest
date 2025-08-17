@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+trap 'echo "Error: Script failed at line $LINENO"; exit 1;' ERR
+
+echo "🚀 Starting Azure deployment..."
+
+# Build Azure Functions
+echo "🔨 Building Azure Functions..."
+bun run build:azure
+
+# Create zip package
+echo "📦 Creating deployment package..."
+bun run zip
+
+# Initialize Terraform
+echo "🏗️ Initializing Terraform..."
+cd terraform/azure
+terraform init
+
+# Plan deployment
+echo "📋 Planning deployment..."
+terraform plan
+
+# Apply deployment
+echo "🚢 Deploying to Azure..."
+terraform apply -auto-approve
+
+echo "✅ Azure deployment complete!"
+echo ""
+echo "📝 Next steps:"
+echo "1. Update secrets in Key Vault (see terraform output)"
+echo "2. Test the function endpoint (see terraform output)"
+echo "3. Monitor Application Insights for function executions"

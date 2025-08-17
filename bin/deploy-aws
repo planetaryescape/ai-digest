@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+trap 'echo "Error: Script failed at line $LINENO"; exit 1;' ERR
+
+echo "🚀 Starting AWS deployment..."
+
+# Build Lambda functions
+echo "🔨 Building Lambda functions..."
+bun run build:aws
+
+# Initialize Terraform
+echo "🏗️ Initializing Terraform..."
+cd terraform/aws
+terraform init
+
+# Plan deployment
+echo "📋 Planning deployment..."
+terraform plan
+
+# Apply deployment
+echo "🚢 Deploying to AWS..."
+terraform apply -auto-approve
+
+echo "✅ AWS deployment complete!"
+echo ""
+echo "📝 Next steps:"
+echo "1. Update secrets in AWS Secrets Manager (see terraform output)"
+echo "2. Test the API Gateway endpoint (see terraform output)"
+echo "3. Monitor CloudWatch logs for function executions"

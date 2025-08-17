@@ -1,0 +1,25 @@
+{
+  "name": "ai-digest-lambda",
+  "version": "1.0.0",
+  "description": "AWS Lambda functions for AI Digest",
+  "private": true,
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.600.0",
+    "@aws-sdk/client-lambda": "^3.600.0",
+    "@aws-sdk/client-secrets-manager": "^3.600.0",
+    "@ai-sdk/openai": "^1.1.13",
+    "@react-email/components": "^0.2.0",
+    "@react-email/render": "^1.0.1",
+    "@react-email/tailwind": "^1.1.0",
+    "ai": "^4.1.45",
+    "cheerio": "^1.0.0",
+    "date-fns": "^4.1.0",
+    "googleapis": "^144.0.0",
+    "react": "19.0.0-rc.1",
+    "resend": "^4.0.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.145",
+    "@types/node": "^22.10.6"
+  }
+}

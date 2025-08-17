@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e  # Exit immediately if a command exits with a non-zero status.
+set -x  # Print commands and their arguments as they are executed.
+
+trap 'echo "Error: Script failed at line $LINENO"; exit 1;' ERR
+
+bun install &&
+rm -rf terraform/artifacts/ &&
+doppler run -c prd -p ai-digest -- bun run scripts/build.js

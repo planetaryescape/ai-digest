@@ -1,0 +1,27 @@
+# AWS Configuration
+aws_region = "us-east-1"
+
+# Email Configuration
+recipient_email = "you@example.com"
+
+# Schedule (CloudWatch Events cron expression)
+# Default: Every Sunday at 8 AM UTC
+# schedule_expression = "cron(0 8 ? * SUN *)"
+
+# Processing Configuration
+# older_than_days      = 30
+# max_links_per_email  = 2
+# max_sections         = 25
+
+# OpenAI Configuration
+# openai_model = "gpt-4o-mini"
+
+# Additional keywords for AI detection (comma-separated)
+# keywords = ""
+
+# Professions for advice generation (comma-separated)
+# professions = "Software Engineer,Product Manager,Designer,Finance,Accounting,Lawyer,Teacher,Nurse,Graphic Designer,Entrepreneur"
+
+# Lambda Configuration
+# lambda_timeout = 300  # 5 minutes
+# lambda_memory  = 1024 # MB

@@ -1,0 +1,30 @@
+# Required variables
+recipient_email = "you@example.com"
+
+# Optional - override defaults
+project_name         = "ai-digest"
+location             = "uksouth"
+resource_group_name  = "rg-ai-digest"
+app_name             = "fn-ai-digest-unique"     # Must be globally unique
+storage_account_name = "staidigestunique"        # Must be globally unique, alphanumeric only
+key_vault_name       = "kv-ai-digest-unique"     # Must be globally unique
+
+# Configuration
+older_than_days     = 30
+max_links_per_email = 2
+max_sections        = 25
+openai_model        = "gpt-5-mini"  # or "gpt-5" for better quality
+time_zone           = "GMT Standard Time"
+
+# Additional AI keywords (comma-separated)
+keywords = ""
+
+# Professions for advice generation (comma-separated)
+professions = "Software Engineer,Product Manager,Designer,Finance,Accounting,Lawyer,Teacher,Nurse,Graphic Designer,Entrepreneur"
+
+# Tags for all resources
+tags = {
+  Environment = "Production"
+  Project     = "AI Digest"
+  ManagedBy   = "Terraform"
+}
