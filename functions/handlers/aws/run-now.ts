@@ -47,8 +47,9 @@ async function handler(
       event.queryStringParameters?.cleanup === "true" ||
       (event.body && JSON.parse(event.body || "{}").cleanup === true);
 
-    // Determine invocation type based on cleanup mode
-    const invocationType = cleanup ? "Event" : "RequestResponse";
+    // Use async invocation for all requests to avoid timeout issues
+    // Weekly digest processing can take 5+ minutes, longer than run-now's 30s timeout
+    const invocationType = "Event";
 
     // biome-ignore lint: Lambda logging is appropriate here
     console.log(
@@ -71,32 +72,13 @@ async function handler(
 
     const result = await lambda.send(command);
 
-    // For async invocation (cleanup mode), return immediately
-    if (invocationType === "Event") {
-      return {
-        statusCode: 202,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-          "Access-Control-Allow-Headers": "Content-Type",
-        },
-        body: JSON.stringify({
-          success: true,
-          message: "Cleanup digest processing started asynchronously",
-          invocationId: context.awsRequestId,
-          timestamp: new Date().toISOString(),
-        }),
-      };
-    }
-
-    // For sync invocation, parse and return the response
-    const responsePayload = result.Payload
-      ? JSON.parse(new TextDecoder().decode(result.Payload))
-      : { success: false, error: "No response payload" };
+    // All invocations are now async - return immediately with confirmation
+    const message = cleanup
+      ? "Cleanup digest processing started asynchronously"
+      : "Weekly digest processing started asynchronously";
 
     return {
-      statusCode: result.StatusCode || 200,
+      statusCode: 202,
       headers: {
         "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
@@ -105,9 +87,11 @@ async function handler(
       },
       body: JSON.stringify({
         success: true,
-        weeklyDigestResponse: responsePayload,
+        message,
+        mode: cleanup ? "cleanup" : "weekly",
         invocationId: context.awsRequestId,
         timestamp: new Date().toISOString(),
+        note: "Processing started. Check CloudWatch logs for completion status.",
       }),
     };
   } catch (error) {

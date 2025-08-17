@@ -23,7 +23,7 @@ const tableName = process.env.DYNAMODB_TABLE_NAME || 'ai-digest-known-ai-senders
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -31,7 +31,8 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const email = decodeURIComponent(params.id)
+    const { id } = await params
+    const email = decodeURIComponent(id)
 
     const command = new GetCommand({
       TableName: tableName,
@@ -61,7 +62,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -69,7 +70,8 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const email = decodeURIComponent(params.id)
+    const { id } = await params
+    const email = decodeURIComponent(id)
     const body = await request.json()
     const { confidence, senderName, newsletterName } = body
 
@@ -127,7 +129,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth()
@@ -135,7 +137,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const email = decodeURIComponent(params.id)
+    const { id } = await params
+    const email = decodeURIComponent(id)
 
     const command = new DeleteCommand({
       TableName: tableName,
