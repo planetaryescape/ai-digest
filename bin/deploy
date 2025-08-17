@@ -1,21 +1,29 @@
 #!/bin/bash
 
 set -e
-set -x
 
 trap 'echo "Error: Script failed at line $LINENO"; exit 1;' ERR
 
-echo "🚀 Starting deployment..."
+# Check if platform argument is provided
+PLATFORM=${1:-}
 
-# Build functions
-./bin/build
+if [ -z "$PLATFORM" ]; then
+    echo "Usage: ./bin/deploy <platform>"
+    echo "Available platforms: azure, aws"
+    echo ""
+    echo "Or use platform-specific scripts directly:"
+    echo "  ./bin/deploy-azure"
+    echo "  ./bin/deploy-aws"
+    exit 1
+fi
 
-# Create package
-bun run zip
+# Validate platform
+if [ "$PLATFORM" != "azure" ] && [ "$PLATFORM" != "aws" ]; then
+    echo "❌ Invalid platform: $PLATFORM"
+    echo "Available platforms: azure, aws"
+    exit 1
+fi
 
-# Deploy with Terraform
-cd terraform
-terraform init
-terraform apply -auto-approve
-
-echo "✅ Deployment complete!"
+# Run platform-specific deployment
+echo "🚀 Deploying to $PLATFORM..."
+./bin/deploy-$PLATFORM
