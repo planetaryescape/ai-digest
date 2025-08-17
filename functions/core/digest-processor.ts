@@ -3,8 +3,11 @@ import { sendDigest, sendErrorNotification } from "../lib/email";
 import { gmailClient } from "../lib/gmail";
 import type { ILogger } from "../lib/interfaces/logger";
 import type { IStorageClient } from "../lib/interfaces/storage";
+import { metrics } from "../lib/metrics";
+import { EmailRepository } from "../lib/repositories/EmailRepository";
 import { summarize } from "../lib/summarizer";
 import type { EmailItem } from "../lib/types";
+import { type Result, ResultUtils } from "../lib/types/Result";
 
 export interface DigestProcessorOptions {
   storage: IStorageClient;
@@ -26,10 +29,12 @@ export interface DigestResult {
 export class DigestProcessor {
   private storage: IStorageClient;
   private logger: ILogger;
+  private emailRepository: EmailRepository;
 
   constructor(options: DigestProcessorOptions) {
     this.storage = options.storage;
     this.logger = options.logger;
+    this.emailRepository = new EmailRepository(this.storage);
   }
 
   /**
@@ -44,11 +49,21 @@ export class DigestProcessor {
       `Processing batch ${batchNumber}/${totalBatches} with ${emails.length} emails`
     );
 
-    // Generate summary for this batch
-    const summary = await summarize(emails);
+    // Track cleanup batch metrics
+    if (totalBatches > 1) {
+      metrics.cleanupMode(batchNumber, emails.length);
+    }
 
-    // Send digest for this batch
-    await sendDigest(summary);
+    // Generate summary for this batch with timing
+    const startTime = Date.now();
+    const summary = await metrics.apiCall("openai", "summarize", () => summarize(emails));
+
+    // Send digest for this batch with timing
+    await metrics.apiCall("resend", "sendDigest", () => sendDigest(summary));
+
+    // Track digest generation metrics
+    const duration = Date.now() - startTime;
+    metrics.digestGenerated(emails.length, duration);
 
     // Save confirmed AI senders
     try {
@@ -68,8 +83,13 @@ export class DigestProcessor {
       this.logger.error(`Failed to save senders for batch ${batchNumber}`, error);
     }
 
-    // Mark emails as processed
-    await this.storage.markMultipleProcessed(emails.map((e) => ({ id: e.id, subject: e.subject })));
+    // Mark emails as processed with timing
+    await metrics.storageOperation("markMultipleProcessed", () =>
+      this.storage.markMultipleProcessed(emails.map((e) => ({ id: e.id, subject: e.subject })))
+    );
+
+    // Track emails processed
+    metrics.emailsProcessed(emails.length, { batch: batchNumber.toString() });
 
     this.logger.info(`Completed batch ${batchNumber}/${totalBatches}`);
   }
@@ -81,13 +101,17 @@ export class DigestProcessor {
     allEmails: EmailItem[];
     unprocessedEmails: EmailItem[];
   }> {
-    // Fetch ALL AI emails from Gmail inbox
+    // Fetch ALL AI emails from Gmail inbox with timing
     this.logger.info("Fetching ALL AI-related emails from Gmail inbox...");
-    const allEmails = await gmailClient.getAllAIEmails();
+    const allEmails = await metrics.apiCall("gmail", "getAllAIEmails", () =>
+      gmailClient.getAllAIEmails()
+    );
     this.logger.info(`Found ${allEmails.length} total AI-related emails in inbox`);
 
-    // Filter out already processed emails
-    const processedIds = new Set(await this.storage.getAllProcessedIds());
+    // Filter out already processed emails with timing
+    const processedIds = new Set(
+      await metrics.storageOperation("getAllProcessedIds", () => this.storage.getAllProcessedIds())
+    );
     const unprocessedEmails = allEmails.filter((email) => !processedIds.has(email.id));
     this.logger.info(`${unprocessedEmails.length} unprocessed emails to process in cleanup mode`);
 
@@ -249,15 +273,23 @@ export class DigestProcessor {
   }
 
   /**
-   * Validate and fetch weekly AI emails
+   * Validate and fetch weekly AI emails using Result pattern
    */
-  private async validateAndFetchEmails(): Promise<{
-    allEmails: EmailItem[];
-    unprocessedEmails: EmailItem[];
-  } | null> {
+  private async validateAndFetchEmails(): Promise<
+    Result<{
+      allEmails: EmailItem[];
+      unprocessedEmails: EmailItem[];
+    }>
+  > {
     // Fetch emails from Gmail
     this.logger.info("Fetching AI-related emails from Gmail...");
-    const allEmails = await gmailClient.getWeeklyAIEmails();
+
+    const emailsResult = await ResultUtils.try(() => gmailClient.getWeeklyAIEmails());
+    if (!emailsResult.ok) {
+      return emailsResult;
+    }
+
+    const allEmails = emailsResult.value;
     this.logger.info(`Found ${allEmails.length} AI-related emails`);
 
     // Guard: No emails found
@@ -265,37 +297,37 @@ export class DigestProcessor {
       this.logger.info(
         "No AI-related emails found to process. Exiting without further processing."
       );
-      return null;
+      return ResultUtils.ok({ allEmails: [], unprocessedEmails: [] });
     }
 
-    // Filter out already processed emails
+    // Filter out already processed emails using repository
     const processedIds = await this.storage.getWeeklyProcessedIds();
     const unprocessedEmails = allEmails.filter((email) => !processedIds.includes(email.id));
     this.logger.info(`${unprocessedEmails.length} unprocessed emails to summarize`);
 
-    // Guard: All emails already processed
-    if (unprocessedEmails.length === 0) {
-      this.logger.info(
-        "All emails have already been processed. Exiting without further processing."
-      );
-      return { allEmails, unprocessedEmails: [] };
-    }
-
-    return { allEmails, unprocessedEmails };
+    return ResultUtils.ok({ allEmails, unprocessedEmails });
   }
 
   /**
-   * Generate summary and send digest email
+   * Generate summary and send digest email using Result pattern
    */
-  private async generateAndSendDigest(emails: EmailItem[]): Promise<boolean> {
+  private async generateAndSendDigest(emails: EmailItem[]): Promise<Result<boolean>> {
     // Generate summary
     this.logger.info("Generating AI digest...");
-    const summary = await summarize(emails);
+    const summaryResult = await ResultUtils.try(() => summarize(emails));
+    if (!summaryResult.ok) {
+      return summaryResult;
+    }
+
+    const summary = summaryResult.value;
     this.logger.info(`Generated summary for ${summary.items.length} items`);
 
     // Send digest email
     this.logger.info("Sending digest email...");
-    await sendDigest(summary);
+    const sendResult = await ResultUtils.try(() => sendDigest(summary));
+    if (!sendResult.ok) {
+      return ResultUtils.err(sendResult.error);
+    }
     this.logger.info("✅ Digest email sent successfully");
 
     // Save confirmed AI senders for future detection
@@ -316,15 +348,13 @@ export class DigestProcessor {
       this.logger.error("Failed to save confirmed senders (non-critical)", error);
     }
 
-    // Mark emails as processed
+    // Mark emails as processed using repository
     if (emails.length > 0) {
-      await this.storage.markMultipleProcessed(
-        emails.map((e) => ({ id: e.id, subject: e.subject }))
-      );
+      await this.emailRepository.markAsProcessed(emails);
       this.logger.info(`✅ Marked ${emails.length} emails as processed`);
     }
 
-    return true;
+    return ResultUtils.ok(true);
   }
 
   /**
@@ -366,15 +396,22 @@ export class DigestProcessor {
   async processWeeklyDigest(): Promise<DigestResult> {
     this.logger.info("Weekly digest processing started");
 
-    let emailsSentSuccessfully = false;
     let unprocessedEmails: EmailItem[] = [];
     let allEmails: EmailItem[] = [];
 
     try {
       // Step 1: Validate and fetch emails
-      const emailData = await this.validateAndFetchEmails();
+      const emailDataResult = await this.validateAndFetchEmails();
 
-      if (!emailData) {
+      if (!emailDataResult.ok) {
+        throw emailDataResult.error;
+      }
+
+      const emailData = emailDataResult.value;
+      allEmails = emailData.allEmails;
+      unprocessedEmails = emailData.unprocessedEmails;
+
+      if (allEmails.length === 0) {
         return {
           success: true,
           emailsFound: 0,
@@ -382,9 +419,6 @@ export class DigestProcessor {
           message: "No AI-related emails found to process",
         };
       }
-
-      allEmails = emailData.allEmails;
-      unprocessedEmails = emailData.unprocessedEmails;
 
       if (unprocessedEmails.length === 0) {
         return {
@@ -396,10 +430,14 @@ export class DigestProcessor {
       }
 
       // Step 2: Generate and send digest
-      emailsSentSuccessfully = await this.generateAndSendDigest(unprocessedEmails);
+      const digestResult = await this.generateAndSendDigest(unprocessedEmails);
+
+      if (!digestResult.ok) {
+        throw digestResult.error;
+      }
 
       // Step 3: Perform cleanup tasks (optional, only if everything succeeded)
-      if (emailsSentSuccessfully && unprocessedEmails.length > 0) {
+      if (digestResult.value && unprocessedEmails.length > 0) {
         await this.performWeeklyCleanupTasks(unprocessedEmails);
       } else {
         this.logger.info("Skipping cleanup tasks - email not sent or no emails processed");

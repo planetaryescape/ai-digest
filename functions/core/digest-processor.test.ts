@@ -5,6 +5,24 @@ import { createMockEmailItem, MockLogger, MockStorageClient } from "../../test/u
 vi.mock("../lib/gmail");
 vi.mock("../lib/email");
 vi.mock("../lib/summarizer");
+vi.mock("../lib/metrics", () => ({
+  metrics: {
+    emailsProcessed: vi.fn(),
+    apiCall: vi.fn((service, operation, fn) => fn()),
+    digestGenerated: vi.fn(),
+    error: vi.fn(),
+    storageOperation: vi.fn((operation, fn) => fn()),
+    lambdaInvocation: vi.fn(),
+    cleanupMode: vi.fn(),
+  },
+  getMetrics: vi.fn(() => ({
+    increment: vi.fn(),
+    gauge: vi.fn(),
+    timer: vi.fn((name, fn) => fn()),
+    histogram: vi.fn(),
+    flush: vi.fn(),
+  })),
+}));
 
 import { sendDigest, sendErrorNotification } from "../lib/email";
 import { gmailClient } from "../lib/gmail";
