@@ -36,7 +36,7 @@ const buildFunction = async (config) => {
     }
 
     const outfile = path.join(outdir, `${config.name}.js`);
-    
+
     await esbuild.build({
       entryPoints: [entryFile],
       outfile,
@@ -61,12 +61,12 @@ const buildFunction = async (config) => {
 
     // Post-process to check if handler needs to be exported
     // esbuild should handle this with proper format, but check just in case
-    const content = fs.readFileSync(outfile, 'utf8');
-    
+    const content = fs.readFileSync(outfile, "utf8");
+
     // Check if exports.handler or module.exports is already present
-    if (!content.includes('exports.handler') && !content.includes('exports = {')) {
+    if (!content.includes("exports.handler") && !content.includes("exports = {")) {
       console.warn(`⚠️  Warning: handler export not found in ${config.name}.js`);
-      console.warn(`   Lambda may not be able to find the handler function`);
+      console.warn("   Lambda may not be able to find the handler function");
     }
 
     console.log(`✅ Built Lambda function: ${config.name}`);
@@ -78,25 +78,25 @@ const buildFunction = async (config) => {
 
 const createDeploymentPackage = () => {
   console.log("📦 Creating Lambda deployment package...");
-  
+
   const packagePath = path.join(outputDir, "..", "lambda.zip");
-  
+
   // Remove old package if exists
   if (fs.existsSync(packagePath)) {
     fs.unlinkSync(packagePath);
   }
-  
+
   // Copy package.json for Lambda layer (optional)
   const packageJsonSrc = path.join(handlersDir, "package.json");
   const packageJsonDst = path.join(outputDir, "package.json");
   if (fs.existsSync(packageJsonSrc)) {
     fs.copyFileSync(packageJsonSrc, packageJsonDst);
   }
-  
+
   // Create zip file with all Lambda functions
   const zipCommand = `cd ${outputDir} && zip -r ../lambda.zip . -q`;
   execSync(zipCommand);
-  
+
   console.log(`✅ Created deployment package: ${packagePath}`);
 };
 
