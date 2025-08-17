@@ -4,6 +4,9 @@ bun.lockb
 
 # Environment
 .env
+.env.*
+!.env.example
+!.env.*.example
 .env.local
 .env.production
 
@@ -14,13 +17,14 @@ terraform/package.zip
 *.js.map
 
 # Terraform
-terraform/.terraform/
-terraform/*.tfstate
-terraform/*.tfstate.*
-terraform/.terraform.lock.hcl
-terraform/*.tfplan
-terraform/*.tfvars
-!terraform/terraform.tfvars.example
+.terraform/
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.*
+**/.terraform.lock.hcl
+**/*.tfplan
+**/*.tfvars
+!**/*.tfvars.example
 
 # Azure
 *.azurefunctions/
