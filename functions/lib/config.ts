@@ -102,16 +102,16 @@ export const config = {
 
   // OpenAI settings (from ConfigManager)
   openai: {
-    model: process.env.OPENAI_MODEL || "gpt-4o-mini", // Default for most tasks
+    model: process.env.OPENAI_MODEL || "o4-mini", // Default for most tasks
     apiKey: managedConfig.ai.openAIKey,
     heliconeKey: managedConfig.ai.heliconeKey || "",
     // Model tiers for different tasks
     models: {
-      classification: process.env.CLASSIFICATION_MODEL || "gpt-4o-mini", // Fast classification
-      extraction: process.env.EXTRACTION_MODEL || "gpt-4o-mini", // Basic extraction
-      summarization: process.env.SUMMARIZATION_MODEL || "gpt-4o", // Smart analysis & opinions
-      analysis: process.env.ANALYSIS_MODEL || "gpt-4o", // Critical thinking & opinions
-      default: process.env.OPENAI_MODEL || "gpt-4o-mini",
+      classification: process.env.CLASSIFICATION_MODEL || "o4-mini", // Fast classification
+      extraction: process.env.EXTRACTION_MODEL || "o4-mini", // Smart extraction
+      summarization: process.env.SUMMARIZATION_MODEL || "gpt-5", // Most advanced analysis & opinions
+      analysis: process.env.ANALYSIS_MODEL || "o4-mini", // Smart reasoning & critical thinking
+      default: process.env.OPENAI_MODEL || "o4-mini",
     },
   },
 

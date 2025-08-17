@@ -47,26 +47,32 @@ variable "max_sections" {
 
 variable "openai_model" {
   type        = string
-  default     = "gpt-4o-mini"
+  default     = "o4-mini"
   description = "Default OpenAI model to use"
 }
 
 variable "classification_model" {
   type        = string
-  default     = "gpt-4o-mini"
-  description = "Model for email classification (smaller/faster)"
+  default     = "o4-mini"
+  description = "Model for email classification (compact reasoning)"
 }
 
 variable "extraction_model" {
   type        = string
-  default     = "gpt-4o-mini"
+  default     = "o4-mini"
   description = "Model for article extraction"
 }
 
 variable "summarization_model" {
   type        = string
-  default     = "gpt-4o"
-  description = "Model for digest summarization (smart analytical work)"
+  default     = "gpt-5"
+  description = "Model for digest summarization (most advanced analysis)"
+}
+
+variable "analysis_model" {
+  type        = string
+  default     = "o4-mini"
+  description = "Model for critical thinking and analysis (smart reasoning)"
 }
 
 variable "keywords" {
