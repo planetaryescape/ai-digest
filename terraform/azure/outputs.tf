@@ -42,9 +42,9 @@ output "application_insights_instrumentation_key" {
 
 output "next_steps" {
   value = <<-EOT
-    
+
     ✅ Infrastructure deployed successfully!
-    
+
     Next steps:
     1. Add secrets to Key Vault:
        az keyvault secret set --vault-name ${azurerm_key_vault.main.name} --name gmail-client-id --value "YOUR_VALUE"
@@ -55,16 +55,16 @@ output "next_steps" {
        az keyvault secret set --vault-name ${azurerm_key_vault.main.name} --name resend-api-key --value "YOUR_VALUE"
        az keyvault secret set --vault-name ${azurerm_key_vault.main.name} --name resend-from --value "AI Digest <digest@yourdomain.com>"
        az keyvault secret set --vault-name ${azurerm_key_vault.main.name} --name sentry-dsn --value "YOUR_VALUE" (optional)
-    
+
     2. Get the function key for manual triggers:
        az functionapp function keys list --name ${azurerm_linux_function_app.main.name} --resource-group ${azurerm_resource_group.main.name} --function-name run-now
-    
+
     3. Test manual trigger:
        curl "https://${azurerm_linux_function_app.main.default_hostname}/api/run?code=FUNCTION_KEY"
-    
+
     4. View logs:
        az webapp log tail --name ${azurerm_linux_function_app.main.name} --resource-group ${azurerm_resource_group.main.name}
-    
-    Timer is set to run every Sunday at 8:00 AM ${var.time_zone}.
+
+    Timer is set to run every Sunday at 9:00 AM UTC (1 hour after AWS deployment).
   EOT
 }

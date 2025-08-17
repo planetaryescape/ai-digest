@@ -1,27 +1,37 @@
 # AWS Configuration
-aws_region = "us-east-1"
+aws_region   = "us-east-1"
+project_name = "ai-digest"
+environment  = "production"
 
-# Email Configuration
-recipient_email = "you@example.com"
-
-# Schedule (CloudWatch Events cron expression)
-# Default: Every Sunday at 8 AM UTC
-# schedule_expression = "cron(0 8 ? * SUN *)"
-
-# Processing Configuration
-# older_than_days      = 30
-# max_links_per_email  = 2
-# max_sections         = 25
+# Gmail OAuth Configuration
+gmail_client_id     = "your-gmail-client-id"
+gmail_client_secret = "your-gmail-client-secret"
+gmail_refresh_token = "your-gmail-refresh-token"
 
 # OpenAI Configuration
-# openai_model = "gpt-4o-mini"
+openai_api_key   = "your-openai-api-key"
+helicone_api_key = "your-helicone-api-key"
 
-# Additional keywords for AI detection (comma-separated)
-# keywords = ""
+# Email Configuration
+resend_api_key  = "your-resend-api-key"
+recipient_email = "your-email@example.com"
 
-# Professions for advice generation (comma-separated)
-# professions = "Software Engineer,Product Manager,Designer,Finance,Accounting,Lawyer,Teacher,Nurse,Graphic Designer,Entrepreneur"
+# Processing Configuration (optional - defaults are fine)
+# older_than_days     = 30
+# max_links_per_email = 2
+# max_sections        = 25
+# keywords            = ""
+# professions         = "Software Engineer,Product Manager,Designer"
 
-# Lambda Configuration
-# lambda_timeout = 300  # 5 minutes
-# lambda_memory  = 1024 # MB
+# CORS Configuration for Lambda Function URLs
+# For development (allows all origins):
+allowed_origins = ["*"]
+
+# For production (replace with your actual domains):
+# allowed_origins = [
+#   "http://localhost:3000",
+#   "https://ai-digest.vercel.app",
+#   "https://ai-digest-preview.vercel.app"
+# ]
+# Note: Lambda Function URLs don't support wildcard subdomains like https://*.vercel.app
+# You must list each domain explicitly or use "*" for all origins

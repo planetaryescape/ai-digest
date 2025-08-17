@@ -90,3 +90,13 @@ variable "professions" {
   type        = string
   default     = "Software Engineer,Product Manager,Designer,Finance,Accounting,Lawyer,Teacher,Nurse,Graphic Designer,Entrepreneur"
 }
+
+variable "allowed_origins" {
+  description = "Allowed CORS origins for Lambda function URLs"
+  type        = list(string)
+  default     = ["*"]
+  # Note: Lambda Function URLs don't support wildcard subdomains like https://*.vercel.app
+  # You must use either specific domains or "*" for all origins
+  # For production, update this with your actual Vercel domain:
+  # default = ["http://localhost:3000", "https://your-app.vercel.app"]
+}

@@ -283,12 +283,43 @@ resource "aws_lambda_function" "run_now" {
   environment {
     variables = {
       WEEKLY_DIGEST_FUNCTION_NAME = aws_lambda_function.weekly_digest.function_name
+      ALLOWED_ORIGINS = join(",", var.allowed_origins)
     }
   }
 
   depends_on = [
     aws_cloudwatch_log_group.run_now
   ]
+}
+
+# Lambda Function URL for run-now (with CORS)
+resource "aws_lambda_function_url" "run_now" {
+  function_name      = aws_lambda_function.run_now.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = var.allowed_origins
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    expose_headers    = ["*"]
+    max_age           = 86400
+  }
+}
+
+# Lambda Function URL for weekly-digest (with CORS)
+resource "aws_lambda_function_url" "weekly_digest" {
+  function_name      = aws_lambda_function.weekly_digest.function_name
+  authorization_type = "NONE"
+
+  cors {
+    allow_credentials = true
+    allow_origins     = var.allowed_origins
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    expose_headers    = ["*"]
+    max_age           = 86400
+  }
 }
 
 # Comment out invoke policy as user doesn't have IAM permissions
@@ -335,6 +366,14 @@ resource "aws_api_gateway_method" "run_post" {
   api_key_required = true
 }
 
+# OPTIONS method for CORS preflight
+resource "aws_api_gateway_method" "run_options" {
+  rest_api_id   = aws_api_gateway_rest_api.api.id
+  resource_id   = aws_api_gateway_resource.run.id
+  http_method   = "OPTIONS"
+  authorization = "NONE"
+}
+
 resource "aws_api_gateway_integration" "run_lambda" {
   rest_api_id = aws_api_gateway_rest_api.api.id
   resource_id = aws_api_gateway_resource.run.id
@@ -343,6 +382,48 @@ resource "aws_api_gateway_integration" "run_lambda" {
   integration_http_method = "POST"
   type                    = "AWS_PROXY"
   uri                     = aws_lambda_function.run_now.invoke_arn
+}
+
+# CORS integration for OPTIONS
+resource "aws_api_gateway_integration" "run_options" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.run.id
+  http_method = aws_api_gateway_method.run_options.http_method
+
+  type = "MOCK"
+
+  request_templates = {
+    "application/json" = jsonencode({
+      statusCode = 200
+    })
+  }
+}
+
+# CORS response for OPTIONS
+resource "aws_api_gateway_method_response" "run_options" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.run.id
+  http_method = aws_api_gateway_method.run_options.http_method
+  status_code = "200"
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = true
+    "method.response.header.Access-Control-Allow-Methods" = true
+    "method.response.header.Access-Control-Allow-Origin"  = true
+  }
+}
+
+resource "aws_api_gateway_integration_response" "run_options" {
+  rest_api_id = aws_api_gateway_rest_api.api.id
+  resource_id = aws_api_gateway_resource.run.id
+  http_method = aws_api_gateway_method.run_options.http_method
+  status_code = aws_api_gateway_method_response.run_options.status_code
+
+  response_parameters = {
+    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+    "method.response.header.Access-Control-Allow-Methods" = "'GET,OPTIONS,POST,PUT'"
+    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
+  }
 }
 
 resource "aws_lambda_permission" "api_gateway_run" {
@@ -357,7 +438,8 @@ resource "aws_api_gateway_deployment" "main" {
   rest_api_id = aws_api_gateway_rest_api.api.id
 
   depends_on = [
-    aws_api_gateway_integration.run_lambda
+    aws_api_gateway_integration.run_lambda,
+    aws_api_gateway_integration.run_options
   ]
 
   lifecycle {
@@ -429,4 +511,14 @@ output "processed_emails_bucket" {
 output "known_ai_senders_table" {
   value       = aws_dynamodb_table.known_ai_senders.name
   description = "DynamoDB table for known AI senders"
+}
+
+output "run_now_function_url" {
+  value       = aws_lambda_function_url.run_now.function_url
+  description = "Lambda Function URL for run-now (with CORS enabled)"
+}
+
+output "weekly_digest_function_url" {
+  value       = aws_lambda_function_url.weekly_digest.function_url
+  description = "Lambda Function URL for weekly-digest (with CORS enabled)"
 }

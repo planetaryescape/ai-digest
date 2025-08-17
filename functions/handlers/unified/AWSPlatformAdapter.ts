@@ -56,11 +56,18 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
   }
 
   formatResponse(result: DigestResult): APIGatewayProxyResult {
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || ["*"];
+    const corsOrigin = allowedOrigins.includes("*") ? "*" : allowedOrigins[0];
+
     return {
       statusCode: result.success ? 200 : 500,
       headers: {
         "Content-Type": "application/json",
         "X-Request-Id": result.invocationId || "",
+        "Access-Control-Allow-Origin": corsOrigin,
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({
         success: result.success,
@@ -81,11 +88,18 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
       error.message.includes("Email send failed") ||
       error.message.includes("Summary generation failed");
 
+    const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(",") || ["*"];
+    const corsOrigin = allowedOrigins.includes("*") ? "*" : allowedOrigins[0];
+
     return {
       statusCode: isCriticalError ? 500 : 200,
       headers: {
         "Content-Type": "application/json",
         "X-Request-Id": context.invocationId,
+        "Access-Control-Allow-Origin": corsOrigin,
+        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Credentials": "true",
       },
       body: JSON.stringify({
         success: false,
