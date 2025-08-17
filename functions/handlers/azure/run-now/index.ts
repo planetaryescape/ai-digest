@@ -1,8 +1,4 @@
-import type {
-  HttpRequest,
-  HttpResponseInit,
-  InvocationContext,
-} from "@azure/functions";
+import type { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
 
 /**
  * Azure Function handler for manual trigger
@@ -17,13 +13,13 @@ export default async function runNow(
   try {
     // Get function key from environment
     const weeklyDigestKey = process.env.WEEKLY_DIGEST_KEY || "";
-    
+
     // Construct the URL with the function key
     const functionHost = process.env.WEBSITE_HOSTNAME || "fn-ai-digest-unique.azurewebsites.net";
-    const url = weeklyDigestKey 
+    const url = weeklyDigestKey
       ? `https://${functionHost}/api/weekly-digest?code=${weeklyDigestKey}`
       : `https://${functionHost}/api/weekly-digest`;
-    
+
     // Make HTTP call to weekly-digest function
     const options: RequestInit = {
       method: "POST",
@@ -31,21 +27,21 @@ export default async function runNow(
         "Content-Type": "application/json",
       },
     };
-    
+
     context.info(`Calling weekly-digest function at ${url.replace(/code=.*/, "code=***")}`);
-    
+
     const response = await fetch(url, options);
     const responseData = await response.text();
-    
+
     let parsedResponse: unknown;
     try {
       parsedResponse = JSON.parse(responseData);
     } catch {
       parsedResponse = { message: responseData };
     }
-    
+
     context.info(`Weekly-digest response: ${response.status}`);
-    
+
     // Return the response from weekly-digest
     return {
       status: response.status,
@@ -61,9 +57,10 @@ export default async function runNow(
     };
   } catch (error) {
     context.error("Error in manual digest run", error);
-    
-    const errorMessage = error instanceof Error ? error.message : "Failed to call weekly-digest function";
-    
+
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to call weekly-digest function";
+
     return {
       status: 500,
       headers: {

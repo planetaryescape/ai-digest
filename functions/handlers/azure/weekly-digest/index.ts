@@ -42,10 +42,10 @@ export default async function weeklyDigest(
 ): Promise<HttpResponseInit | undefined> {
   const logger = new AzureFunctionsLogger(context, "weekly-digest");
   logger.info(`Function invoked - ${context.invocationId}`);
-  
+
   // Check if this is a timer trigger
-  const isTimerTrigger = myTimer && 'isPastDue' in myTimer;
-  
+  const isTimerTrigger = myTimer && "isPastDue" in myTimer;
+
   if (isTimerTrigger && myTimer.isPastDue) {
     logger.warn("Timer is past due!");
   }
@@ -55,7 +55,7 @@ export default async function weeklyDigest(
 
   try {
     const result = await processor.processWeeklyDigest();
-    
+
     // Return HTTP response for HTTP triggers
     if (!isTimerTrigger) {
       return {
@@ -75,23 +75,25 @@ export default async function weeklyDigest(
         }),
       };
     }
-    
+
     // For timer triggers, just log the result
     logger.info("Digest processing completed", result);
-    
+
     // Throw error for timer triggers to mark as failed
     if (!result.success && result.error) {
       throw new Error(result.error);
     }
   } catch (error) {
     logger.error("Failed to process digest", error);
-    
+
     // Return error response for HTTP triggers
     if (!isTimerTrigger) {
-      const errorMessage = error instanceof Error ? error.message : "An error occurred processing the digest";
-      const isCriticalError = errorMessage.includes("Email send failed") || 
-                             errorMessage.includes("Summary generation failed");
-      
+      const errorMessage =
+        error instanceof Error ? error.message : "An error occurred processing the digest";
+      const isCriticalError =
+        errorMessage.includes("Email send failed") ||
+        errorMessage.includes("Summary generation failed");
+
       return {
         status: isCriticalError ? 500 : 200,
         headers: { "Content-Type": "application/json" },
@@ -104,7 +106,7 @@ export default async function weeklyDigest(
         }),
       };
     }
-    
+
     // Re-throw for timer triggers
     throw error;
   }
