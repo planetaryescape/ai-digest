@@ -1,0 +1,134 @@
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Context,
+  ScheduledEvent,
+} from "aws-lambda";
+import type { DigestResult } from "../../core/digest-processor";
+import type { IPlatformAdapter } from "./IPlatformAdapter";
+import type { UnifiedContext, UnifiedLogger, UnifiedRequest, UnifiedResponse } from "./types";
+
+/**
+ * AWS Lambda platform adapter
+ */
+export class AWSPlatformAdapter implements IPlatformAdapter {
+  parseRequest(event: ScheduledEvent | APIGatewayProxyEvent, context: Context): UnifiedRequest {
+    const isScheduled = this.isTimerTrigger(event);
+
+    if (isScheduled) {
+      const scheduledEvent = event as ScheduledEvent;
+      return {
+        type: "timer",
+        source: scheduledEvent.source || "aws.events",
+        invocationId: context.awsRequestId,
+        timestamp: new Date(scheduledEvent.time),
+        cleanup: false,
+      };
+    }
+
+    const apiEvent = event as APIGatewayProxyEvent;
+    return {
+      type: "http",
+      method: apiEvent.httpMethod,
+      path: apiEvent.path,
+      query: (apiEvent.queryStringParameters || {}) as Record<string, string>,
+      body: this.parseBody(apiEvent.body),
+      headers: (apiEvent.headers || {}) as Record<string, string>,
+      cleanup: this.isCleanupMode(event),
+      invocationId: context.awsRequestId,
+      timestamp: new Date(),
+    };
+  }
+
+  createContext(context: Context): UnifiedContext {
+    const logger: UnifiedLogger = {
+      info: (message: string, ...args: any[]) => console.log(`[INFO] ${message}`, ...args),
+      warn: (message: string, ...args: any[]) => console.warn(`[WARN] ${message}`, ...args),
+      error: (message: string, ...args: any[]) => console.error(`[ERROR] ${message}`, ...args),
+      debug: (message: string, ...args: any[]) => console.debug(`[DEBUG] ${message}`, ...args),
+    };
+
+    return {
+      functionName: context.functionName,
+      invocationId: context.awsRequestId,
+      logger,
+    };
+  }
+
+  formatResponse(result: DigestResult): APIGatewayProxyResult {
+    return {
+      statusCode: result.success ? 200 : 500,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Request-Id": result.invocationId || "",
+      },
+      body: JSON.stringify({
+        success: result.success,
+        message: result.message,
+        details: {
+          emailsFound: result.emailsFound,
+          emailsProcessed: result.emailsProcessed,
+          digestSent: result.success && result.emailsProcessed > 0,
+          error: result.error,
+        },
+        timestamp: new Date().toISOString(),
+      }),
+    };
+  }
+
+  formatError(error: Error, context: UnifiedContext): APIGatewayProxyResult {
+    const isCriticalError =
+      error.message.includes("Email send failed") ||
+      error.message.includes("Summary generation failed");
+
+    return {
+      statusCode: isCriticalError ? 500 : 200,
+      headers: {
+        "Content-Type": "application/json",
+        "X-Request-Id": context.invocationId,
+      },
+      body: JSON.stringify({
+        success: false,
+        error: error.message,
+        severity: isCriticalError ? "critical" : "warning",
+        timestamp: new Date().toISOString(),
+        invocationId: context.invocationId,
+      }),
+    };
+  }
+
+  isTimerTrigger(event: any): boolean {
+    return event && event.source === "aws.events" && event["detail-type"] === "Scheduled Event";
+  }
+
+  isCleanupMode(event: any): boolean {
+    if (this.isTimerTrigger(event)) {
+      return false;
+    }
+
+    const apiEvent = event as APIGatewayProxyEvent;
+
+    // Check query parameters
+    if (apiEvent.queryStringParameters?.cleanup === "true") {
+      return true;
+    }
+
+    // Check body
+    if (apiEvent.body) {
+      const body = this.parseBody(apiEvent.body);
+      return body?.cleanup === true;
+    }
+
+    return false;
+  }
+
+  private parseBody(body: string | null): any {
+    if (!body) return null;
+
+    try {
+      return JSON.parse(body);
+    } catch {
+      return body;
+    }
+  }
+}

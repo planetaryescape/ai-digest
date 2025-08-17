@@ -1,108 +1,68 @@
-import type { Context } from "aws-lambda";
-import { DigestProcessor } from "../../core/digest-processor";
-import { CloudWatchLogger } from "../../lib/aws/cloudwatch-logger";
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Context,
+  ScheduledEvent,
+} from "aws-lambda";
 import { SecretsLoader } from "../../lib/aws/secrets-loader";
-import { StorageFactory } from "../../lib/storage-factory";
-import type { DigestLambdaResponse, DigestResponseBody, LambdaEvent } from "../../lib/types/lambda";
+import { ConfigValidator } from "../../lib/config-validator";
+import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
+import { createHttpHandler, createScheduledHandler } from "../unified/AWSHandler";
 
 /**
  * AWS Lambda handler for weekly digest
  * Can be triggered by EventBridge (scheduled) or API Gateway (HTTP)
+ * Uses unified handler architecture
  */
-async function handler(
-  event: LambdaEvent = {} as LambdaEvent,
-  _context: Context = {} as Context
-): Promise<void | DigestLambdaResponse> {
-  try {
-    console.log("Handler called with event:", JSON.stringify(event || {}));
-    console.log("Context:", JSON.stringify(_context || {}));
-  } catch (e) {
-    console.error("Error logging inputs:", e);
-  }
+const httpHandler = createHttpHandler();
+const scheduledHandler = createScheduledHandler();
 
-  const logger = new CloudWatchLogger("weekly-digest");
-  
-  // Determine event type and mode
-  const eventSource = 'source' in event ? event.source : 'httpMethod' in event ? 'http' : 'scheduled';
-  logger.info("Lambda function invoked", { eventType: eventSource });
+async function handler(event: any, context: Context): Promise<APIGatewayProxyResult | void> {
+  // Validate configuration on cold start
+  try {
+    ConfigValidator.validateOrThrow();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Configuration validation failed";
+
+    // Check if this is an HTTP event
+    if (event.httpMethod) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          success: false,
+          error: errorMessage,
+          timestamp: new Date().toISOString(),
+        }),
+      };
+    }
+    throw error;
+  }
 
   // Load secrets on cold start
   await SecretsLoader.loadSecrets();
 
-  // Create storage client based on configuration
-  const storage = StorageFactory.create();
-  const processor = new DigestProcessor({ storage, logger });
+  // Determine event type and route to appropriate handler
+  const isScheduledEvent =
+    event.source === "aws.events" && event["detail-type"] === "Scheduled Event";
 
-  // Check if cleanup mode is requested (checking all possible event types)
-  const isCleanupMode = 
-    ('cleanup' in event && event.cleanup === true) || 
-    ('mode' in event && event.mode === "cleanup");
-
-  try {
-    const result = isCleanupMode
-      ? await processor.processCleanupDigest()
-      : await processor.processWeeklyDigest();
-
-    // If this is an HTTP request (from API Gateway), return a response
-    if ("httpMethod" in event && event.httpMethod) {
-      const responseBody: DigestResponseBody = {
-        success: result.success,
-        message: result.message,
-        mode: isCleanupMode ? "cleanup" : "weekly",
-        details: {
-          emailsFound: result.emailsFound,
-          emailsProcessed: result.emailsProcessed,
-          batches: result.batches,
-          error: result.error,
-        },
-        timestamp: new Date().toISOString(),
-      };
-
-      return {
-        statusCode: result.success ? 200 : 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(responseBody),
-      };
-    }
-
-    // For scheduled events, just log the result
-    logger.info("Digest processing completed", result);
-
-    // Throw error for scheduled events to mark as failed in CloudWatch
-    if (!result.success && result.error) {
-      throw new Error(result.error);
-    }
-  } catch (error) {
-    logger.error("Failed to process digest", error);
-
-    // For HTTP requests, return error response
-    if ("httpMethod" in event && event.httpMethod) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      const errorResponse: DigestResponseBody = {
-        success: false,
-        timestamp: new Date().toISOString(),
-        details: {
-          emailsFound: 0,
-          emailsProcessed: 0,
-          error: errorMessage,
-        },
-      };
-
-      return {
-        statusCode: 500,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(errorResponse),
-      };
-    }
-
-    // Re-throw for scheduled events
-    throw error;
+  if (isScheduledEvent) {
+    return scheduledHandler(event as ScheduledEvent, context);
   }
+  return httpHandler(event as APIGatewayProxyEvent, context);
 }
 
+// Apply middleware for HTTP events
+const handlerWithMiddleware = compose(
+  withCorrelationId,
+  // Only apply HTTP logging for actual HTTP events
+  (h: any) => async (event: any, context: any) => {
+    if (event.httpMethod) {
+      return withLambdaLogging(h)(event, context);
+    }
+    return h(event, context);
+  }
+)(handler);
+
 // Export for Lambda
-export { handler };
+export { handlerWithMiddleware as handler };
