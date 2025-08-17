@@ -12,6 +12,10 @@ import {
 } from "@react-email/components";
 import { Tailwind } from "@react-email/tailwind";
 import type { Summary } from "../functions/lib/types";
+import { DigestSection } from "./components/DigestSection";
+import { EmailFooter } from "./components/EmailFooter";
+import { EmailHeader, getWeekDescription } from "./components/EmailHeader";
+import { MarkdownRenderer } from "./components/MarkdownRenderer";
 
 interface WeeklyDigestEmailProps {
   summary: Summary;
@@ -49,69 +53,41 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
       >
         <Body className="bg-offwhite font-sans text-base text-brand">
           <Container className="p-45 bg-[hsl(210, 36%, 96%)]">
-            <Section className="text-center mb-8">
-              <Heading className="my-0 text-3xl font-bold">AI Digest</Heading>
-              <Text className="text-sm text-gray-600 mt-2">{getWeekDescription()}</Text>
-            </Section>
+            <EmailHeader title="AI Digest" subtitle={getWeekDescription()} />
 
             {/* What Actually Happened */}
             {sections.whatHappened && (
-              <Section className="mb-8">
-                <Heading as="h2" className="text-xl font-semibold mb-4 text-brand">
-                  📰 What Actually Happened
-                </Heading>
-                <div className="bg-white p-4 rounded-lg">
-                  <MarkdownContent content={sections.whatHappened} />
-                </div>
-              </Section>
+              <DigestSection title="What Actually Happened" icon="📰">
+                <MarkdownRenderer content={sections.whatHappened} />
+              </DigestSection>
             )}
 
             {/* TL;DR for You */}
             {sections.tldr && (
-              <Section className="mb-8">
-                <Heading as="h2" className="text-xl font-semibold mb-4 text-brand">
-                  🎯 TL;DR for You
-                </Heading>
-                <div className="bg-white p-4 rounded-lg border-l-4 border-accent">
-                  <MarkdownContent content={sections.tldr} />
-                </div>
-              </Section>
+              <DigestSection title="TL;DR for You" icon="🎯" borderColor="border-accent">
+                <MarkdownRenderer content={sections.tldr} />
+              </DigestSection>
             )}
 
             {/* Role-Based Plays */}
             {sections.roleBasedPlays && (
-              <Section className="mb-8">
-                <Heading as="h2" className="text-xl font-semibold mb-4 text-brand">
-                  💼 Role-Based Plays
-                </Heading>
-                <div className="bg-white p-4 rounded-lg">
-                  <MarkdownContent content={sections.roleBasedPlays} />
-                </div>
-              </Section>
+              <DigestSection title="Role-Based Plays" icon="💼">
+                <MarkdownRenderer content={sections.roleBasedPlays} />
+              </DigestSection>
             )}
 
             {/* Product Plays */}
             {sections.productPlays && (
-              <Section className="mb-8">
-                <Heading as="h2" className="text-xl font-semibold mb-4 text-brand">
-                  🚀 Product Plays for Your Apps
-                </Heading>
-                <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg border border-accent">
-                  <MarkdownContent content={sections.productPlays} />
-                </div>
-              </Section>
+              <DigestSection title="Product Plays for Your Apps" icon="🚀">
+                <MarkdownRenderer content={sections.productPlays} />
+              </DigestSection>
             )}
 
             {/* Tools & Opportunities */}
             {sections.tools && (
-              <Section className="mb-8">
-                <Heading as="h2" className="text-xl font-semibold mb-4 text-brand">
-                  🛠️ Tools & Opportunities
-                </Heading>
-                <div className="bg-white p-4 rounded-lg">
-                  <MarkdownContent content={sections.tools} />
-                </div>
-              </Section>
+              <DigestSection title="Tools & Opportunities" icon="🛠️">
+                <MarkdownRenderer content={sections.tools} />
+              </DigestSection>
             )}
 
             {/* Postable Message */}
@@ -177,63 +153,13 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
 
             <Hr className="my-8" />
 
-            {/* Footer */}
-            <Section className="text-center">
-              <Text className="text-xs text-gray-500">
-                Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
-                <br />
-                <Link href="mailto:digest@bhekani.com" className="text-accent">
-                  Contact
-                </Link>
-                {" | "}
-                <Link href="https://bhekani.com" className="text-accent">
-                  Blog
-                </Link>
-              </Text>
-            </Section>
+            <EmailFooter />
           </Container>
         </Body>
       </Tailwind>
     </Html>
   );
 };
-
-// Helper component to render markdown-style content
-function MarkdownContent({ content }: { content: string }) {
-  // Simple markdown to React conversion
-  const lines = content.split("\n");
-  return (
-    <>
-      {lines.map((line, i) => {
-        // Headers
-        if (line.startsWith("### ")) {
-          return (
-            <Text key={i} className="font-semibold mt-3 mb-1 text-sm">
-              {line.replace("### ", "")}
-            </Text>
-          );
-        }
-        // Bullets
-        if (line.startsWith("- ")) {
-          return (
-            <Text key={i} className="ml-4 mb-1 text-sm">
-              • {line.replace("- ", "")}
-            </Text>
-          );
-        }
-        // Regular text
-        if (line.trim()) {
-          return (
-            <Text key={i} className="mb-2 text-sm">
-              {line}
-            </Text>
-          );
-        }
-        return null;
-      })}
-    </>
-  );
-}
 
 // Parse the digest into sections
 function parseDigestSections(digest: string) {
@@ -266,18 +192,6 @@ function parseDigestSections(digest: string) {
   }
 
   return sections;
-}
-
-// Get week description
-function getWeekDescription(): string {
-  const now = new Date();
-  const weekNumber = Math.ceil(
-    ((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 86400000 +
-      new Date(now.getFullYear(), 0, 1).getDay() +
-      1) /
-      7
-  );
-  return `Week ${weekNumber}, ${now.getFullYear()}`;
 }
 
 export default WeeklyDigestEmail;
