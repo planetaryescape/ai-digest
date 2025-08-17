@@ -48,7 +48,25 @@ variable "max_sections" {
 variable "openai_model" {
   type        = string
   default     = "gpt-4o-mini"
-  description = "OpenAI model to use"
+  description = "Default OpenAI model to use"
+}
+
+variable "classification_model" {
+  type        = string
+  default     = "gpt-4o-mini"
+  description = "Model for email classification (smaller/faster)"
+}
+
+variable "extraction_model" {
+  type        = string
+  default     = "gpt-4o-mini"
+  description = "Model for article extraction"
+}
+
+variable "summarization_model" {
+  type        = string
+  default     = "gpt-4o"
+  description = "Model for digest summarization (smart analytical work)"
 }
 
 variable "keywords" {
@@ -59,7 +77,7 @@ variable "keywords" {
 
 variable "professions" {
   type        = string
-  default     = "Software Engineer,Product Manager,Designer,Finance,Accounting,Lawyer,Teacher,Nurse,Graphic Designer,Entrepreneur"
+  default     = "Software Engineer,ML Engineer,Data Scientist,Product Manager,Designer,Founder,Investor,Researcher,DevOps Engineer,Security Engineer,Content Creator,Marketer"
   description = "Professions to generate advice for (comma-separated)"
 }
 
