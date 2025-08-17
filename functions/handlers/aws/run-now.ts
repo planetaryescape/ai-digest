@@ -1,9 +1,5 @@
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 /**
  * AWS Lambda handler for manual trigger
@@ -92,20 +88,16 @@ async function handler(
     } else if (invocationType === "Event") {
       // For async invocation, we don't get the result immediately
       digestResponse = {
-        message:
-          "Cleanup digest started asynchronously. Check CloudWatch logs for progress.",
+        message: "Cleanup digest started asynchronously. Check CloudWatch logs for progress.",
         asyncInvocation: true,
       };
     }
 
     // Check if the invocation was successful
     const success =
-      response.StatusCode === 202 ||
-      (response.StatusCode === 200 && !response.FunctionError);
+      response.StatusCode === 202 || (response.StatusCode === 200 && !response.FunctionError);
 
-    console.log(
-      `Weekly-digest invocation ${success ? "succeeded" : "failed"} (${invocationType})`
-    );
+    console.log(`Weekly-digest invocation ${success ? "succeeded" : "failed"} (${invocationType})`);
 
     return {
       statusCode: success ? 200 : 500,
@@ -124,9 +116,7 @@ async function handler(
     console.error("Error invoking weekly-digest Lambda", error);
 
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to invoke weekly-digest function";
+      error instanceof Error ? error.message : "Failed to invoke weekly-digest function";
 
     return {
       statusCode: 500,
