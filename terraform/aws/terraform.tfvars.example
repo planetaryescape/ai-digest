@@ -24,14 +24,13 @@ recipient_email = "your-email@example.com"
 # professions         = "Software Engineer,Product Manager,Designer"
 
 # CORS Configuration for Lambda Function URLs
-# For development (allows all origins):
-allowed_origins = ["*"]
+# For production with Vercel deployment:
+allowed_origins = [
+  "http://localhost:3000",
+  "https://ai-digest-vert.vercel.app"
+]
 
-# For production (replace with your actual domains):
-# allowed_origins = [
-#   "http://localhost:3000",
-#   "https://ai-digest.vercel.app",
-#   "https://ai-digest-preview.vercel.app"
-# ]
+# For development (allows all origins):
+# allowed_origins = ["*"]
 # Note: Lambda Function URLs don't support wildcard subdomains like https://*.vercel.app
 # You must list each domain explicitly or use "*" for all origins
