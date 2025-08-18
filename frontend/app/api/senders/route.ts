@@ -13,10 +13,10 @@ export const runtime = 'nodejs'
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || 'us-east-1',
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  credentials: process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  } : undefined,
 })
 
 const docClient = DynamoDBDocumentClient.from(client)
@@ -39,6 +39,23 @@ export async function GET() {
     return NextResponse.json(senders || [])
   } catch (error) {
     console.error('Error fetching senders:', error)
+    
+    // Check for missing AWS credentials
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      return NextResponse.json(
+        { error: 'AWS credentials not configured. Please set AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables.' },
+        { status: 500 }
+      )
+    }
+    
+    // Check for table not found
+    if (error instanceof Error && error.message.includes('ResourceNotFoundException')) {
+      return NextResponse.json(
+        { error: `DynamoDB table '${tableName}' not found. Please ensure the table exists in region ${process.env.AWS_REGION || 'us-east-1'}.` },
+        { status: 500 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Failed to fetch senders' },
       { status: 500 }
