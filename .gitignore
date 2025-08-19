@@ -51,4 +51,4 @@ coverage/
 # Misc
 .cache/
 tmp/
-temp/
+temp/terraform.tfvars

@@ -58,6 +58,24 @@ aws lambda invoke --function-name ai-digest-run-now \
 
 ## Architecture
 
+### Agent-Based Architecture
+The system features a comprehensive agent-based architecture with deep analysis capabilities:
+
+#### Specialized Agents
+1. **EmailFetcherAgent** - Metadata-first fetching (70% fewer API calls)
+2. **ClassifierAgent** - Batch classification of unknown senders
+3. **ContentExtractorAgent** - Firecrawl integration for deep article extraction
+4. **ResearchAgent** - Brave Search API for additional context
+5. **AnalysisAgent** - GPT-5/O1 with high reasoning effort
+6. **CriticAgent** - Opinionated commentary generation
+
+#### Key Features
+- **DigestProcessor** - Main orchestrator for agent coordination
+- **Enhanced sender tracking** - Tracks both AI and non-AI senders with confidence decay
+- **Cost control** - Hard limits on API usage with real-time tracking
+- **Circuit breakers** - Prevents cascade failures across all external services
+- **Graceful degradation** - Falls back to simpler processing when cost limits approached
+
 ### Recent Refactoring (Phase 2 - Completed)
 The codebase has undergone major architectural improvements with professional design patterns:
 
