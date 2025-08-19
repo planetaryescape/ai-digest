@@ -8,7 +8,7 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html"],
+      reporter: ["text", "json", "html", "lcov"],
       exclude: [
         "node_modules/**",
         "test/**",
@@ -20,10 +20,18 @@ export default defineConfig({
         "bin/**",
         "**/types.ts",
         "**/interfaces/**",
+        "dist/**",
+        "coverage/**",
       ],
+      thresholds: {
+        statements: 50,
+        branches: 50,
+        functions: 50,
+        lines: 50,
+      },
     },
-    include: ["**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules/**", "terraform/**"],
+    include: ["functions/**/*.{test,spec}.{ts,tsx}", "test/**/*.{test,spec}.{ts,tsx}"],
+    exclude: ["node_modules/**", "terraform/**", "frontend/**", "dist/**"],
   },
   resolve: {
     alias: {
