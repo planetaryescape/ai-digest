@@ -14,6 +14,7 @@ A modern Next.js 15 frontend for managing AI newsletter digests with Clerk authe
 
 ## Tech Stack
 
+- **Runtime**: Bun (fast JavaScript runtime and package manager)
 - **Framework**: Next.js 15 (App Router)
 - **Authentication**: Clerk
 - **State Management**: TanStack Query
@@ -27,7 +28,7 @@ A modern Next.js 15 frontend for managing AI newsletter digests with Clerk authe
 
 ### Prerequisites
 
-1. Node.js 18+ and npm
+1. [Bun](https://bun.sh) - Fast JavaScript runtime and package manager
 2. Clerk account for authentication
 3. AWS credentials for Lambda and DynamoDB access
 4. Vercel account for deployment
@@ -36,7 +37,7 @@ A modern Next.js 15 frontend for managing AI newsletter digests with Clerk authe
 
 1. Install dependencies:
 ```bash
-npm install
+bun install
 ```
 
 2. Set up environment variables:
@@ -54,7 +55,7 @@ Edit `.env.local` with your credentials:
 Run the development server:
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the app.
@@ -64,7 +65,7 @@ Open [http://localhost:3000](http://localhost:3000) to view the app.
 Build for production:
 
 ```bash
-npm run build
+bun run build
 ```
 
 ### Deployment
@@ -162,6 +163,15 @@ NEXT_PUBLIC_APP_URL=https://your-domain.vercel.app
 3. Commit your changes
 4. Push to the branch
 5. Open a pull request
+
+## Why Bun?
+
+This project uses Bun for:
+- ⚡ **Faster dependency installation** (3-10x faster than npm)
+- 🚀 **Quicker build times** with built-in bundler
+- 📦 **Smaller lockfile format** (binary format, more efficient)
+- 🔧 **Built-in TypeScript support** without additional configuration
+- 💾 **Lower memory usage** during builds
 
 ## License
 

@@ -1,11 +1,6 @@
 export function pipe<A, B>(value: A, fn1: (a: A) => B): B;
 export function pipe<A, B, C>(value: A, fn1: (a: A) => B, fn2: (b: B) => C): C;
-export function pipe<A, B, C, D>(
-  value: A,
-  fn1: (a: A) => B,
-  fn2: (b: B) => C,
-  fn3: (c: C) => D
-): D;
+export function pipe<A, B, C, D>(value: A, fn1: (a: A) => B, fn2: (b: B) => C, fn3: (c: C) => D): D;
 export function pipe<A, B, C, D, E>(
   value: A,
   fn1: (a: A) => B,
@@ -29,9 +24,7 @@ export function compose(...fns: Array<(a: any) => any>): (a: any) => any {
 }
 
 export function curry<A, B, C>(fn: (a: A, b: B) => C): (a: A) => (b: B) => C;
-export function curry<A, B, C, D>(
-  fn: (a: A, b: B, c: C) => D
-): (a: A) => (b: B) => (c: C) => D;
+export function curry<A, B, C, D>(fn: (a: A, b: B, c: C) => D): (a: A) => (b: B) => (c: C) => D;
 export function curry(fn: Function): Function {
   return function curried(...args: any[]): any {
     if (args.length >= fn.length) {
@@ -43,18 +36,17 @@ export function curry(fn: Function): Function {
 
 export function partial<A, B, C>(fn: (a: A, b: B) => C, a: A): (b: B) => C;
 export function partial<A, B, C, D>(fn: (a: A, b: B, c: C) => D, a: A): (b: B, c: C) => D;
-export function partial<A, B, C, D>(
-  fn: (a: A, b: B, c: C) => D,
-  a: A,
-  b: B
-): (c: C) => D;
+export function partial<A, B, C, D>(fn: (a: A, b: B, c: C) => D, a: A, b: B): (c: C) => D;
 export function partial(fn: Function, ...args: any[]): Function {
   return (...remainingArgs: any[]) => fn(...args, ...remainingArgs);
 }
 
 export const identity = <T>(x: T): T => x;
 
-export const constant = <T>(x: T) => (): T => x;
+export const constant =
+  <T>(x: T) =>
+  (): T =>
+    x;
 
 export function map<A, B>(fn: (a: A) => B): (arr: A[]) => B[] {
   return (arr) => arr.map(fn);
@@ -64,10 +56,7 @@ export function filter<A>(predicate: (a: A) => boolean): (arr: A[]) => A[] {
   return (arr) => arr.filter(predicate);
 }
 
-export function reduce<A, B>(
-  reducer: (acc: B, value: A) => B,
-  initial: B
-): (arr: A[]) => B {
+export function reduce<A, B>(reducer: (acc: B, value: A) => B, initial: B): (arr: A[]) => B {
   return (arr) => arr.reduce(reducer, initial);
 }
 
@@ -87,7 +76,7 @@ export function debounce<T extends (...args: any[]) => any>(
   delay: number
 ): (...args: Parameters<T>) => void {
   let timeoutId: NodeJS.Timeout | undefined;
-  
+
   return (...args: Parameters<T>) => {
     if (timeoutId) {
       clearTimeout(timeoutId);
@@ -102,11 +91,11 @@ export function throttle<T extends (...args: any[]) => any>(
 ): (...args: Parameters<T>) => void {
   let lastCall = 0;
   let timeoutId: NodeJS.Timeout | undefined;
-  
+
   return (...args: Parameters<T>) => {
     const now = Date.now();
     const timeSinceLastCall = now - lastCall;
-    
+
     if (timeSinceLastCall >= delay) {
       lastCall = now;
       fn(...args);
@@ -125,7 +114,7 @@ export function throttle<T extends (...args: any[]) => any>(
 export function once<T extends (...args: any[]) => any>(fn: T): T {
   let called = false;
   let result: ReturnType<T>;
-  
+
   return ((...args: Parameters<T>) => {
     if (!called) {
       called = true;
@@ -301,10 +290,7 @@ export function right<L, R>(value: R): Either<L, R> {
   return new Right<L, R>(value);
 }
 
-export function tryCatch<L, R>(
-  fn: () => R,
-  onError: (error: unknown) => L
-): Either<L, R> {
+export function tryCatch<L, R>(fn: () => R, onError: (error: unknown) => L): Either<L, R> {
   try {
     return right(fn());
   } catch (error) {
@@ -324,13 +310,10 @@ export async function tryCatchAsync<L, R>(
   }
 }
 
-export function partition<T>(
-  arr: T[],
-  predicate: (value: T) => boolean
-): [T[], T[]] {
+export function partition<T>(arr: T[], predicate: (value: T) => boolean): [T[], T[]] {
   const truthy: T[] = [];
   const falsy: T[] = [];
-  
+
   for (const item of arr) {
     if (predicate(item)) {
       truthy.push(item);
@@ -338,7 +321,7 @@ export function partition<T>(
       falsy.push(item);
     }
   }
-  
+
   return [truthy, falsy];
 }
 
@@ -346,14 +329,17 @@ export function groupBy<T, K extends string | number | symbol>(
   arr: T[],
   keyFn: (value: T) => K
 ): Record<K, T[]> {
-  return arr.reduce((acc, item) => {
-    const key = keyFn(item);
-    if (!acc[key]) {
-      acc[key] = [];
-    }
-    acc[key].push(item);
-    return acc;
-  }, {} as Record<K, T[]>);
+  return arr.reduce(
+    (acc, item) => {
+      const key = keyFn(item);
+      if (!acc[key]) {
+        acc[key] = [];
+      }
+      acc[key].push(item);
+      return acc;
+    },
+    {} as Record<K, T[]>
+  );
 }
 
 export function chunk<T>(arr: T[], size: number): T[][] {
@@ -367,22 +353,22 @@ export function chunk<T>(arr: T[], size: number): T[][] {
 export function zip<A, B>(arr1: A[], arr2: B[]): Array<[A, B]> {
   const length = Math.min(arr1.length, arr2.length);
   const result: Array<[A, B]> = [];
-  
+
   for (let i = 0; i < length; i++) {
     result.push([arr1[i], arr2[i]]);
   }
-  
+
   return result;
 }
 
 export function unzip<A, B>(arr: Array<[A, B]>): [A[], B[]] {
   const arr1: A[] = [];
   const arr2: B[] = [];
-  
+
   for (const [a, b] of arr) {
     arr1.push(a);
     arr2.push(b);
   }
-  
+
   return [arr1, arr2];
 }

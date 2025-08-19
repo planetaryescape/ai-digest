@@ -1,39 +1,39 @@
-'use client'
+"use client";
 
-import { Clock } from 'lucide-react'
+import { Clock } from "lucide-react";
 
 const activities = [
   {
     id: 1,
-    type: 'digest',
-    message: 'Weekly digest generated successfully',
-    time: '2 hours ago',
+    type: "digest",
+    message: "Weekly digest generated successfully",
+    time: "2 hours ago",
   },
   {
     id: 2,
-    type: 'sender',
-    message: 'New sender added: newsletter@openai.com',
-    time: '5 hours ago',
+    type: "sender",
+    message: "New sender added: newsletter@openai.com",
+    time: "5 hours ago",
   },
   {
     id: 3,
-    type: 'sender',
-    message: 'Sender confidence updated: updates@anthropic.com',
-    time: '1 day ago',
+    type: "sender",
+    message: "Sender confidence updated: updates@anthropic.com",
+    time: "1 day ago",
   },
   {
     id: 4,
-    type: 'digest',
-    message: 'Cleanup digest completed (150 emails processed)',
-    time: '3 days ago',
+    type: "digest",
+    message: "Cleanup digest completed (150 emails processed)",
+    time: "3 days ago",
   },
   {
     id: 5,
-    type: 'sender',
-    message: 'Removed sender: spam@example.com',
-    time: '1 week ago',
+    type: "sender",
+    message: "Removed sender: spam@example.com",
+    time: "1 week ago",
   },
-]
+];
 
 export function RecentActivity() {
   return (
@@ -52,5 +52,5 @@ export function RecentActivity() {
         ))}
       </ul>
     </div>
-  )
+  );
 }

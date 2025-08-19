@@ -1,71 +1,88 @@
-'use client'
+"use client";
 
-import { useState, useMemo } from 'react'
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
-  useReactTable,
+  type ColumnDef,
+  type ColumnFiltersState,
+  flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
-  ColumnDef,
-  flexRender,
-  SortingState,
-  ColumnFiltersState,
-} from '@tanstack/react-table'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { 
-  ChevronUp, 
-  ChevronDown, 
-  Trash2, 
+  type SortingState,
+  useReactTable,
+} from "@tanstack/react-table";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
   Edit,
   Search,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react'
-import type { KnownSender } from '@/types/sender'
-import { cn } from '@/lib/utils'
+  Trash2,
+} from "lucide-react";
+import { useMemo, useState } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import type { KnownSender } from "@/types/sender";
 
 export function SenderTable() {
-  const queryClient = useQueryClient()
-  const [sorting, setSorting] = useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-  const [globalFilter, setGlobalFilter] = useState('')
-  const [rowSelection, setRowSelection] = useState({})
+  const queryClient = useQueryClient();
+  const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
+  const [rowSelection, setRowSelection] = useState({});
 
-  const { data: senders = [], isLoading } = useQuery({
-    queryKey: ['senders'],
+  const {
+    data: senders = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["senders"],
     queryFn: async () => {
-      const res = await fetch('/api/senders')
-      if (!res.ok) throw new Error('Failed to fetch senders')
-      return res.json() as Promise<KnownSender[]>
+      const res = await fetch("/api/senders");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        console.error("Failed to fetch senders:", errorData);
+
+        if (errorData.details) {
+          throw new Error(errorData.details);
+        }
+        if (errorData.error) {
+          throw new Error(errorData.error);
+        }
+        throw new Error(`Failed to fetch senders (${res.status})`);
+      }
+      return res.json() as Promise<KnownSender[]>;
     },
-  })
+    retry: 1,
+    retryDelay: 1000,
+  });
 
   const deleteMutation = useMutation({
     mutationFn: async (emails: string[]) => {
-      const res = await fetch('/api/senders', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/senders", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emails }),
-      })
-      if (!res.ok) throw new Error('Failed to delete senders')
-      return res.json()
+      });
+      if (!res.ok) throw new Error("Failed to delete senders");
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['senders'] })
-      toast.success('Senders deleted successfully')
-      setRowSelection({})
+      queryClient.invalidateQueries({ queryKey: ["senders"] });
+      toast.success("Senders deleted successfully");
+      setRowSelection({});
     },
     onError: () => {
-      toast.error('Failed to delete senders')
+      toast.error("Failed to delete senders");
     },
-  })
+  });
 
   const columns = useMemo<ColumnDef<KnownSender>[]>(
     () => [
       {
-        id: 'select',
+        id: "select",
         header: ({ table }) => (
           <input
             type="checkbox"
@@ -84,8 +101,8 @@ export function SenderTable() {
         ),
       },
       {
-        accessorKey: 'senderEmail',
-        header: 'Email',
+        accessorKey: "senderEmail",
+        header: "Email",
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.senderEmail}</div>
@@ -96,51 +113,53 @@ export function SenderTable() {
         ),
       },
       {
-        accessorKey: 'newsletterName',
-        header: 'Newsletter',
-        cell: ({ getValue }) => getValue() || '-',
+        accessorKey: "newsletterName",
+        header: "Newsletter",
+        cell: ({ getValue }) => getValue() || "-",
       },
       {
-        accessorKey: 'confidence',
-        header: 'Confidence',
+        accessorKey: "confidence",
+        header: "Confidence",
         cell: ({ getValue }) => {
-          const confidence = getValue() as number
+          const confidence = getValue() as number;
           return (
             <div className="flex items-center">
               <div className="w-20 bg-gray-200 rounded-full h-2">
                 <div
                   className={cn(
                     "h-2 rounded-full",
-                    confidence >= 90 ? "bg-green-500" :
-                    confidence >= 70 ? "bg-yellow-500" :
-                    "bg-red-500"
+                    confidence >= 90
+                      ? "bg-green-500"
+                      : confidence >= 70
+                        ? "bg-yellow-500"
+                        : "bg-red-500"
                   )}
                   style={{ width: `${confidence}%` }}
                 />
               </div>
               <span className="ml-2 text-sm">{confidence}%</span>
             </div>
-          )
+          );
         },
       },
       {
-        accessorKey: 'emailCount',
-        header: 'Emails',
+        accessorKey: "emailCount",
+        header: "Emails",
       },
       {
-        accessorKey: 'lastSeen',
-        header: 'Last Seen',
+        accessorKey: "lastSeen",
+        header: "Last Seen",
         cell: ({ getValue }) => {
-          const date = new Date(getValue() as string)
-          return date.toLocaleDateString()
+          const date = new Date(getValue() as string);
+          return date.toLocaleDateString();
         },
       },
       {
-        id: 'actions',
+        id: "actions",
         cell: ({ row }) => (
           <div className="flex space-x-2">
             <button
-              onClick={() => console.log('Edit', row.original)}
+              onClick={() => console.log("Edit", row.original)}
               className="p-1 text-gray-600 hover:text-gray-900"
             >
               <Edit className="h-4 w-4" />
@@ -156,7 +175,7 @@ export function SenderTable() {
       },
     ],
     [deleteMutation]
-  )
+  );
 
   const table = useReactTable({
     data: senders,
@@ -175,12 +194,29 @@ export function SenderTable() {
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-  })
+  });
 
-  const selectedRows = table.getFilteredSelectedRowModel().rows
+  const selectedRows = table.getFilteredSelectedRowModel().rows;
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading senders...</div>
+    return <div className="p-8 text-center">Loading senders...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-600 font-semibold">Error loading senders</div>
+        <div className="text-sm text-gray-600 mt-2">
+          {error instanceof Error ? error.message : "Unknown error occurred"}
+        </div>
+        <button
+          onClick={() => queryClient.invalidateQueries({ queryKey: ["senders"] })}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    );
   }
 
   return (
@@ -202,8 +238,8 @@ export function SenderTable() {
             {selectedRows.length > 0 && (
               <button
                 onClick={() => {
-                  const emails = selectedRows.map(row => row.original.senderEmail)
-                  deleteMutation.mutate(emails)
+                  const emails = selectedRows.map((row) => row.original.senderEmail);
+                  deleteMutation.mutate(emails);
                 }}
                 className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
               >
@@ -235,14 +271,11 @@ export function SenderTable() {
                         onClick={header.column.getToggleSortingHandler()}
                       >
                         <span>
-                          {flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                          {flexRender(header.column.columnDef.header, header.getContext())}
                         </span>
                         {header.column.getIsSorted() && (
                           <span>
-                            {header.column.getIsSorted() === 'desc' ? (
+                            {header.column.getIsSorted() === "desc" ? (
                               <ChevronDown className="h-4 w-4" />
                             ) : (
                               <ChevronUp className="h-4 w-4" />
@@ -274,11 +307,12 @@ export function SenderTable() {
       <div className="px-4 py-3 border-t">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{' '}
+            Showing{" "}
+            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
             {Math.min(
               (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
               table.getFilteredRowModel().rows.length
-            )}{' '}
+            )}{" "}
             of {table.getFilteredRowModel().rows.length} results
           </div>
           <div className="flex space-x-2">
@@ -300,5 +334,5 @@ export function SenderTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }

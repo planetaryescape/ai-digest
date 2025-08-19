@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { SenderTable } from '@/components/senders/SenderTable'
-import { AddSenderDialog } from '@/components/senders/AddSenderDialog'
-import { Plus } from 'lucide-react'
+import { Plus } from "lucide-react";
+import { useState } from "react";
+import { AddSenderDialog } from "@/components/senders/AddSenderDialog";
+import { SenderTable } from "@/components/senders/SenderTable";
 
 export default function SendersPage() {
-  const [showAddDialog, setShowAddDialog] = useState(false)
+  const [showAddDialog, setShowAddDialog] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -34,11 +34,8 @@ export default function SendersPage() {
 
       {/* Add Sender Dialog */}
       {showAddDialog && (
-        <AddSenderDialog 
-          open={showAddDialog} 
-          onClose={() => setShowAddDialog(false)} 
-        />
+        <AddSenderDialog open={showAddDialog} onClose={() => setShowAddDialog(false)} />
       )}
     </div>
-  )
+  );
 }

@@ -1,63 +1,60 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { X } from 'lucide-react'
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
 interface AddSenderDialogProps {
-  open: boolean
-  onClose: () => void
+  open: boolean;
+  onClose: () => void;
 }
 
 export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
-  const queryClient = useQueryClient()
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
-    email: '',
-    name: '',
-    newsletterName: '',
+    email: "",
+    name: "",
+    newsletterName: "",
     confidence: 90,
-  })
+  });
 
   const addMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const res = await fetch('/api/senders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/senders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
-      })
-      if (!res.ok) throw new Error('Failed to add sender')
-      return res.json()
+      });
+      if (!res.ok) throw new Error("Failed to add sender");
+      return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['senders'] })
-      toast.success('Sender added successfully')
-      onClose()
+      queryClient.invalidateQueries({ queryKey: ["senders"] });
+      toast.success("Sender added successfully");
+      onClose();
     },
     onError: () => {
-      toast.error('Failed to add sender')
+      toast.error("Failed to add sender");
     },
-  })
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    addMutation.mutate(formData)
-  }
+    e.preventDefault();
+    addMutation.mutate(formData);
+  };
 
-  if (!open) return null
+  if (!open) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         <div className="fixed inset-0 bg-black bg-opacity-25" onClick={onClose} />
-        
+
         <div className="relative bg-white rounded-lg shadow-xl max-w-md w-full p-6">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Add New Sender</h3>
-            <button
-              onClick={onClose}
-              className="p-1 hover:bg-gray-100 rounded-lg"
-            >
+            <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg">
               <X className="h-5 w-5" />
             </button>
           </div>
@@ -78,9 +75,7 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Sender Name
-              </label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sender Name</label>
               <input
                 type="text"
                 value={formData.name}
@@ -112,7 +107,9 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
                 min="0"
                 max="100"
                 value={formData.confidence}
-                onChange={(e) => setFormData({ ...formData, confidence: parseInt(e.target.value) })}
+                onChange={(e) =>
+                  setFormData({ ...formData, confidence: Number.parseInt(e.target.value) })
+                }
                 className="w-full"
               />
             </div>
@@ -130,12 +127,12 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
                 disabled={addMutation.isPending}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
               >
-                {addMutation.isPending ? 'Adding...' : 'Add Sender'}
+                {addMutation.isPending ? "Adding..." : "Add Sender"}
               </button>
             </div>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -183,7 +183,7 @@ export class LazyCache<T> {
 
   async get(key: string, factory: () => T | Promise<T>): Promise<T> {
     const cached = this.cache.get(key);
-    
+
     if (cached && cached.expiresAt > Date.now()) {
       return cached.value;
     }
@@ -278,7 +278,7 @@ export function memoize<TArgs extends unknown[], TResult>(
     }
 
     const result = fn(...args);
-    
+
     // Manage cache size
     if (cache.size >= maxSize) {
       const firstKey = cache.keys().next().value;

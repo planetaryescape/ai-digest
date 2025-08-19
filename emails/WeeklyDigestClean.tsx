@@ -639,8 +639,7 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
                 Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
                 {platform && (
                   <>
-                    <br />
-                    📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
+                    <br />📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
                   </>
                 )}
                 <br />
@@ -699,8 +698,7 @@ function FallbackEmail({ summary, platform }: { summary: Summary; platform?: str
             Generated {new Date(summary.generatedAt || Date.now()).toLocaleString()}
             {platform && (
               <>
-                <br />
-                📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
+                <br />📍 Via {platform === "azure" ? "Azure Functions" : "AWS Lambda"}
               </>
             )}
           </Text>

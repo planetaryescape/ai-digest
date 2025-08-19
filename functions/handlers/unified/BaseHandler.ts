@@ -23,14 +23,11 @@ export abstract class BaseHandler {
 
     try {
       // Log request
-      unifiedContext.logger.info(
-        `Function invoked - ${unifiedContext.invocationId}`,
-        {
-          type: request.type,
-          cleanup: request.cleanup,
-          functionName: unifiedContext.functionName,
-        }
-      );
+      unifiedContext.logger.info(`Function invoked - ${unifiedContext.invocationId}`, {
+        type: request.type,
+        cleanup: request.cleanup,
+        functionName: unifiedContext.functionName,
+      });
 
       // Process request
       const result = await this.processRequest(request, unifiedContext);
@@ -52,10 +49,7 @@ export abstract class BaseHandler {
         return adapter.formatError(error, unifiedContext);
       }
 
-      return adapter.formatError(
-        new Error("An unknown error occurred"),
-        unifiedContext
-      );
+      return adapter.formatError(new Error("An unknown error occurred"), unifiedContext);
     }
   }
 
@@ -157,7 +151,5 @@ export abstract class BaseHandler {
   /**
    * Handle async invocation for cleanup mode (AWS specific)
    */
-  protected async handleAsyncInvocation?(
-    request: UnifiedRequest
-  ): Promise<void>;
+  protected async handleAsyncInvocation?(request: UnifiedRequest): Promise<void>;
 }

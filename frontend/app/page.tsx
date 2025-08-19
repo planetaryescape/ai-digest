@@ -6,5 +6,5 @@ export default function Home() {
         <p className="text-center text-gray-600">Welcome to your AI newsletter management system</p>
       </div>
     </main>
-  )
+  );
 }

@@ -223,9 +223,8 @@ export const metrics = {
     getMetrics().increment("emails.processed", { ...tags, count: count.toString() });
   },
 
-  apiCall: async function<T>(service: string, operation: string, fn: () => Promise<T>): Promise<T> {
-    return getMetrics().timer(`api.${service}.${operation}`, fn, { service, operation });
-  },
+  apiCall: async <T>(service: string, operation: string, fn: () => Promise<T>): Promise<T> =>
+    getMetrics().timer(`api.${service}.${operation}`, fn, { service, operation }),
 
   digestGenerated: (emailCount: number, duration: number) => {
     getMetrics().increment("digest.generated");
@@ -237,9 +236,8 @@ export const metrics = {
     getMetrics().increment("errors", { ...tags, error });
   },
 
-  storageOperation: async function<T>(operation: string, fn: () => Promise<T>): Promise<T> {
-    return getMetrics().timer(`storage.${operation}`, fn);
-  },
+  storageOperation: async <T>(operation: string, fn: () => Promise<T>): Promise<T> =>
+    getMetrics().timer(`storage.${operation}`, fn),
 
   lambdaInvocation: (functionName: string, isAsync: boolean) => {
     getMetrics().increment("lambda.invocations", {

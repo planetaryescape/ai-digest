@@ -23,14 +23,7 @@ export const config = {
       name: "Interview Optimiser",
       url: "https://interviewoptimiser.com",
       desc: "Mock interviews, feedback & coaching for job seekers",
-      keywords: [
-        "interview",
-        "recruiting",
-        "hiring",
-        "coaching",
-        "career",
-        "job search",
-      ],
+      keywords: ["interview", "recruiting", "hiring", "coaching", "career", "job search"],
     },
     {
       name: "CV Optimiser",
@@ -48,14 +41,7 @@ export const config = {
       name: "Dealbase",
       url: "https://dealbase.com",
       desc: "AI-extracted startup funding database",
-      keywords: [
-        "funding",
-        "investment",
-        "startup",
-        "venture",
-        "capital",
-        "fundraising",
-      ],
+      keywords: ["funding", "investment", "startup", "venture", "capital", "fundraising"],
     },
     {
       name: "Blog",
