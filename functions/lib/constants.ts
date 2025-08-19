@@ -108,3 +108,49 @@ export const STORAGE_TYPES = {
   DYNAMODB: "dynamodb",
   AZURE: "azure",
 } as const;
+
+// Cost control limits
+export const COST_LIMITS = {
+  /** Maximum OpenAI API calls per run */
+  MAX_OPENAI_CALLS_PER_RUN: 50,
+  /** Maximum Firecrawl API calls per run */
+  MAX_FIRECRAWL_CALLS_PER_RUN: 100,
+  /** Maximum Brave Search API calls per run */
+  MAX_BRAVE_SEARCHES_PER_RUN: 30,
+  /** Maximum emails to process per run */
+  MAX_EMAILS_PER_RUN: 500,
+  /** Maximum retry attempts for failed API calls */
+  MAX_RETRY_ATTEMPTS: 2,
+  /** Circuit breaker threshold - failures before circuit opens */
+  CIRCUIT_BREAKER_THRESHOLD: 5,
+  /** Maximum cost in dollars per run */
+  MAX_COST_PER_RUN: 10,
+  /** OpenAI GPT-5 cost per call (estimated) */
+  OPENAI_GPT5_COST: 0.5,
+  /** OpenAI GPT-4o-mini cost per call (estimated) */
+  OPENAI_GPT4O_MINI_COST: 0.02,
+  /** Firecrawl cost per URL */
+  FIRECRAWL_COST_PER_URL: 0.01,
+  /** Brave Search cost per query */
+  BRAVE_SEARCH_COST: 0.003,
+} as const;
+
+// Rate limiting
+export const RATE_LIMITS = {
+  /** Gmail batchModify operation limit */
+  GMAIL_BATCH_SIZE: 100,
+  /** Delay between Gmail batch operations in ms */
+  GMAIL_BATCH_DELAY_MS: 1000,
+  /** Number of emails to classify in one OpenAI call */
+  OPENAI_BATCH_SIZE: 10,
+  /** Concurrent Firecrawl scraping operations */
+  FIRECRAWL_CONCURRENT: 5,
+  /** Archive operation batch size */
+  ARCHIVE_BATCH_SIZE: 50,
+  /** Delay between Firecrawl batches in ms */
+  FIRECRAWL_BATCH_DELAY_MS: 500,
+  /** Maximum URLs to extract per email */
+  MAX_URLS_PER_EMAIL: 5,
+  /** Maximum article content length to process */
+  MAX_ARTICLE_LENGTH: 5000,
+} as const;

@@ -1,4 +1,4 @@
-import { metrics } from "../metrics";
+import { getMetrics } from "../metrics";
 
 /**
  * Decorator to track metrics for method execution
@@ -15,7 +15,7 @@ export function TrackMetrics(metricName: string) {
         const duration = Date.now() - timer;
 
         // Track success metrics
-        metrics.increment(`${metricName}.success`);
+        getMetrics().increment(`${metricName}.success`);
         metrics.gauge(`${metricName}.duration_ms`, duration);
 
         return result;
@@ -23,12 +23,12 @@ export function TrackMetrics(metricName: string) {
         const duration = Date.now() - timer;
 
         // Track failure metrics
-        metrics.increment(`${metricName}.failure`);
+        getMetrics().increment(`${metricName}.failure`);
         metrics.gauge(`${metricName}.duration_ms`, duration);
 
         // Track error type
         if (error instanceof Error) {
-          metrics.increment(`${metricName}.error`, {
+          getMetrics().increment(`${metricName}.error`, {
             type: error.constructor.name,
           });
         }
