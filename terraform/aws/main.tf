@@ -8,7 +8,7 @@ terraform {
 }
 
 provider "aws" {
-  region = var.aws_region
+  region = var.AWS_REGION
 }
 
 data "aws_caller_identity" "current" {}
@@ -16,10 +16,10 @@ data "aws_region" "current" {}
 
 # S3 bucket for Lambda deployments
 resource "aws_s3_bucket" "lambda_deployments" {
-  bucket = "${var.project_name}-lambda-deployments-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
+  bucket = "${var.PROJECT_NAME}-lambda-deployments-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
 
   tags = {
-    Project     = var.project_name
+    Project     = var.PROJECT_NAME
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
@@ -27,7 +27,7 @@ resource "aws_s3_bucket" "lambda_deployments" {
 
 resource "aws_s3_bucket_versioning" "lambda_deployments" {
   bucket = aws_s3_bucket.lambda_deployments.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }
@@ -45,10 +45,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "lambda_deployment
 
 # S3 bucket for processed emails
 resource "aws_s3_bucket" "processed_emails" {
-  bucket = "${var.project_name}-processed-emails-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
+  bucket = "${var.PROJECT_NAME}-processed-emails-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
 
   tags = {
-    Project     = var.project_name
+    Project     = var.PROJECT_NAME
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
@@ -56,7 +56,7 @@ resource "aws_s3_bucket" "processed_emails" {
 
 # DynamoDB table for known AI senders
 resource "aws_dynamodb_table" "known_ai_senders" {
-  name           = "${var.project_name}-known-ai-senders"
+  name           = "${var.PROJECT_NAME}-known-ai-senders"
   billing_mode   = "PAY_PER_REQUEST"
   hash_key       = "senderEmail"
 
@@ -77,7 +77,41 @@ resource "aws_dynamodb_table" "known_ai_senders" {
   }
 
   tags = {
-    Project     = var.project_name
+    Project     = var.PROJECT_NAME
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
+# DynamoDB table for known non-AI senders
+resource "aws_dynamodb_table" "known_non_ai_senders" {
+  name           = "${var.PROJECT_NAME}-known-non-ai-senders"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "senderEmail"
+
+  attribute {
+    name = "senderEmail"
+    type = "S"
+  }
+
+  attribute {
+    name = "domain"
+    type = "S"
+  }
+
+  global_secondary_index {
+    name            = "DomainIndex"
+    hash_key        = "domain"
+    projection_type = "ALL"
+  }
+
+  ttl {
+    attribute_name = "ttl"
+    enabled        = true
+  }
+
+  tags = {
+    Project     = var.PROJECT_NAME
     Environment = var.environment
     ManagedBy   = "Terraform"
   }
@@ -85,7 +119,7 @@ resource "aws_dynamodb_table" "known_ai_senders" {
 
 resource "aws_s3_bucket_versioning" "processed_emails" {
   bucket = aws_s3_bucket.processed_emails.id
-  
+
   versioning_configuration {
     status = "Enabled"
   }
@@ -93,7 +127,7 @@ resource "aws_s3_bucket_versioning" "processed_emails" {
 
 # IAM Role for Lambda
 resource "aws_iam_role" "lambda_role" {
-  name = "${var.project_name}-lambda-role"
+  name = "${var.PROJECT_NAME}-lambda-role"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -147,8 +181,8 @@ resource "aws_s3_bucket_policy" "processed_emails_policy" {
 
 # IAM policy for DynamoDB access
 resource "aws_iam_policy" "dynamodb_access" {
-  name = "${var.project_name}-dynamodb-access"
-  
+  name = "${var.PROJECT_NAME}-dynamodb-access"
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -166,7 +200,9 @@ resource "aws_iam_policy" "dynamodb_access" {
         ]
         Resource = [
           aws_dynamodb_table.known_ai_senders.arn,
-          "${aws_dynamodb_table.known_ai_senders.arn}/index/*"
+          "${aws_dynamodb_table.known_ai_senders.arn}/index/*",
+          aws_dynamodb_table.known_non_ai_senders.arn,
+          "${aws_dynamodb_table.known_non_ai_senders.arn}/index/*"
         ]
       }
     ]
@@ -180,8 +216,8 @@ resource "aws_iam_role_policy_attachment" "lambda_dynamodb_access" {
 
 # IAM policy for Lambda invoke permissions
 resource "aws_iam_policy" "lambda_invoke" {
-  name = "${var.project_name}-lambda-invoke"
-  
+  name = "${var.PROJECT_NAME}-lambda-invoke"
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -191,7 +227,7 @@ resource "aws_iam_policy" "lambda_invoke" {
           "lambda:InvokeFunction"
         ]
         Resource = [
-          "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.project_name}-weekly-digest"
+          "arn:aws:lambda:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:function:${var.PROJECT_NAME}-weekly-digest"
         ]
       }
     ]
@@ -205,12 +241,12 @@ resource "aws_iam_role_policy_attachment" "lambda_invoke_access" {
 
 # CloudWatch Log Groups
 resource "aws_cloudwatch_log_group" "weekly_digest" {
-  name              = "/aws/lambda/${var.project_name}-weekly-digest"
+  name              = "/aws/lambda/${var.PROJECT_NAME}-weekly-digest"
   retention_in_days = 7
 }
 
 resource "aws_cloudwatch_log_group" "run_now" {
-  name              = "/aws/lambda/${var.project_name}-run-now"
+  name              = "/aws/lambda/${var.PROJECT_NAME}-run-now"
   retention_in_days = 7
 }
 
@@ -224,7 +260,7 @@ resource "aws_s3_object" "lambda_package" {
 
 # Lambda function for weekly digest
 resource "aws_lambda_function" "weekly_digest" {
-  function_name = "${var.project_name}-weekly-digest"
+  function_name = "${var.PROJECT_NAME}-weekly-digest"
   role          = aws_iam_role.lambda_role.arn
   handler       = "weekly-digest.handler"
   runtime       = "nodejs20.x"
@@ -240,26 +276,32 @@ resource "aws_lambda_function" "weekly_digest" {
       STORAGE_TYPE = "s3"
       S3_BUCKET    = aws_s3_bucket.processed_emails.id
       DYNAMODB_TABLE = aws_dynamodb_table.known_ai_senders.name
-      
+
       # Gmail OAuth Configuration - from .env.aws
-      GMAIL_CLIENT_ID     = var.gmail_client_id
-      GMAIL_CLIENT_SECRET = var.gmail_client_secret
-      GMAIL_REFRESH_TOKEN = var.gmail_refresh_token
-      
+      GMAIL_CLIENT_ID     = var.GMAIL_CLIENT_ID
+      GMAIL_CLIENT_SECRET = var.GMAIL_CLIENT_SECRET
+      GMAIL_REFRESH_TOKEN = var.GMAIL_REFRESH_TOKEN
+
       # OpenAI Configuration
-      OPENAI_API_KEY    = var.openai_api_key
-      HELICONE_API_KEY  = var.helicone_api_key
-      
+      OPENAI_API_KEY    = var.OPENAI_API_KEY
+      HELICONE_API_KEY  = var.HELICONE_API_KEY
+
       # Email Configuration
-      RESEND_API_KEY    = var.resend_api_key
-      RECIPIENT_EMAIL   = var.recipient_email
-      
+      RESEND_API_KEY    = var.RESEND_API_KEY
+      RECIPIENT_EMAIL   = var.RECIPIENT_EMAIL
+
       # Processing Configuration
       OLDER_THAN_DAYS       = var.older_than_days
       MAX_LINKS_PER_EMAIL   = var.max_links_per_email
       MAX_SECTIONS          = var.max_sections
       KEYWORDS              = var.keywords
       PROFESSIONS           = var.professions
+      
+      # Circuit Breaker Configuration
+      CIRCUIT_BREAKER_TIMEOUT = "120000"
+      
+      # Lambda Configuration for cleanup mode
+      WEEKLY_DIGEST_FUNCTION_NAME = "${var.PROJECT_NAME}-weekly-digest"
     }
   }
 
@@ -270,7 +312,7 @@ resource "aws_lambda_function" "weekly_digest" {
 
 # Lambda function for run-now
 resource "aws_lambda_function" "run_now" {
-  function_name = "${var.project_name}-run-now"
+  function_name = "${var.PROJECT_NAME}-run-now"
   role          = aws_iam_role.lambda_role.arn
   handler       = "run-now.handler"
   runtime       = "nodejs20.x"
@@ -327,7 +369,7 @@ resource "aws_lambda_function_url" "weekly_digest" {
 
 # EventBridge rule for weekly schedule
 resource "aws_cloudwatch_event_rule" "weekly_schedule" {
-  name                = "${var.project_name}-weekly-schedule"
+  name                = "${var.PROJECT_NAME}-weekly-schedule"
   description         = "Trigger weekly digest every Sunday at 8 AM UTC"
   schedule_expression = "cron(0 8 ? * SUN *)"
 }
@@ -348,7 +390,7 @@ resource "aws_lambda_permission" "allow_eventbridge" {
 
 # API Gateway for HTTP triggers
 resource "aws_api_gateway_rest_api" "api" {
-  name        = "${var.project_name}-api"
+  name        = "${var.PROJECT_NAME}-api"
   description = "API Gateway for AI Digest functions"
 }
 
@@ -454,11 +496,11 @@ resource "aws_api_gateway_stage" "prod" {
 }
 
 resource "aws_api_gateway_api_key" "api_key" {
-  name = "${var.project_name}-api-key"
+  name = "${var.PROJECT_NAME}-api-key"
 }
 
 resource "aws_api_gateway_usage_plan" "main" {
-  name = "${var.project_name}-usage-plan"
+  name = "${var.PROJECT_NAME}-usage-plan"
 
   api_stages {
     api_id = aws_api_gateway_rest_api.api.id

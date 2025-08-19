@@ -16,11 +16,11 @@ terraform init
 
 # Plan deployment
 echo "📋 Planning deployment..."
-terraform plan
+doppler run -p ai-digest -c prd -- terraform plan
 
 # Apply deployment
 echo "🚢 Deploying to AWS..."
-terraform apply -auto-approve
+doppler run -p ai-digest -c prd -- terraform apply -auto-approve
 
 echo "✅ AWS deployment complete!"
 echo ""

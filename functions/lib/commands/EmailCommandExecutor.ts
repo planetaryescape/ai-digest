@@ -1,5 +1,5 @@
 import { createLogger } from "../logger";
-import { metrics } from "../metrics";
+import { getMetrics } from "../metrics";
 import type { EmailItem } from "../types";
 import type { CommandResult, IEmailCommand } from "./IEmailCommand";
 
@@ -61,11 +61,15 @@ export class EmailCommandExecutor {
           this.executed.push(command);
         }
 
-        // Track metrics
-        metrics.increment(`command.${command.getName().toLowerCase()}`, {
-          success: result.success ? "true" : "false",
-        });
-        metrics.gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
+        // Track metrics (safely, without breaking main flow)
+        try { 
+          getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
+            success: result.success ? "true" : "false",
+          });
+          getMetrics().gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
+        } catch (metricsError) {
+          // Ignore metrics errors - they shouldn't break the main flow
+        }
 
         this.logger.debug(
           `Command ${command.getName()} ${result.success ? "succeeded" : "failed"} in ${commandTime}ms`
@@ -119,11 +123,15 @@ export class EmailCommandExecutor {
 
         executedCommands.push(command.getName());
 
-        // Track metrics
-        metrics.increment(`command.${command.getName().toLowerCase()}`, {
-          success: result.success ? "true" : "false",
-        });
-        metrics.gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
+        // Track metrics (safely, without breaking main flow)
+        try { 
+          getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
+            success: result.success ? "true" : "false",
+          });
+          getMetrics().gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
+        } catch (metricsError) {
+          // Ignore metrics errors - they shouldn't break the main flow
+        }
 
         if (result.success) {
           this.executed.push(command);

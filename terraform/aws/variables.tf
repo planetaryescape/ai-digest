@@ -1,10 +1,10 @@
-variable "aws_region" {
+variable "AWS_REGION" {
   description = "AWS region for deployment"
   type        = string
   default     = "us-east-1"
 }
 
-variable "project_name" {
+variable "PROJECT_NAME" {
   description = "Project name for resource naming"
   type        = string
   default     = "ai-digest"
@@ -17,45 +17,45 @@ variable "environment" {
 }
 
 # Gmail OAuth Configuration
-variable "gmail_client_id" {
+variable "GMAIL_CLIENT_ID" {
   description = "Gmail OAuth Client ID"
   type        = string
   sensitive   = true
 }
 
-variable "gmail_client_secret" {
+variable "GMAIL_CLIENT_SECRET" {
   description = "Gmail OAuth Client Secret"
   type        = string
   sensitive   = true
 }
 
-variable "gmail_refresh_token" {
+variable "GMAIL_REFRESH_TOKEN" {
   description = "Gmail OAuth Refresh Token"
   type        = string
   sensitive   = true
 }
 
 # OpenAI Configuration
-variable "openai_api_key" {
+variable "OPENAI_API_KEY" {
   description = "OpenAI API Key"
   type        = string
   sensitive   = true
 }
 
-variable "helicone_api_key" {
+variable "HELICONE_API_KEY" {
   description = "Helicone API Key"
   type        = string
   sensitive   = true
 }
 
 # Email Configuration
-variable "resend_api_key" {
+variable "RESEND_API_KEY" {
   description = "Resend API Key"
   type        = string
   sensitive   = true
 }
 
-variable "recipient_email" {
+variable "RECIPIENT_EMAIL" {
   description = "Recipient email address"
   type        = string
 }
