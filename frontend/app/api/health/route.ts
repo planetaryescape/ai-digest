@@ -3,6 +3,7 @@ import { DynamoDBClient } from '@aws-sdk/client-dynamodb'
 import { DescribeTableCommand } from '@aws-sdk/client-dynamodb'
 
 export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
 
 export async function GET() {
   const checks = {
@@ -55,11 +56,29 @@ export async function GET() {
     checks.dynamodb.connection &&
     checks.dynamodb.tableExists
 
+  const headers = {
+    'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || '*',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  }
+
   return NextResponse.json({
     status: allChecksPass ? 'healthy' : 'unhealthy',
     checks,
     timestamp: new Date().toISOString(),
   }, {
     status: allChecksPass ? 200 : 503,
+    headers,
+  })
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': process.env.NEXT_PUBLIC_APP_URL || '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    },
   })
 }

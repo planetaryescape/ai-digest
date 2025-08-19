@@ -33,13 +33,26 @@ export function SenderTable() {
   const [globalFilter, setGlobalFilter] = useState('')
   const [rowSelection, setRowSelection] = useState({})
 
-  const { data: senders = [], isLoading } = useQuery({
+  const { data: senders = [], isLoading, error } = useQuery({
     queryKey: ['senders'],
     queryFn: async () => {
       const res = await fetch('/api/senders')
-      if (!res.ok) throw new Error('Failed to fetch senders')
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}))
+        console.error('Failed to fetch senders:', errorData)
+        
+        if (errorData.details) {
+          throw new Error(errorData.details)
+        } else if (errorData.error) {
+          throw new Error(errorData.error)
+        } else {
+          throw new Error(`Failed to fetch senders (${res.status})`)
+        }
+      }
       return res.json() as Promise<KnownSender[]>
     },
+    retry: 1,
+    retryDelay: 1000,
   })
 
   const deleteMutation = useMutation({
@@ -181,6 +194,23 @@ export function SenderTable() {
 
   if (isLoading) {
     return <div className="p-8 text-center">Loading senders...</div>
+  }
+
+  if (error) {
+    return (
+      <div className="p-8 text-center">
+        <div className="text-red-600 font-semibold">Error loading senders</div>
+        <div className="text-sm text-gray-600 mt-2">
+          {error instanceof Error ? error.message : 'Unknown error occurred'}
+        </div>
+        <button 
+          onClick={() => queryClient.invalidateQueries({ queryKey: ['senders'] })}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Retry
+        </button>
+      </div>
+    )
   }
 
   return (

@@ -4,12 +4,14 @@ import {
   LayoutDashboard, 
   Users, 
   Settings,
-  Mail
+  Mail,
+  Activity
 } from 'lucide-react'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Senders', href: '/dashboard/senders', icon: Users },
+  { name: 'Diagnostics', href: '/dashboard/diagnostics', icon: Activity },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 
