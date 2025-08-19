@@ -17,7 +17,12 @@ export abstract class BaseValidator<T> {
     return true;
   }
 
-  protected validateString(field: string, value: unknown, minLength = 0, maxLength = Infinity): boolean {
+  protected validateString(
+    field: string,
+    value: unknown,
+    minLength = 0,
+    maxLength = Number.POSITIVE_INFINITY
+  ): boolean {
     if (typeof value !== "string") {
       this.result.addError(field, "must be a string", value);
       return false;
@@ -36,7 +41,12 @@ export abstract class BaseValidator<T> {
     return true;
   }
 
-  protected validateNumber(field: string, value: unknown, min = -Infinity, max = Infinity): boolean {
+  protected validateNumber(
+    field: string,
+    value: unknown,
+    min = Number.NEGATIVE_INFINITY,
+    max = Number.POSITIVE_INFINITY
+  ): boolean {
     if (typeof value !== "number" || isNaN(value)) {
       this.result.addError(field, "must be a number", value);
       return false;
@@ -89,7 +99,7 @@ export abstract class BaseValidator<T> {
     field: string,
     value: unknown,
     minLength = 0,
-    maxLength = Infinity,
+    maxLength = Number.POSITIVE_INFINITY,
     itemValidator?: (item: U, index: number) => boolean
   ): boolean {
     if (!Array.isArray(value)) {
@@ -122,17 +132,18 @@ export abstract class BaseValidator<T> {
 
   protected validateEnum<U>(field: string, value: unknown, validValues: U[]): boolean {
     if (!validValues.includes(value as U)) {
-      this.result.addError(
-        field,
-        `must be one of: ${validValues.join(", ")}`,
-        value
-      );
+      this.result.addError(field, `must be one of: ${validValues.join(", ")}`, value);
       return false;
     }
     return true;
   }
 
-  protected validatePattern(field: string, value: unknown, pattern: RegExp, message?: string): boolean {
+  protected validatePattern(
+    field: string,
+    value: unknown,
+    pattern: RegExp,
+    message?: string
+  ): boolean {
     if (typeof value !== "string") {
       this.result.addError(field, "must be a string", value);
       return false;

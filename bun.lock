@@ -9,6 +9,7 @@
         "@aws-sdk/client-lambda": "^3.865.0",
         "@aws-sdk/client-s3": "^3.864.0",
         "@aws-sdk/client-secrets-manager": "^3.864.0",
+        "@aws-sdk/lib-dynamodb": "^3.868.0",
         "@aws-sdk/util-dynamodb": "^3.868.0",
         "@azure/data-tables": "^13.3.1",
         "@azure/functions": "^4.8.0-experimental.0",
@@ -99,6 +100,8 @@
     "@aws-sdk/credential-provider-web-identity": ["@aws-sdk/credential-provider-web-identity@3.864.0", "", { "dependencies": { "@aws-sdk/core": "3.864.0", "@aws-sdk/nested-clients": "3.864.0", "@aws-sdk/types": "3.862.0", "@smithy/property-provider": "^4.0.5", "@smithy/types": "^4.3.2", "tslib": "^2.6.2" } }, "sha512-nNcjPN4SYg8drLwqK0vgVeSvxeGQiD0FxOaT38mV2H8cu0C5NzpvA+14Xy+W6vT84dxgmJYKk71Cr5QL2Oz+rA=="],
 
     "@aws-sdk/endpoint-cache": ["@aws-sdk/endpoint-cache@3.804.0", "", { "dependencies": { "mnemonist": "0.38.3", "tslib": "^2.6.2" } }, "sha512-TQVDkA/lV6ua75ELZaichMzlp6x7tDa1bqdy/+0ZftmODPtKXuOOEcJxmdN7Ui/YRo1gkRz2D9txYy7IlNg1Og=="],
+
+    "@aws-sdk/lib-dynamodb": ["@aws-sdk/lib-dynamodb@3.868.0", "", { "dependencies": { "@aws-sdk/core": "3.864.0", "@aws-sdk/util-dynamodb": "3.868.0", "@smithy/core": "^3.8.0", "@smithy/smithy-client": "^4.4.10", "@smithy/types": "^4.3.2", "tslib": "^2.6.2" }, "peerDependencies": { "@aws-sdk/client-dynamodb": "^3.868.0" } }, "sha512-VIdISBhlWDIaHaMF/Cg+xYdIct6nsc1oFV+LomW/Ebjq8J14yieZWnv10Iddy/YYGE0hS214La5KCaQBQ75Trw=="],
 
     "@aws-sdk/middleware-bucket-endpoint": ["@aws-sdk/middleware-bucket-endpoint@3.862.0", "", { "dependencies": { "@aws-sdk/types": "3.862.0", "@aws-sdk/util-arn-parser": "3.804.0", "@smithy/node-config-provider": "^4.1.4", "@smithy/protocol-http": "^5.1.3", "@smithy/types": "^4.3.2", "@smithy/util-config-provider": "^4.0.0", "tslib": "^2.6.2" } }, "sha512-Wcsc7VPLjImQw+CP1/YkwyofMs9Ab6dVq96iS8p0zv0C6YTaMjvillkau4zFfrrrTshdzFWKptIFhKK8Zsei1g=="],
 

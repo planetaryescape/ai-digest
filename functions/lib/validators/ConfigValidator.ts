@@ -75,13 +75,19 @@ export class ConfigValidator extends BaseValidator<ConfigSchema> {
 
     // Validate AI keywords
     if (config.aiKeywords !== undefined) {
-      this.validateArray("aiKeywords", config.aiKeywords, 0, 1000, (keyword: unknown, index: number) => {
-        if (typeof keyword !== "string" || keyword.trim().length === 0) {
-          this.result.addError(`aiKeywords[${index}]`, "must be a non-empty string", keyword);
-          return false;
+      this.validateArray(
+        "aiKeywords",
+        config.aiKeywords,
+        0,
+        1000,
+        (keyword: unknown, index: number) => {
+          if (typeof keyword !== "string" || keyword.trim().length === 0) {
+            this.result.addError(`aiKeywords[${index}]`, "must be a non-empty string", keyword);
+            return false;
+          }
+          return true;
         }
-        return true;
-      });
+      );
     }
 
     // Validate numeric limits
@@ -103,13 +109,19 @@ export class ConfigValidator extends BaseValidator<ConfigSchema> {
 
     // Validate professions
     if (config.professions !== undefined) {
-      this.validateArray("professions", config.professions, 1, 50, (prof: unknown, index: number) => {
-        if (typeof prof !== "string" || prof.trim().length === 0) {
-          this.result.addError(`professions[${index}]`, "must be a non-empty string", prof);
-          return false;
+      this.validateArray(
+        "professions",
+        config.professions,
+        1,
+        50,
+        (prof: unknown, index: number) => {
+          if (typeof prof !== "string" || prof.trim().length === 0) {
+            this.result.addError(`professions[${index}]`, "must be a non-empty string", prof);
+            return false;
+          }
+          return true;
         }
-        return true;
-      });
+      );
     }
 
     // Validate email config
@@ -151,7 +163,8 @@ export class ConfigValidator extends BaseValidator<ConfigSchema> {
       return false;
     }
 
-    const domainRegex = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
+    const domainRegex =
+      /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)*[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i;
     if (!domainRegex.test(value)) {
       this.result.addError(field, "must be a valid domain", value);
       return false;
@@ -184,13 +197,23 @@ export class ConfigValidator extends BaseValidator<ConfigSchema> {
       this.validateString(`apps[${index}].desc`, appObj.desc, 1, 500);
 
       if (appObj.keywords !== undefined) {
-        this.validateArray(`apps[${index}].keywords`, appObj.keywords, 0, 50, (keyword: unknown, kidx: number) => {
-          if (typeof keyword !== "string" || keyword.trim().length === 0) {
-            this.result.addError(`apps[${index}].keywords[${kidx}]`, "must be a non-empty string", keyword);
-            return false;
+        this.validateArray(
+          `apps[${index}].keywords`,
+          appObj.keywords,
+          0,
+          50,
+          (keyword: unknown, kidx: number) => {
+            if (typeof keyword !== "string" || keyword.trim().length === 0) {
+              this.result.addError(
+                `apps[${index}].keywords[${kidx}]`,
+                "must be a non-empty string",
+                keyword
+              );
+              return false;
+            }
+            return true;
           }
-          return true;
-        });
+        );
       }
     });
   }

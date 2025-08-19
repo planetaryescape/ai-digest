@@ -1,25 +1,15 @@
-import { UserButton } from '@clerk/nextjs'
-import Link from 'next/link'
-import { 
-  LayoutDashboard, 
-  Users, 
-  Settings,
-  Mail,
-  Activity
-} from 'lucide-react'
+import { UserButton } from "@clerk/nextjs";
+import { Activity, LayoutDashboard, Mail, Settings, Users } from "lucide-react";
+import Link from "next/link";
 
 const navigation = [
-  { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-  { name: 'Senders', href: '/dashboard/senders', icon: Users },
-  { name: 'Diagnostics', href: '/dashboard/diagnostics', icon: Activity },
-  { name: 'Settings', href: '/dashboard/settings', icon: Settings },
-]
+  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Senders", href: "/dashboard/senders", icon: Users },
+  { name: "Diagnostics", href: "/dashboard/diagnostics", icon: Activity },
+  { name: "Settings", href: "/dashboard/settings", icon: Settings },
+];
 
-export default function DashboardLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -50,9 +40,7 @@ export default function DashboardLayout({
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {children}
-      </main>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">{children}</main>
     </div>
-  )
+  );
 }

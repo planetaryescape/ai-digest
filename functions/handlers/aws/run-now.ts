@@ -1,14 +1,6 @@
 import { InvokeCommand, Lambda } from "@aws-sdk/client-lambda";
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
-import {
-  compose,
-  withCorrelationId,
-  withLambdaLogging,
-} from "../../lib/middleware";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
 
 /**
  * AWS Lambda handler for manual trigger
@@ -96,9 +88,7 @@ async function handler(
     };
   } catch (error) {
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to invoke weekly-digest Lambda";
+      error instanceof Error ? error.message : "Failed to invoke weekly-digest Lambda";
 
     // biome-ignore lint: Lambda error logging is appropriate here
     console.log(`Error invoking weekly-digest Lambda: ${errorMessage}`);
@@ -122,10 +112,7 @@ async function handler(
 }
 
 // Apply middleware
-const handlerWithMiddleware = compose(
-  withLambdaLogging,
-  withCorrelationId
-)(handler);
+const handlerWithMiddleware = compose(withLambdaLogging, withCorrelationId)(handler);
 
 // Export for Lambda
 export { handlerWithMiddleware as handler };

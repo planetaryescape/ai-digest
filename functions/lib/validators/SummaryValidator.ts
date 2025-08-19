@@ -143,11 +143,12 @@ export class SummaryValidator extends BaseValidator<Summary> {
 
     // Validate overall sentiment
     if (summary.overallSentiment !== undefined) {
-      this.validateEnum(
-        "overallSentiment",
-        summary.overallSentiment,
-        ["positive", "neutral", "negative", "mixed"]
-      );
+      this.validateEnum("overallSentiment", summary.overallSentiment, [
+        "positive",
+        "neutral",
+        "negative",
+        "mixed",
+      ]);
     }
 
     // Validate key themes
@@ -249,11 +250,11 @@ export class SummaryValidator extends BaseValidator<Summary> {
       this.validateString(`productPlays[${index}].suggestion`, playObj.suggestion, 10, 1000);
 
       if (playObj.relevance !== undefined) {
-        this.validateEnum(
-          `productPlays[${index}].relevance`,
-          playObj.relevance,
-          ["low", "medium", "high"]
-        );
+        this.validateEnum(`productPlays[${index}].relevance`, playObj.relevance, [
+          "low",
+          "medium",
+          "high",
+        ]);
       }
 
       if (playObj.reasoning !== undefined) {
@@ -292,13 +293,23 @@ export class SummaryValidator extends BaseValidator<Summary> {
     }
 
     if (meta.sources !== undefined) {
-      this.validateArray("metadata.sources", meta.sources, 0, 100, (source: unknown, index: number) => {
-        if (typeof source !== "string" || source.trim().length === 0) {
-          this.result.addError(`metadata.sources[${index}]`, "must be a non-empty string", source);
-          return false;
+      this.validateArray(
+        "metadata.sources",
+        meta.sources,
+        0,
+        100,
+        (source: unknown, index: number) => {
+          if (typeof source !== "string" || source.trim().length === 0) {
+            this.result.addError(
+              `metadata.sources[${index}]`,
+              "must be a non-empty string",
+              source
+            );
+            return false;
+          }
+          return true;
         }
-        return true;
-      });
+      );
     }
   }
 

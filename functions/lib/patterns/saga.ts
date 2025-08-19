@@ -29,9 +29,7 @@ export class Saga<TInput, TOutput> {
 
   constructor(private name: string) {}
 
-  addStep<TStepInput, TStepOutput>(
-    step: SagaStep<TStepInput, TStepOutput>
-  ): Saga<TInput, TOutput> {
+  addStep<TStepInput, TStepOutput>(step: SagaStep<TStepInput, TStepOutput>): Saga<TInput, TOutput> {
     this.steps.push(step);
     return this;
   }
@@ -64,15 +62,15 @@ export class Saga<TInput, TOutput> {
         } catch (error) {
           const stepError = error instanceof Error ? error : new Error(String(error));
           log.error({ transactionId, step: step.name, error }, "Saga step failed");
-          
+
           transaction.status = "compensating";
           transaction.error = stepError;
-          
+
           await this.compensate(transaction, currentData);
-          
+
           transaction.status = "failed";
           transaction.completedAt = new Date();
-          
+
           return left(stepError);
         }
       }
@@ -80,7 +78,7 @@ export class Saga<TInput, TOutput> {
       transaction.status = "completed";
       transaction.output = currentData as TOutput;
       transaction.completedAt = new Date();
-      
+
       log.info({ transactionId }, "Saga completed successfully");
       return right(currentData as TOutput);
     } catch (error) {
@@ -88,7 +86,7 @@ export class Saga<TInput, TOutput> {
       transaction.status = "failed";
       transaction.error = sagaError;
       transaction.completedAt = new Date();
-      
+
       log.error({ transactionId, error }, "Saga failed");
       return left(sagaError);
     }
@@ -102,7 +100,7 @@ export class Saga<TInput, TOutput> {
 
     // Compensate in reverse order
     const stepsToCompensate = [...transaction.completedSteps].reverse();
-    let compensationData = lastData;
+    const compensationData = lastData;
 
     for (const stepName of stepsToCompensate) {
       const step = this.steps.find((s) => s.name === stepName);
@@ -186,24 +184,24 @@ export class ParallelSaga<TInput, TOutput> extends Saga<TInput, TOutput> {
         log.info({ transactionId, step: parallelStep.name }, "Executing parallel saga steps");
 
         const promises = parallelStep.steps.map((step) => step.execute(currentData));
-        
+
         try {
           const results = await Promise.all(promises);
           currentData = parallelStep.combiner(results);
-          
+
           completedParallelSteps.push({
             name: parallelStep.name,
             steps: parallelStep.steps.map((s) => s.name),
           });
-          
+
           log.info({ transactionId, step: parallelStep.name }, "Parallel steps completed");
         } catch (error) {
           const stepError = error instanceof Error ? error : new Error(String(error));
           log.error({ transactionId, step: parallelStep.name, error }, "Parallel steps failed");
-          
+
           // Compensate completed parallel steps
           await this.compensateParallel(completedParallelSteps, currentData, stepError);
-          
+
           return left(stepError);
         }
       }
@@ -261,11 +259,16 @@ export class ChainedSaga<TInput, TOutput> {
 
     for (const saga of this.sagas) {
       const result = await saga.execute(currentData);
-      
+
       if (result.isLeft()) {
         // Rollback completed sagas
         await this.rollback(completedSagas);
-        return left(result.fold((e) => e, () => new Error("Unknown error")));
+        return left(
+          result.fold(
+            (e) => e,
+            () => new Error("Unknown error")
+          )
+        );
       }
 
       currentData = result.getOrElse(currentData);
@@ -275,9 +278,11 @@ export class ChainedSaga<TInput, TOutput> {
     return right(currentData as TOutput);
   }
 
-  private async rollback(completedSagas: Array<{ saga: Saga<any, any>; output: any }>): Promise<void> {
+  private async rollback(
+    completedSagas: Array<{ saga: Saga<any, any>; output: any }>
+  ): Promise<void> {
     log.info({ name: this.name }, "Rolling back chained sagas");
-    
+
     // In a real implementation, we would need a way to rollback entire sagas
     // For now, we just log the rollback
     for (const { saga } of [...completedSagas].reverse()) {
@@ -290,14 +295,10 @@ export function createSaga<TInput>(name: string): SagaBuilder<TInput> {
   return new SagaBuilder<TInput>(name);
 }
 
-export function createParallelSaga<TInput, TOutput>(
-  name: string
-): ParallelSaga<TInput, TOutput> {
+export function createParallelSaga<TInput, TOutput>(name: string): ParallelSaga<TInput, TOutput> {
   return new ParallelSaga<TInput, TOutput>(name);
 }
 
-export function createChainedSaga<TInput, TOutput>(
-  name: string
-): ChainedSaga<TInput, TOutput> {
+export function createChainedSaga<TInput, TOutput>(name: string): ChainedSaga<TInput, TOutput> {
   return new ChainedSaga<TInput, TOutput>(name);
 }

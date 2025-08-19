@@ -1,43 +1,48 @@
-'use client'
+"use client";
 
-import { useQuery } from '@tanstack/react-query'
-import { CheckCircle, XCircle, AlertCircle, RefreshCw } from 'lucide-react'
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle, RefreshCw, XCircle } from "lucide-react";
 
 export default function DiagnosticsPage() {
-  const { data: health, isLoading, error, refetch } = useQuery({
-    queryKey: ['health'],
+  const {
+    data: health,
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["health"],
     queryFn: async () => {
-      const res = await fetch('/api/health')
+      const res = await fetch("/api/health");
       if (!res.ok) {
-        const errorData = await res.json()
-        throw new Error(errorData.error || 'Health check failed')
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Health check failed");
       }
-      return res.json()
+      return res.json();
     },
     refetchInterval: 5000,
-  })
+  });
 
   const { data: sendersTest } = useQuery({
-    queryKey: ['senders-test'],
+    queryKey: ["senders-test"],
     queryFn: async () => {
       try {
-        const res = await fetch('/api/senders')
-        const data = await res.json()
+        const res = await fetch("/api/senders");
+        const data = await res.json();
         return {
-          status: res.ok ? 'success' : 'error',
+          status: res.ok ? "success" : "error",
           statusCode: res.status,
           data: res.ok ? data : null,
           error: !res.ok ? data : null,
-        }
+        };
       } catch (err) {
         return {
-          status: 'error',
-          error: err instanceof Error ? err.message : 'Unknown error',
-        }
+          status: "error",
+          error: err instanceof Error ? err.message : "Unknown error",
+        };
       }
     },
     retry: false,
-  })
+  });
 
   if (isLoading) {
     return (
@@ -51,7 +56,7 @@ export default function DiagnosticsPage() {
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -79,7 +84,7 @@ export default function DiagnosticsPage() {
             <div>
               <div className="font-semibold text-red-900">Health Check Failed</div>
               <div className="text-sm text-red-700">
-                {error instanceof Error ? error.message : 'Unknown error'}
+                {error instanceof Error ? error.message : "Unknown error"}
               </div>
             </div>
           </div>
@@ -88,13 +93,15 @@ export default function DiagnosticsPage() {
 
       {health && (
         <>
-          <div className={`rounded-lg p-6 ${
-            health.status === 'healthy' 
-              ? 'bg-green-50 border border-green-200' 
-              : 'bg-red-50 border border-red-200'
-          }`}>
+          <div
+            className={`rounded-lg p-6 ${
+              health.status === "healthy"
+                ? "bg-green-50 border border-green-200"
+                : "bg-red-50 border border-red-200"
+            }`}
+          >
             <div className="flex items-center mb-4">
-              {health.status === 'healthy' ? (
+              {health.status === "healthy" ? (
                 <>
                   <CheckCircle className="h-6 w-6 text-green-600 mr-2" />
                   <span className="text-lg font-semibold text-green-900">System Healthy</span>
@@ -120,14 +127,16 @@ export default function DiagnosticsPage() {
                 <div key={key} className="flex items-center justify-between">
                   <span className="text-sm font-medium text-gray-700">{key}</span>
                   <span className="flex items-center">
-                    {typeof value === 'boolean' ? (
+                    {typeof value === "boolean" ? (
                       value ? (
                         <CheckCircle className="h-4 w-4 text-green-600" />
                       ) : (
                         <XCircle className="h-4 w-4 text-red-600" />
                       )
                     ) : (
-                      <span className={`text-sm ${value === 'not set' ? 'text-red-600' : 'text-gray-900'}`}>
+                      <span
+                        className={`text-sm ${value === "not set" ? "text-red-600" : "text-gray-900"}`}
+                      >
                         {String(value)}
                       </span>
                     )}
@@ -175,16 +184,18 @@ export default function DiagnosticsPage() {
                 <div>
                   <div className="flex items-center justify-between mb-3">
                     <span className="text-sm font-medium text-gray-700">API Status</span>
-                    {sendersTest.status === 'success' ? (
+                    {sendersTest.status === "success" ? (
                       <div className="flex items-center">
                         <CheckCircle className="h-4 w-4 text-green-600 mr-2" />
-                        <span className="text-sm text-green-600">Working ({sendersTest.statusCode})</span>
+                        <span className="text-sm text-green-600">
+                          Working ({sendersTest.statusCode})
+                        </span>
                       </div>
                     ) : (
                       <div className="flex items-center">
                         <XCircle className="h-4 w-4 text-red-600 mr-2" />
                         <span className="text-sm text-red-600">
-                          Failed {sendersTest.statusCode ? `(${sendersTest.statusCode})` : ''}
+                          Failed {sendersTest.statusCode ? `(${sendersTest.statusCode})` : ""}
                         </span>
                       </div>
                     )}
@@ -197,7 +208,7 @@ export default function DiagnosticsPage() {
                       </pre>
                     </div>
                   )}
-                  {sendersTest.status === 'success' && sendersTest.data && (
+                  {sendersTest.status === "success" && sendersTest.data && (
                     <div className="mt-2 text-sm text-gray-600">
                       Found {Array.isArray(sendersTest.data) ? sendersTest.data.length : 0} senders
                     </div>
@@ -227,5 +238,5 @@ export default function DiagnosticsPage() {
         </>
       )}
     </div>
-  )
+  );
 }

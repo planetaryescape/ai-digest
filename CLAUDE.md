@@ -10,31 +10,37 @@ AI Digest is a multi-cloud automated newsletter summarizer that fetches AI-relat
 
 ### Building
 ```bash
-npm run build:azure      # Build Azure Functions
-npm run build:aws        # Build AWS Lambda functions  
-npm run build:all        # Build for both platforms
-npm run zip              # Create deployment packages
+bun run build:azure      # Build Azure Functions
+bun run build:aws        # Build AWS Lambda functions  
+bun run build:all        # Build for both platforms
+bun run zip              # Create deployment packages
+
+# Frontend build (using bun)
+cd frontend && bun run build  # Build Next.js frontend
 ```
 
 ### Deployment
 ```bash
 # Azure
-npm run deploy:azure     # Full deploy with Terraform
+bun run deploy:azure     # Full deploy with Terraform
 
 # AWS
-npm run deploy:aws       # Full deploy with Terraform
-npm run update:aws       # Quick update Lambda code only (no Terraform)
+bun run deploy:aws       # Full deploy with Terraform
+bun run update:aws       # Quick update Lambda code only (no Terraform)
 ```
 
 ### Development
 ```bash
-npm run dev:email        # Preview email templates locally
-npm run lint             # Lint and fix with Biome
-npm run typecheck        # TypeScript type checking
-npm run test             # Run tests with Vitest
-npm run test:watch       # Run tests in watch mode
-npm run test:coverage    # Generate test coverage report
-npm run generate:oauth   # Generate Gmail OAuth token
+bun run dev:email        # Preview email templates locally
+bun run lint             # Lint and fix with Biome
+bun run typecheck        # TypeScript type checking
+bun run test             # Run tests with Vitest
+bun run test:watch       # Run tests in watch mode
+bun run test:coverage    # Generate test coverage report
+bun run generate:oauth   # Generate Gmail OAuth token
+
+# Frontend development (using bun)
+cd frontend && bun run dev  # Start Next.js development server
 ```
 
 ### Testing AWS Lambdas

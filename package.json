@@ -37,6 +37,7 @@
     "@aws-sdk/client-lambda": "^3.865.0",
     "@aws-sdk/client-s3": "^3.864.0",
     "@aws-sdk/client-secrets-manager": "^3.864.0",
+    "@aws-sdk/lib-dynamodb": "^3.868.0",
     "@aws-sdk/util-dynamodb": "^3.868.0",
     "@azure/data-tables": "^13.3.1",
     "@azure/functions": "^4.8.0-experimental.0",

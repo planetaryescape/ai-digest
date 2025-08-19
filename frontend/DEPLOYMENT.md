@@ -2,16 +2,17 @@
 
 ## Prerequisites
 
-1. **Clerk Account**: Sign up at https://clerk.dev for authentication
-2. **AWS Account**: Required for DynamoDB storage
-3. **Vercel Account** (optional): For deployment
+1. **Bun**: Install from https://bun.sh (fast JavaScript runtime and package manager)
+2. **Clerk Account**: Sign up at https://clerk.dev for authentication
+3. **AWS Account**: Required for DynamoDB storage
+4. **Vercel Account** (optional): For deployment
 
 ## Local Development Setup
 
 ### 1. Install Dependencies
 
 ```bash
-npm install
+bun install
 ```
 
 ### 2. Configure Environment Variables
@@ -88,7 +89,7 @@ aws dynamodb create-table \
 ### 5. Run Development Server
 
 ```bash
-npm run dev
+bun run dev
 ```
 
 Visit http://localhost:3000
@@ -121,7 +122,7 @@ In Vercel Dashboard (https://vercel.com/dashboard):
 ### 3. Important Vercel Settings
 
 - Root Directory: `frontend` (set in vercel.json)
-- Build Command: `npm run build`
+- Build Command: `bun run build`
 - Output Directory: `.next`
 
 ## Troubleshooting

@@ -71,7 +71,7 @@ export abstract class ConnectionPool<T> {
 
     // Try to get an available resource
     let pooled = await this.getAvailableResource();
-    
+
     if (pooled) {
       this.inUse.add(pooled);
       pooled.lastUsedAt = Date.now();
@@ -113,7 +113,7 @@ export abstract class ConnectionPool<T> {
       try {
         const isValid = await this.validateResource(resource);
         pooled.isValid = isValid;
-        
+
         if (!isValid) {
           await this.destroyPooledResource(pooled);
           await this.createAndAddResource();

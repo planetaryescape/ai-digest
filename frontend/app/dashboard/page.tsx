@@ -1,34 +1,27 @@
-'use client'
+"use client";
 
-import { useQuery } from '@tanstack/react-query'
-import { 
-  Mail, 
-  Users, 
-  CheckCircle, 
-  Clock,
-  TrendingUp,
-  AlertCircle
-} from 'lucide-react'
-import { DigestTrigger } from '@/components/dashboard/DigestTrigger'
-import { StatsCard } from '@/components/dashboard/StatsCard'
-import { RecentActivity } from '@/components/dashboard/RecentActivity'
+import { useQuery } from "@tanstack/react-query";
+import { AlertCircle, CheckCircle, Clock, Mail, TrendingUp, Users } from "lucide-react";
+import { DigestTrigger } from "@/components/dashboard/DigestTrigger";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { StatsCard } from "@/components/dashboard/StatsCard";
 
 export default function DashboardPage() {
   const { data: senders } = useQuery({
-    queryKey: ['senders'],
+    queryKey: ["senders"],
     queryFn: async () => {
-      const res = await fetch('/api/senders')
-      if (!res.ok) throw new Error('Failed to fetch senders')
-      return res.json()
+      const res = await fetch("/api/senders");
+      if (!res.ok) throw new Error("Failed to fetch senders");
+      return res.json();
     },
-  })
+  });
 
   const stats = {
     totalSenders: senders?.length || 0,
     highConfidence: senders?.filter((s: any) => s.confidence >= 90).length || 0,
     lowConfidence: senders?.filter((s: any) => s.confidence < 70).length || 0,
     recentEmails: senders?.reduce((sum: number, s: any) => sum + (s.emailCount || 0), 0) || 0,
-  }
+  };
 
   return (
     <div className="space-y-8">
@@ -86,5 +79,5 @@ export default function DashboardPage() {
         <RecentActivity />
       </div>
     </div>
-  )
+  );
 }

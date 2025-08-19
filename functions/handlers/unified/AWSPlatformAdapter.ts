@@ -65,7 +65,8 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
         "Content-Type": "application/json",
         "X-Request-Id": result.invocationId || "",
         "Access-Control-Allow-Origin": corsOrigin,
-        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Headers":
+          "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
         "Access-Control-Allow-Credentials": "true",
       },
@@ -97,7 +98,8 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
         "Content-Type": "application/json",
         "X-Request-Id": context.invocationId,
         "Access-Control-Allow-Origin": corsOrigin,
-        "Access-Control-Allow-Headers": "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
+        "Access-Control-Allow-Headers":
+          "Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token",
         "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
         "Access-Control-Allow-Credentials": "true",
       },

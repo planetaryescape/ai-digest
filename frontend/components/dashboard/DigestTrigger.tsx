@@ -1,43 +1,43 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useMutation } from '@tanstack/react-query'
-import { toast } from 'sonner'
-import { Play, Loader2, Trash2 } from 'lucide-react'
-import { cn } from '@/lib/utils'
+import { useMutation } from "@tanstack/react-query";
+import { Loader2, Play, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export function DigestTrigger() {
-  const [cleanup, setCleanup] = useState(false)
+  const [cleanup, setCleanup] = useState(false);
 
   const triggerMutation = useMutation({
     mutationFn: async (options: { cleanup: boolean }) => {
-      const res = await fetch('/api/digest/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/digest/trigger", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(options),
-      })
-      
+      });
+
       if (!res.ok) {
-        throw new Error('Failed to trigger digest')
+        throw new Error("Failed to trigger digest");
       }
-      
-      return res.json()
+
+      return res.json();
     },
     onSuccess: (data) => {
       toast.success(
-        cleanup 
-          ? 'Cleanup digest generation started! This may take several minutes.'
-          : 'Weekly digest generation started!'
-      )
+        cleanup
+          ? "Cleanup digest generation started! This may take several minutes."
+          : "Weekly digest generation started!"
+      );
     },
     onError: () => {
-      toast.error('Failed to trigger digest generation')
+      toast.error("Failed to trigger digest generation");
     },
-  })
+  });
 
   const handleTrigger = () => {
-    triggerMutation.mutate({ cleanup })
-  }
+    triggerMutation.mutate({ cleanup });
+  };
 
   return (
     <div className="space-y-4">
@@ -72,9 +72,7 @@ export function DigestTrigger() {
             disabled={triggerMutation.isPending}
             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
-          <span className="text-sm font-medium text-gray-700">
-            Cleanup Mode
-          </span>
+          <span className="text-sm font-medium text-gray-700">Cleanup Mode</span>
           <Trash2 className="h-4 w-4 text-gray-500" />
         </label>
       </div>
@@ -82,8 +80,8 @@ export function DigestTrigger() {
       {cleanup && (
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
           <p className="text-sm text-yellow-800">
-            <strong>Warning:</strong> Cleanup mode will process ALL unarchived emails. 
-            This may take significantly longer and will send multiple digest emails.
+            <strong>Warning:</strong> Cleanup mode will process ALL unarchived emails. This may take
+            significantly longer and will send multiple digest emails.
           </p>
         </div>
       )}
@@ -91,11 +89,11 @@ export function DigestTrigger() {
       {triggerMutation.isSuccess && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-sm text-green-800">
-            Digest generation has been triggered successfully. 
-            You'll receive an email once it's complete.
+            Digest generation has been triggered successfully. You'll receive an email once it's
+            complete.
           </p>
         </div>
       )}
     </div>
-  )
+  );
 }
