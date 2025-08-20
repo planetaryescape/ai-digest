@@ -58,6 +58,8 @@
     "zod": "^4.0.17"
   },
   "devDependencies": {
+    "@aws-sdk/client-cloudwatch-logs": "^3.864.0",
+    "@aws-sdk/client-sfn": "^3.864.0",
     "@biomejs/biome": "^2.2.0",
     "@sentry/esbuild-plugin": "^4.1.1",
     "@testing-library/jest-dom": "^6.7.0",

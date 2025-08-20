@@ -43,10 +43,6 @@ async function handler(
     // Weekly digest processing can take 5+ minutes, longer than run-now's 30s timeout
     const invocationType = "Event";
 
-    // biome-ignore lint: Lambda logging is appropriate here
-    console.log(
-      `Invoking ${functionName} with invocationType: ${invocationType}, cleanup: ${cleanup}`
-    );
 
     // Invoke the weekly-digest Lambda
     const command = new InvokeCommand({
@@ -90,8 +86,6 @@ async function handler(
     const errorMessage =
       error instanceof Error ? error.message : "Failed to invoke weekly-digest Lambda";
 
-    // biome-ignore lint: Lambda error logging is appropriate here
-    console.log(`Error invoking weekly-digest Lambda: ${errorMessage}`);
 
     return {
       statusCode: 500,
