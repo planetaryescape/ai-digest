@@ -35,7 +35,7 @@ export class ExtractUrlsCommand implements IEmailCommand<string[]> {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to extract URLs from email ${email.id}`, error);
+      this.logger.error({ error }, `Failed to extract URLs from email ${email.id}`);
 
       return {
         success: false,

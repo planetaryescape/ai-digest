@@ -78,7 +78,7 @@ export class ValidateEmailCommand implements IEmailCommand<ValidationResult> {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to validate email ${email.id}`, error);
+      this.logger.error({ error }, `Failed to validate email ${email.id}`);
 
       return {
         success: false,

@@ -27,7 +27,7 @@ export interface MetricsCollector {
 
 class InMemoryMetricsCollector implements MetricsCollector {
   private metrics: Metric[] = [];
-  private flushInterval: NodeJS.Timer | null = null;
+  private flushInterval: NodeJS.Timeout | null = null;
   private readonly maxBatchSize = 100;
   private readonly flushIntervalMs = 30000; // 30 seconds
 
@@ -106,7 +106,7 @@ class InMemoryMetricsCollector implements MetricsCollector {
     }
   }
 
-  private async sendMetrics(metrics: Metric[]): Promise<void> {
+  protected async sendMetrics(metrics: Metric[]): Promise<void> {
     // Group metrics by type for efficient logging
     const grouped = metrics.reduce(
       (acc, metric) => {
@@ -186,10 +186,10 @@ class CloudWatchMetricsCollector extends InMemoryMetricsCollector {
     this.namespace = namespace;
   }
 
-  private async sendMetrics(metrics: Metric[]): Promise<void> {
+  protected async sendMetrics(metrics: Metric[]): Promise<void> {
     // In production, this would use AWS SDK to send to CloudWatch
     // For now, just log them
-    await super["sendMetrics"](metrics);
+    await super.sendMetrics(metrics);
 
     if (process.env.AWS_REGION) {
       // Would implement CloudWatch PutMetricData here
@@ -223,8 +223,9 @@ export const metrics = {
     getMetrics().increment("emails.processed", { ...tags, count: count.toString() });
   },
 
-  apiCall: async <T>(service: string, operation: string, fn: () => Promise<T>): Promise<T> =>
-    getMetrics().timer(`api.${service}.${operation}`, fn, { service, operation }),
+  apiCall: async function<T>(service: string, operation: string, fn: () => Promise<T>): Promise<T> {
+    return getMetrics().timer(`api.${service}.${operation}`, fn, { service, operation });
+  },
 
   digestGenerated: (emailCount: number, duration: number) => {
     getMetrics().increment("digest.generated");
@@ -236,8 +237,9 @@ export const metrics = {
     getMetrics().increment("errors", { ...tags, error });
   },
 
-  storageOperation: async <T>(operation: string, fn: () => Promise<T>): Promise<T> =>
-    getMetrics().timer(`storage.${operation}`, fn),
+  storageOperation: async function<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+    return getMetrics().timer(`storage.${operation}`, fn);
+  },
 
   lambdaInvocation: (functionName: string, isAsync: boolean) => {
     getMetrics().increment("lambda.invocations", {

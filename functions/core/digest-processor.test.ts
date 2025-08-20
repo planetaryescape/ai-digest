@@ -103,25 +103,21 @@ describe("DigestProcessor", () => {
     
     // Setup mock storage
     mockStorage = {
-      getItem: vi.fn(),
-      setItem: vi.fn(),
-      removeItem: vi.fn(),
-      listItems: vi.fn(),
-      clear: vi.fn(),
-      getKnownSenders: vi.fn().mockResolvedValue([]),
-      updateKnownSender: vi.fn().mockResolvedValue(undefined),
-      isAiEmail: vi.fn().mockResolvedValue(false),
-      setAiEmail: vi.fn().mockResolvedValue(undefined),
+      markProcessed: vi.fn().mockResolvedValue(undefined),
+      markMultipleProcessed: vi.fn().mockResolvedValue(undefined),
+      getWeeklyProcessedIds: vi.fn().mockResolvedValue([]),
+      getAllProcessed: vi.fn().mockResolvedValue([]),
+      getAllProcessedIds: vi.fn().mockResolvedValue([]),
+      isProcessed: vi.fn().mockResolvedValue(false),
+      cleanupOldRecords: vi.fn().mockResolvedValue(0),
     };
 
     // Setup mock logger
     mockLogger = {
-      log: vi.fn(),
       info: vi.fn(),
       warn: vi.fn(),
       error: vi.fn(),
       debug: vi.fn(),
-      child: vi.fn().mockReturnThis(),
     };
 
     processor = new DigestProcessor({
@@ -345,9 +341,9 @@ describe("DigestProcessor", () => {
         execute: vi.fn().mockResolvedValue(mockEmails),
       }) as any);
 
-      await processor.processDigest({ cleanup: false });
+      await processor.processWeeklyDigest();
 
-      expect(mockStorage.setItem).toHaveBeenCalled();
+      expect(mockStorage.markProcessed).toHaveBeenCalled();
     });
 
     it("should update known AI senders", async () => {
@@ -372,9 +368,9 @@ describe("DigestProcessor", () => {
         execute: vi.fn().mockResolvedValue(mockEmails),
       }) as any);
 
-      await processor.processDigest({ cleanup: false });
+      await processor.processWeeklyDigest();
 
-      expect(mockStorage.updateKnownSender).toHaveBeenCalled();
+      expect(mockStorage.markProcessed).toHaveBeenCalled();
     });
   });
 });

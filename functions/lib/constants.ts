@@ -150,7 +150,7 @@ export const RATE_LIMITS = {
   /** Delay between Firecrawl batches in ms */
   FIRECRAWL_BATCH_DELAY_MS: 500,
   /** Maximum URLs to extract per email */
-  MAX_URLS_PER_EMAIL: 5,
+  MAX_URLS_PER_EMAIL: 2,
   /** Maximum article content length to process */
   MAX_ARTICLE_LENGTH: 5000,
 } as const;

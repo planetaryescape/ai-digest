@@ -222,12 +222,15 @@ export class DigestProcessor {
       }
 
       // Additional validation for digest content
-      const hasValidContent = digest.sections && digest.sections.some(
-        section => section.items && section.items.length > 0
-      );
+      const digestOutput = digest.digest as DigestOutput;
+      const hasValidContent = 
+        (digestOutput.whatHappened && digestOutput.whatHappened.length > 0) ||
+        (digestOutput.takeaways && digestOutput.takeaways.length > 0) ||
+        (digestOutput.productPlays && digestOutput.productPlays.length > 0) ||
+        (digestOutput.tools && digestOutput.tools.length > 0);
 
       if (!hasValidContent) {
-        this.logger.info("Digest has no valid sections with content, skipping email");
+        this.logger.info("Digest has no valid content sections, skipping email");
         return {
           success: true,
           emailsFound: emailBatch.metadata.length,
@@ -501,7 +504,7 @@ export class DigestProcessor {
         description: item.desc || item.snippet || "",
       })),
       takeaways: [],
-      roleplays: [],
+      rolePlays: [],
       productPlays: [],
       tools: [],
       shortMessage: `${items.length} AI articles analyzed this week`,
