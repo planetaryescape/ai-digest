@@ -1,5 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
+// All routes are protected except /api/health
 const isProtectedRoute = createRouteMatcher([
   "/dashboard(.*)",
   "/senders(.*)",
@@ -7,6 +8,7 @@ const isProtectedRoute = createRouteMatcher([
   "/api/digest(.*)",
   "/api/senders(.*)",
   "/api/config(.*)",
+  "/api/stepfunctions(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
