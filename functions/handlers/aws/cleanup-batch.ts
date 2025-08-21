@@ -1,6 +1,7 @@
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import type { Context } from "aws-lambda";
 import { createLogger } from "../../lib/logger";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 
 const log = createLogger("cleanup-batch");
 const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
@@ -22,6 +23,9 @@ export const handler = async (
   message: string;
   batches: number;
 }> => {
+  // Load secrets from AWS Secrets Manager on cold start
+  await SecretsLoader.loadSecrets();
+  
   const batchSize = event.batchSize || BATCH_SIZE;
   log.info({ batchSize }, "Starting cleanup batch processing");
 

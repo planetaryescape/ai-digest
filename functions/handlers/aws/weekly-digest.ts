@@ -6,7 +6,6 @@ import type {
 } from "aws-lambda";
 import { SecretsLoader } from "../../lib/aws/secrets-loader";
 import { ConfigValidator } from "../../lib/config-validator";
-import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
 import { createHttpHandler, createScheduledHandler } from "../unified/AWSHandler";
 
 /**
@@ -52,17 +51,5 @@ async function handler(event: any, context: Context): Promise<APIGatewayProxyRes
   return httpHandler(event as APIGatewayProxyEvent, context);
 }
 
-// Apply middleware for HTTP events
-const handlerWithMiddleware = compose(
-  withCorrelationId,
-  // Only apply HTTP logging for actual HTTP events
-  (h: any) => async (event: any, context: any) => {
-    if (event.httpMethod) {
-      return withLambdaLogging(h)(event, context);
-    }
-    return h(event, context);
-  }
-)(handler);
-
 // Export for Lambda
-export { handlerWithMiddleware as handler };
+export { handler };

@@ -1,6 +1,6 @@
 import { InvokeCommand, Lambda } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 
 /**
  * AWS Lambda handler for manual trigger
@@ -13,6 +13,8 @@ async function handler(
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> {
+  // Load secrets from AWS Secrets Manager on cold start
+  await SecretsLoader.loadSecrets();
   const functionName = process.env.WEEKLY_DIGEST_FUNCTION_NAME;
 
   if (!functionName) {
@@ -161,8 +163,5 @@ async function handler(
   }
 }
 
-// Apply middleware
-const handlerWithMiddleware = compose(withLambdaLogging, withCorrelationId)(handler);
-
 // Export for Lambda
-export { handlerWithMiddleware as handler };
+export { handler };

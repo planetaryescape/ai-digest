@@ -277,17 +277,10 @@ resource "aws_lambda_function" "weekly_digest" {
       S3_BUCKET    = aws_s3_bucket.processed_emails.id
       DYNAMODB_TABLE = aws_dynamodb_table.known_ai_senders.name
 
-      # Gmail OAuth Configuration - from .env.aws
-      GMAIL_CLIENT_ID     = var.GMAIL_CLIENT_ID
-      GMAIL_CLIENT_SECRET = var.GMAIL_CLIENT_SECRET
-      GMAIL_REFRESH_TOKEN = var.GMAIL_REFRESH_TOKEN
+      # Secrets Manager ARN
+      SECRET_ARN = aws_secretsmanager_secret.api_keys.arn
 
-      # OpenAI Configuration
-      OPENAI_API_KEY    = var.OPENAI_API_KEY
-      HELICONE_API_KEY  = var.HELICONE_API_KEY
-
-      # Email Configuration
-      RESEND_API_KEY    = var.RESEND_API_KEY
+      # Non-sensitive configuration
       RECIPIENT_EMAIL   = var.RECIPIENT_EMAIL
 
       # Processing Configuration
@@ -326,6 +319,7 @@ resource "aws_lambda_function" "run_now" {
     variables = {
       WEEKLY_DIGEST_FUNCTION_NAME = aws_lambda_function.weekly_digest.function_name
       ALLOWED_ORIGINS = join(",", var.allowed_origins)
+      SECRET_ARN = aws_secretsmanager_secret.api_keys.arn
     }
   }
 

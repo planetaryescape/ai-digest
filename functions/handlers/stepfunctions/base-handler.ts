@@ -2,6 +2,7 @@ import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3
 import type { Context } from "aws-lambda";
 import { CostTracker } from "../../lib/cost-tracker";
 import { createLogger } from "../../lib/logger";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 
 const log = createLogger("sf-base-handler");
 
@@ -24,6 +25,9 @@ export abstract class BaseStepFunctionHandler {
    * Main handler method for Lambda
    */
   async handler(event: any, context: Context): Promise<any> {
+    // Load secrets from AWS Secrets Manager on cold start
+    await SecretsLoader.loadSecrets();
+    
     const startTime = Date.now();
     log.info({ event, context }, "Handler invoked");
 
