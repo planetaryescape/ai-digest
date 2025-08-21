@@ -175,7 +175,7 @@ export function DigestTrigger() {
       {triggerMutation.isSuccess && !executionArn && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-sm text-green-800">
-            Digest generation has been triggered successfully. You'll receive an email once it's
+            Digest generation has been triggered successfully. You&apos;ll receive an email once it&apos;s
             complete.
           </p>
         </div>
