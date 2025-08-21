@@ -1,32 +1,28 @@
-import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { InvokeCommand } from "@aws-sdk/client-lambda";
+import { StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeError } from "@/lib/utils/error-handling";
+import { getSFNClient, getLambdaClient } from "@/lib/aws/clients";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { CircuitBreaker } from "@/lib/circuit-breaker";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const lambda = new LambdaClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  // Let AWS SDK handle credentials via IAM roles or environment
-  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-  } : {}),
+const sfnCircuitBreaker = CircuitBreaker.getBreaker("stepfunctions-digest", {
+  failureThreshold: 5,
+  resetTimeout: 60000,
 });
 
-const sfnClient = new SFNClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  // Let AWS SDK handle credentials via IAM roles or environment
-  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-  } : {}),
+const lambdaCircuitBreaker = CircuitBreaker.getBreaker("lambda-digest", {
+  failureThreshold: 5,
+  resetTimeout: 60000,
+});
+
+const httpCircuitBreaker = CircuitBreaker.getBreaker("lambda-http", {
+  failureThreshold: 5,
+  resetTimeout: 60000,
 });
 
 export async function POST(request: Request) {
@@ -34,6 +30,19 @@ export async function POST(request: Request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimitResult = checkRateLimit(userId, "digest-trigger");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { 
+          status: 429,
+          headers: {
+            "Retry-After": rateLimitResult.retryAfter?.toString() || "3600",
+          },
+        }
+      );
     }
 
     const body = await request.json();
@@ -57,7 +66,11 @@ export async function POST(request: Request) {
         input: JSON.stringify(payload),
       });
 
-      const response = await sfnClient.send(command);
+      const sfnClient = getSFNClient();
+      
+      const response = await sfnCircuitBreaker.execute(async () => {
+        return await sfnClient.send(command);
+      });
 
       return NextResponse.json({
         success: true,
@@ -73,13 +86,15 @@ export async function POST(request: Request) {
     const functionUrl = process.env.LAMBDA_RUN_NOW_URL;
 
     if (functionUrl) {
-      // Direct HTTP call to Lambda Function URL
-      const response = await fetch(functionUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
+      // Direct HTTP call to Lambda Function URL with circuit breaker
+      const response = await httpCircuitBreaker.execute(async () => {
+        return await fetch(functionUrl, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(payload),
+        });
       });
 
       const data = await response.json();
@@ -99,7 +114,11 @@ export async function POST(request: Request) {
       Payload: JSON.stringify(payload),
     });
 
-    const response = await lambda.send(command);
+    const lambda = getLambdaClient();
+    
+    const response = await lambdaCircuitBreaker.execute(async () => {
+      return await lambda.send(command);
+    });
 
     if (response.StatusCode === 202) {
       return NextResponse.json({
