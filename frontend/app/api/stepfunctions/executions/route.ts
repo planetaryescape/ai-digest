@@ -1,21 +1,11 @@
-import { SFNClient, ListExecutionsCommand } from "@aws-sdk/client-sfn";
+import { ListExecutionsCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { sanitizeError } from "@/lib/utils/error-handling";
+import { getSFNClient } from "@/lib/aws/clients";
 
 export const runtime = "nodejs";
-
-const sfnClient = new SFNClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  // Let AWS SDK handle credentials via IAM roles or environment
-  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-  } : {}),
-});
 
 // Input validation schema
 const querySchema = z.object({
@@ -69,6 +59,7 @@ export async function GET(request: Request) {
       ...(nextToken && { nextToken }),
     });
 
+    const sfnClient = getSFNClient();
     const response = await sfnClient.send(command);
 
     const executions = response.executions?.map((exec) => ({

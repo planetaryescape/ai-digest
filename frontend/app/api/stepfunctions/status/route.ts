@@ -1,20 +1,10 @@
-import { SFNClient, DescribeExecutionCommand } from "@aws-sdk/client-sfn";
+import { DescribeExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeError, safeJsonParse } from "@/lib/utils/error-handling";
+import { getSFNClient } from "@/lib/aws/clients";
 
 export const runtime = "nodejs";
-
-const sfnClient = new SFNClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  // Let AWS SDK handle credentials via IAM roles or environment
-  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-  } : {}),
-});
 
 export async function GET(request: Request) {
   try {
@@ -37,6 +27,7 @@ export async function GET(request: Request) {
       executionArn,
     });
 
+    const sfnClient = getSFNClient();
     const response = await sfnClient.send(command);
 
     // Safe JSON parsing with fallback

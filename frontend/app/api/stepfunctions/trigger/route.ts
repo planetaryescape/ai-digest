@@ -1,20 +1,17 @@
-import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
+import { StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { sanitizeError } from "@/lib/utils/error-handling";
+import { getSFNClient } from "@/lib/aws/clients";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { CircuitBreaker } from "@/lib/circuit-breaker";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const sfnClient = new SFNClient({
-  region: process.env.AWS_REGION || "us-east-1",
-  // Let AWS SDK handle credentials via IAM roles or environment
-  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    }
-  } : {}),
+const sfnCircuitBreaker = CircuitBreaker.getBreaker("stepfunctions", {
+  failureThreshold: 5,
+  resetTimeout: 60000,
 });
 
 export async function POST(request: Request) {
@@ -22,6 +19,19 @@ export async function POST(request: Request) {
     const { userId } = await auth();
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const rateLimitResult = checkRateLimit(userId, "stepfunctions-trigger");
+    if (!rateLimitResult.allowed) {
+      return NextResponse.json(
+        { error: "Too many requests. Please try again later." },
+        { 
+          status: 429,
+          headers: {
+            "Retry-After": rateLimitResult.retryAfter?.toString() || "3600",
+          },
+        }
+      );
     }
 
     const body = await request.json();
@@ -51,7 +61,11 @@ export async function POST(request: Request) {
       input: JSON.stringify(input),
     });
 
-    const response = await sfnClient.send(command);
+    const sfnClient = getSFNClient();
+    
+    const response = await sfnCircuitBreaker.execute(async () => {
+      return await sfnClient.send(command);
+    });
 
     return NextResponse.json({
       success: true,
