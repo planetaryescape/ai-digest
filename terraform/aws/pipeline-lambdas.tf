@@ -431,7 +431,7 @@ resource "aws_cloudwatch_event_rule" "pipeline_weekly_digest" {
   name                = "${var.PROJECT_NAME}-pipeline-weekly-schedule"
   description         = "Trigger weekly digest pipeline"
   schedule_expression = "cron(0 10 ? * SUN *)"
-  is_enabled          = var.enable_weekly_schedule
+  state               = var.enable_weekly_schedule ? "ENABLED" : "DISABLED"
 }
 
 resource "aws_cloudwatch_event_target" "pipeline_weekly_digest" {

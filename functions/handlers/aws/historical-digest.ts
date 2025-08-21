@@ -1,9 +1,13 @@
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 
 const sfnClient = new SFNClient();
 
 export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayProxyResult> {
+  // Load secrets from AWS Secrets Manager on cold start
+  await SecretsLoader.loadSecrets();
+  
   try {
     const body = JSON.parse(event.body || "{}");
     const { startDate, endDate, batchSize = 200 } = body;

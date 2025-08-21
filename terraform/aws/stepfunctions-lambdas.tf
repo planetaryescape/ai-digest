@@ -78,9 +78,7 @@ resource "aws_lambda_function" "sf_email_fetcher" {
 
   environment {
     variables = {
-      GMAIL_CLIENT_ID      = var.GMAIL_CLIENT_ID
-      GMAIL_CLIENT_SECRET  = var.GMAIL_CLIENT_SECRET
-      GMAIL_REFRESH_TOKEN  = var.GMAIL_REFRESH_TOKEN
+      SECRET_ARN           = aws_secretsmanager_secret.api_keys.arn
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       KNOWN_AI_TABLE       = aws_dynamodb_table.known_ai_senders.name
       KNOWN_NON_AI_TABLE   = aws_dynamodb_table.known_non_ai_senders.name
@@ -114,8 +112,7 @@ resource "aws_lambda_function" "sf_classifier" {
 
   environment {
     variables = {
-      OPENAI_API_KEY       = var.OPENAI_API_KEY
-      HELICONE_API_KEY     = var.HELICONE_API_KEY
+      SECRET_ARN           = aws_secretsmanager_secret.api_keys.arn
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       KNOWN_AI_TABLE       = aws_dynamodb_table.known_ai_senders.name
       KNOWN_NON_AI_TABLE   = aws_dynamodb_table.known_non_ai_senders.name
@@ -216,8 +213,7 @@ resource "aws_lambda_function" "sf_analysis" {
 
   environment {
     variables = {
-      OPENAI_API_KEY       = var.OPENAI_API_KEY
-      HELICONE_API_KEY     = var.HELICONE_API_KEY
+      SECRET_ARN           = aws_secretsmanager_secret.api_keys.arn
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       ANALYSIS_MODEL       = var.ANALYSIS_MODEL
       NODE_ENV             = var.environment
@@ -250,8 +246,7 @@ resource "aws_lambda_function" "sf_critic" {
 
   environment {
     variables = {
-      OPENAI_API_KEY       = var.OPENAI_API_KEY
-      HELICONE_API_KEY     = var.HELICONE_API_KEY
+      SECRET_ARN           = aws_secretsmanager_secret.api_keys.arn
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       ENABLE_CRITIC_AGENT  = var.ENABLE_CRITIC_AGENT
       ANALYSIS_MODEL       = var.ANALYSIS_MODEL
@@ -285,11 +280,8 @@ resource "aws_lambda_function" "sf_digest_sender" {
 
   environment {
     variables = {
-      RESEND_API_KEY              = var.RESEND_API_KEY
+      SECRET_ARN                  = aws_secretsmanager_secret.api_keys.arn
       RECIPIENT_EMAIL             = var.RECIPIENT_EMAIL
-      GMAIL_CLIENT_ID             = var.GMAIL_CLIENT_ID
-      GMAIL_CLIENT_SECRET         = var.GMAIL_CLIENT_SECRET
-      GMAIL_REFRESH_TOKEN         = var.GMAIL_REFRESH_TOKEN
       PIPELINE_DATA_BUCKET        = aws_s3_bucket.pipeline_data.id
       ARCHIVE_AFTER_PROCESSING    = var.ARCHIVE_AFTER_PROCESSING
       NODE_ENV                    = var.environment
@@ -322,7 +314,7 @@ resource "aws_lambda_function" "sf_error_handler" {
 
   environment {
     variables = {
-      RESEND_API_KEY       = var.RESEND_API_KEY
+      SECRET_ARN           = aws_secretsmanager_secret.api_keys.arn
       RECIPIENT_EMAIL      = var.RECIPIENT_EMAIL
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       NODE_ENV             = var.environment

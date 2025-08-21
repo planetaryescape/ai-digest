@@ -1,4 +1,0 @@
-{
-  "statusCode": 200,
-  "body": "{\"success\":true,\"correlationId\":\"6b918402-fc92-4b87-b7f9-e32253b42cb9\",\"batchId\":\"7b76fef6-6718-4a0e-bd80-b8d8fbd06ea2\",\"status\":\"started\",\"stats\":{\"totalEmails\":49,\"knownAI\":0,\"knownNonAI\":0,\"unknown\":39,\"fetched\":45},\"duration\":5781}"
-}
