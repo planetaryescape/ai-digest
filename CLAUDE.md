@@ -286,6 +286,46 @@ Use `async function<T>()` not arrow functions for generics
 4. Marketing site
 5. Launch on Product Hunt
 
+## Visual Development
+
+### Indie Design Philosophy
+**REMEMBER: We're shipping to validate, not win design awards.**
+- Good enough UX that doesn't frustrate users
+- Clean, professional look without obsessing over pixels
+- Focus on the money feature working beautifully (the digest email)
+- Everything else just needs to not be broken
+
+### Frontend Location
+The frontend code is located in the `/frontend` directory - all UI/UX work happens there.
+
+### Quick Visual Check
+After implementing any front-end change in `/frontend`:
+1. **Does it work?** - Test the actual functionality
+2. **Does it look broken?** - Quick visual scan for obvious issues
+3. **Is it usable?** - Can users figure it out without instructions?
+4. **Take a screenshot** - Document what shipped
+5. **Check console** - No errors breaking the experience
+
+### When to Care More About Design
+- The money feature (beautiful digest emails)
+- First-time user experience/onboarding
+- Dashboard for viewing/managing digests
+- Error states that lose user trust
+
+### Design Principles
+- `/context/design-principles.md` - Pragmatic design checklist
+- `/context/style-guide.md` - Basic brand consistency for frontend
+- Use these as guidelines, not gospel
+
+### Design Review (When Needed)
+Use the design-review agent when:
+- Shipping a major user-facing feature in `/frontend`
+- The UI feels "off" and you need help
+- Before a Product Hunt launch
+- Customer reported UI/UX issues
+
+Remember: Ship first, polish based on user feedback.
+
 ## Remember
 
 **This is a working product that delivers value.** The code isn't perfect, but it:
