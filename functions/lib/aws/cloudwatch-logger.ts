@@ -1,7 +1,9 @@
 import type { ILogger } from "../interfaces/logger";
+import { PinoLoggerAdapter } from "../logger";
 
 /**
  * AWS CloudWatch logger implementation
+ * @deprecated Use PinoLoggerAdapter from '../logger' instead - it provides better CloudWatch integration
  */
 export class CloudWatchLogger implements ILogger {
   private context: string;
