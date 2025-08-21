@@ -27,12 +27,11 @@ jobs:
       
       - name: Run tests
         run: bun test
-        continue-on-error: true # Don't block on test failures for now
       
       - name: Build project
         run: |
-          bun run build:aws || true
-          bun run build:pipeline || true
+          bun run build:aws
+          bun run build:pipeline
       
       - name: Check if patch or minor update
         id: check-update-type
