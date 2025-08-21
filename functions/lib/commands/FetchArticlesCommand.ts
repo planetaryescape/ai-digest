@@ -1,5 +1,5 @@
 import { ConfigManager } from "../config/ConfigManager";
-import { fetchArticle } from "../extract";
+import { fetchArticleData } from "../extract";
 import { createLogger } from "../logger";
 import type { EmailItem } from "../types";
 import type { CommandResult, IEmailCommand } from "./IEmailCommand";
@@ -62,7 +62,7 @@ export class FetchArticlesCommand implements IEmailCommand<ArticleData[]> {
         },
       };
     } catch (error) {
-      this.logger.error(`Failed to fetch articles for email ${email.id}`, error);
+      this.logger.error({ error }, `Failed to fetch articles for email ${email.id}`);
 
       return {
         success: false,
@@ -94,13 +94,13 @@ export class FetchArticlesCommand implements IEmailCommand<ArticleData[]> {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeout);
 
-      const article = await fetchArticle(url, controller.signal);
+      const article = await fetchArticleData(url);
       clearTimeout(timeoutId);
 
       return {
         url,
-        title: article.title,
-        content: article.content,
+        title: article?.title,
+        content: article?.desc || article?.snippet,
       };
     } catch (error) {
       return {

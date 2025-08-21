@@ -1,0 +1,313 @@
+{
+  "Comment": "AI Digest Email Processing Pipeline - Processes AI-related emails through enrichment and analysis stages",
+  "StartAt": "FetchEmails",
+  "States": {
+    "FetchEmails": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-email-fetcher",
+        "Payload": {
+          "mode.$": "$.mode",
+          "executionId.$": "$$.Execution.Id",
+          "startTime.$": "$$.Execution.StartTime"
+        }
+      },
+      "ResultSelector": {
+        "emailCount.$": "$.Payload.emailCount",
+        "emails.$": "$.Payload.emails",
+        "stats.$": "$.Payload.stats",
+        "metadata.$": "$.Payload.metadata",
+        "costSoFar.$": "$.Payload.costSoFar"
+      },
+      "TimeoutSeconds": 60,
+      "Retry": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed",
+            "Lambda.ServiceException",
+            "Lambda.AWSLambdaException"
+          ],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "CheckEmails"
+    },
+
+    "CheckEmails": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.emailCount",
+          "NumericGreaterThan": 0,
+          "Next": "ClassifyEmails"
+        }
+      ],
+      "Default": "NoEmailsFound"
+    },
+
+    "ClassifyEmails": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-classifier",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "emailCount.$": "$.Payload.emailCount",
+        "classifiedEmails.$": "$.Payload.classifiedEmails",
+        "classificationStats.$": "$.Payload.classificationStats",
+        "stats.$": "$.Payload.stats",
+        "metadata.$": "$.Payload.metadata",
+        "costSoFar.$": "$.Payload.costSoFar"
+      },
+      "TimeoutSeconds": 60,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "CheckClassifiedEmails"
+    },
+
+    "CheckClassifiedEmails": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.classificationStats.aiEmails",
+          "NumericGreaterThan": 0,
+          "Next": "ParallelEnrichment"
+        }
+      ],
+      "Default": "NoAIEmailsFound"
+    },
+
+    "ParallelEnrichment": {
+      "Type": "Parallel",
+      "Branches": [
+        {
+          "StartAt": "ExtractContent",
+          "States": {
+            "ExtractContent": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-content-extractor",
+                "Payload.$": "$"
+              },
+              "ResultSelector": {
+                "articles.$": "$.Payload.articles",
+                "extractionStats.$": "$.Payload.extractionStats",
+                "executionId.$": "$.Payload.executionId",
+                "costSoFar.$": "$.Payload.costSoFar"
+              },
+              "TimeoutSeconds": 300,
+              "Retry": [
+                {
+                  "ErrorEquals": ["States.TaskFailed"],
+                  "IntervalSeconds": 5,
+                  "MaxAttempts": 1,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "End": true
+            }
+          }
+        },
+        {
+          "StartAt": "ResearchContext",
+          "States": {
+            "ResearchContext": {
+              "Type": "Task",
+              "Resource": "arn:aws:states:::lambda:invoke",
+              "Parameters": {
+                "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-research",
+                "Payload.$": "$"
+              },
+              "ResultSelector": {
+                "researchData.$": "$.Payload.researchData",
+                "researchStats.$": "$.Payload.researchStats",
+                "executionId.$": "$.Payload.executionId",
+                "costSoFar.$": "$.Payload.costSoFar"
+              },
+              "TimeoutSeconds": 60,
+              "Retry": [
+                {
+                  "ErrorEquals": ["States.TaskFailed"],
+                  "IntervalSeconds": 2,
+                  "MaxAttempts": 2,
+                  "BackoffRate": 2.0
+                }
+              ],
+              "End": true
+            }
+          }
+        }
+      ],
+      "ResultPath": "$.enrichment",
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "AnalyzeContent"
+    },
+
+    "AnalyzeContent": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-analysis",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "analysisResult.$": "$.Payload.analysisResult",
+        "analysisStats.$": "$.Payload.analysisStats",
+        "metadata.$": "$.Payload.metadata",
+        "costSoFar.$": "$.Payload.costSoFar"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 1,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "GenerateCritique"
+    },
+
+    "GenerateCritique": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-critic",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "analysisResult.$": "$.Payload.analysisResult",
+        "criticResult.$": "$.Payload.criticResult",
+        "criticStats.$": "$.Payload.criticStats",
+        "metadata.$": "$.Payload.metadata",
+        "costSoFar.$": "$.Payload.costSoFar"
+      },
+      "TimeoutSeconds": 120,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 5,
+          "MaxAttempts": 1,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "SendDigest"
+    },
+
+    "SendDigest": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-digest-sender",
+        "Payload.$": "$"
+      },
+      "ResultSelector": {
+        "success.$": "$.Payload.success",
+        "emailSent.$": "$.Payload.emailSent",
+        "emailsArchived.$": "$.Payload.emailsArchived",
+        "pipelineStats.$": "$.Payload.pipelineStats",
+        "metadata.$": "$.Payload.metadata"
+      },
+      "TimeoutSeconds": 30,
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 2,
+          "MaxAttempts": 1,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "Next": "HandleError",
+          "ResultPath": "$.error"
+        }
+      ],
+      "Next": "Success"
+    },
+
+    "Success": {
+      "Type": "Succeed",
+      "Comment": "Pipeline completed successfully"
+    },
+
+    "NoEmailsFound": {
+      "Type": "Succeed",
+      "Comment": "No emails found to process"
+    },
+
+    "NoAIEmailsFound": {
+      "Type": "Succeed",
+      "Comment": "No AI-related emails found"
+    },
+
+    "HandleError": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::lambda:invoke",
+      "Parameters": {
+        "FunctionName": "arn:aws:lambda:us-east-1:536697242054:function:ai-digest-sf-error-handler",
+        "Payload": {
+          "error.$": "$.error",
+          "executionArn.$": "$$.Execution.Id",
+          "stateMachineArn.$": "$$.StateMachine.Id",
+          "state.$": "$$.State.Name",
+          "input.$": "$"
+        }
+      },
+      "ResultPath": "$.errorHandling",
+      "TimeoutSeconds": 30,
+      "Next": "Failed"
+    },
+
+    "Failed": {
+      "Type": "Fail",
+      "Comment": "Pipeline failed with error"
+    }
+  }
+}

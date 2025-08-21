@@ -34,26 +34,73 @@ async function handler(
   }
 
   try {
-    // Check for cleanup mode
-    const cleanup =
-      event.queryStringParameters?.cleanup === "true" ||
-      (event.body && JSON.parse(event.body || "{}").cleanup === true);
+    // Parse request body
+    const body = event.body ? JSON.parse(event.body) : {};
+
+    // Check for different modes
+    const cleanup = event.queryStringParameters?.cleanup === "true" || body.cleanup === true;
+
+    const mode = body.mode || (cleanup ? "cleanup" : "weekly");
+
+    // Historical mode parameters
+    const startDate = body.startDate;
+    const endDate = body.endDate;
+
+    // Validate historical mode
+    if (mode === "historical") {
+      if (!startDate || !endDate) {
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+          body: JSON.stringify({
+            success: false,
+            error: "Historical mode requires startDate and endDate",
+          }),
+        };
+      }
+
+      // Basic date validation
+      try {
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+        if (start >= end) {
+          throw new Error("startDate must be before endDate");
+        }
+      } catch (error) {
+        return {
+          statusCode: 400,
+          headers: {
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
+            "Access-Control-Allow-Headers": "Content-Type",
+          },
+          body: JSON.stringify({
+            success: false,
+            error: error instanceof Error ? error.message : "Invalid date parameters",
+          }),
+        };
+      }
+    }
 
     // Use async invocation for all requests to avoid timeout issues
     // Weekly digest processing can take 5+ minutes, longer than run-now's 30s timeout
     const invocationType = "Event";
 
-    // biome-ignore lint: Lambda logging is appropriate here
-    console.log(
-      `Invoking ${functionName} with invocationType: ${invocationType}, cleanup: ${cleanup}`
-    );
-
-    // Invoke the weekly-digest Lambda
+    // Invoke the weekly-digest Lambda with appropriate parameters
     const command = new InvokeCommand({
       FunctionName: functionName,
       InvocationType: invocationType,
       Payload: JSON.stringify({
+        mode,
         cleanup,
+        startDate,
+        endDate,
         httpMethod: "POST",
         path: "/",
         queryStringParameters: event.queryStringParameters,
@@ -65,9 +112,14 @@ async function handler(
     const result = await lambda.send(command);
 
     // All invocations are now async - return immediately with confirmation
-    const message = cleanup
-      ? "Cleanup digest processing started asynchronously"
-      : "Weekly digest processing started asynchronously";
+    let message: string;
+    if (mode === "historical") {
+      message = `Historical digest processing started for ${startDate} to ${endDate}`;
+    } else if (mode === "cleanup") {
+      message = "Cleanup digest processing started asynchronously";
+    } else {
+      message = "Weekly digest processing started asynchronously";
+    }
 
     return {
       statusCode: 202,
@@ -80,7 +132,8 @@ async function handler(
       body: JSON.stringify({
         success: true,
         message,
-        mode: cleanup ? "cleanup" : "weekly",
+        mode,
+        dateRange: mode === "historical" ? { start: startDate, end: endDate } : undefined,
         invocationId: context.awsRequestId,
         timestamp: new Date().toISOString(),
         note: "Processing started. Check CloudWatch logs for completion status.",
@@ -89,9 +142,6 @@ async function handler(
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : "Failed to invoke weekly-digest Lambda";
-
-    // biome-ignore lint: Lambda error logging is appropriate here
-    console.log(`Error invoking weekly-digest Lambda: ${errorMessage}`);
 
     return {
       statusCode: 500,

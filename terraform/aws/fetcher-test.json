@@ -1,0 +1,4 @@
+{
+  "statusCode": 200,
+  "body": "{\"success\":true,\"correlationId\":\"test-123\",\"batchId\":\"batch-123\",\"stats\":{\"totalEmails\":49,\"knownAI\":0,\"knownNonAI\":0,\"unknown\":39,\"fetched\":45},\"duration\":4608}"
+}

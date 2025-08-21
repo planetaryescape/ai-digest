@@ -131,7 +131,7 @@ describe("run-now Lambda handler", () => {
       // TODO: Fix this test - middleware wrapping makes it complex to test error scenarios
       // The handler is wrapped with middleware that changes error handling behavior
       // Error handling is verified through the missing config test below
-      
+
       const event = {};
       const result = await handler(event as any, mockContext);
 
@@ -170,9 +170,9 @@ describe("run-now Lambda handler", () => {
     });
 
     it("should handle async invocation response for cleanup mode", async () => {
-      const event = { 
+      const event = {
         httpMethod: "POST",
-        body: JSON.stringify({ cleanup: true })
+        body: JSON.stringify({ cleanup: true }),
       };
       const result = await handler(event as any, mockContext);
 

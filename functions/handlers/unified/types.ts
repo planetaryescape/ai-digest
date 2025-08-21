@@ -11,8 +11,15 @@ export interface UnifiedRequest {
   headers?: Record<string, string>;
   source?: string;
   cleanup?: boolean;
+  batchSize?: number;
   invocationId: string;
   timestamp: Date;
+
+  // Historical mode fields
+  mode?: "weekly" | "cleanup" | "historical";
+  startDate?: string; // ISO format date
+  endDate?: string; // ISO format date
+  includeArchived?: boolean;
 }
 
 export interface UnifiedResponse {

@@ -62,7 +62,7 @@ export class EmailCommandExecutor {
         }
 
         // Track metrics (safely, without breaking main flow)
-        try { 
+        try {
           getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
             success: result.success ? "true" : "false",
           });
@@ -75,7 +75,7 @@ export class EmailCommandExecutor {
           `Command ${command.getName()} ${result.success ? "succeeded" : "failed"} in ${commandTime}ms`
         );
       } catch (error) {
-        this.logger.error(`Command ${command.getName()} threw error`, error);
+        this.logger.error({ error }, `Command ${command.getName()} threw error`);
 
         results.push({
           success: false,
@@ -124,7 +124,7 @@ export class EmailCommandExecutor {
         executedCommands.push(command.getName());
 
         // Track metrics (safely, without breaking main flow)
-        try { 
+        try {
           getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
             success: result.success ? "true" : "false",
           });
@@ -139,7 +139,7 @@ export class EmailCommandExecutor {
 
         return result;
       } catch (error) {
-        this.logger.error(`Command ${command.getName()} threw error`, error);
+        this.logger.error({ error }, `Command ${command.getName()} threw error`);
 
         return {
           success: false,
@@ -178,7 +178,7 @@ export class EmailCommandExecutor {
           await command.undo();
           this.logger.debug(`Undid command ${command.getName()}`);
         } catch (error) {
-          this.logger.error(`Failed to undo command ${command.getName()}`, error);
+          this.logger.error({ error }, `Failed to undo command ${command.getName()}`);
         }
       }
     }
