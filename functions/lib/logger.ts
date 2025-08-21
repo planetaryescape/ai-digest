@@ -1,73 +1,104 @@
-interface LogLevel {
-  error: number;
-  warn: number;
-  info: number;
-  debug: number;
+import pino from "pino";
+import type { ILogger } from "./interfaces/logger";
+
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+const isAzure = !!process.env.AZURE_FUNCTIONS_ENVIRONMENT;
+const isDev = process.env.NODE_ENV === "development";
+const isTest = process.env.NODE_ENV === "test";
+
+const level = process.env.LOG_LEVEL || (isDev ? "debug" : "info");
+
+const baseLogger = pino({
+  level: isTest ? "silent" : level,
+  transport:
+    isDev && !isLambda && !isAzure && !isTest
+      ? {
+          target: "pino-pretty",
+          options: {
+            colorize: true,
+            translateTime: "SYS:standard",
+            ignore: "pid,hostname",
+          },
+        }
+      : undefined,
+  formatters: {
+    level: (label) => ({ level: label }),
+  },
+  base: isLambda
+    ? {
+        environment: "lambda",
+        function: process.env.AWS_LAMBDA_FUNCTION_NAME,
+        region: process.env.AWS_REGION,
+        memorySize: process.env.AWS_LAMBDA_FUNCTION_MEMORY_SIZE,
+      }
+    : isAzure
+      ? {
+          environment: "azure",
+          function: process.env.AZURE_FUNCTIONS_FUNCTION_NAME,
+          region: process.env.AZURE_REGION,
+        }
+      : {
+          environment: isDev ? "development" : "production",
+        },
+  timestamp: pino.stdTimeFunctions.isoTime,
+});
+
+/**
+ * Creates a child logger with a specific context
+ * @param context - The context/module name for the logger
+ * @returns A pino logger instance with the specified context
+ */
+export function createLogger(context: string): pino.Logger {
+  return baseLogger.child({ context });
 }
 
-const LOG_LEVELS: LogLevel = {
-  error: 0,
-  warn: 1,
-  info: 2,
-  debug: 3,
-};
-
-export interface Logger {
-  error(data: any, message?: string): void;
-  warn(data: any, message?: string): void;
-  info(data: any, message?: string): void;
-  debug(data: any, message?: string): void;
-}
-
-class SimpleLogger implements Logger {
-  private context: string;
-  private level: number;
+/**
+ * Pino logger adapter that implements ILogger interface
+ * for backward compatibility with existing code
+ */
+export class PinoLoggerAdapter implements ILogger {
+  private logger: pino.Logger;
 
   constructor(context: string) {
-    this.context = context;
-    this.level = LOG_LEVELS[process.env.LOG_LEVEL as keyof LogLevel] || LOG_LEVELS.info;
+    this.logger = createLogger(context);
   }
 
-  error(data: any, message?: string): void {
-    if (this.level >= LOG_LEVELS.error) {
-      this.log("ERROR", data, message);
+  info(message: string, ...args: unknown[]): void {
+    if (args.length > 0) {
+      this.logger.info({ data: args }, message);
+    } else {
+      this.logger.info(message);
     }
   }
 
-  warn(data: any, message?: string): void {
-    if (this.level >= LOG_LEVELS.warn) {
-      this.log("WARN", data, message);
+  warn(message: string, ...args: unknown[]): void {
+    if (args.length > 0) {
+      this.logger.warn({ data: args }, message);
+    } else {
+      this.logger.warn(message);
     }
   }
 
-  info(data: any, message?: string): void {
-    if (this.level >= LOG_LEVELS.info) {
-      this.log("INFO", data, message);
+  error(message: string, ...args: unknown[]): void {
+    const error = args.find((arg) => arg instanceof Error);
+    const otherArgs = args.filter((arg) => !(arg instanceof Error));
+
+    if (error) {
+      this.logger.error({ err: error, data: otherArgs.length > 0 ? otherArgs : undefined }, message);
+    } else if (args.length > 0) {
+      this.logger.error({ data: args }, message);
+    } else {
+      this.logger.error(message);
     }
   }
 
-  debug(data: any, message?: string): void {
-    if (this.level >= LOG_LEVELS.debug) {
-      this.log("DEBUG", data, message);
+  debug(message: string, ...args: unknown[]): void {
+    if (args.length > 0) {
+      this.logger.debug({ data: args }, message);
+    } else {
+      this.logger.debug(message);
     }
-  }
-
-  private log(level: string, data: any, message?: string): void {
-    const timestamp = new Date().toISOString();
-    const logEntry = {
-      timestamp,
-      level,
-      context: this.context,
-      message: message || (typeof data === "string" ? data : undefined),
-      data: typeof data === "object" ? data : undefined,
-    };
-
-    // In production, this would be sent to CloudWatch
-    // For now, just console.log in JSON format for structured logging
-    console.log(JSON.stringify(logEntry));
   }
 }
 
-export function createLogger(context: string): Logger {
-  return new SimpleLogger(context);
-}
+export default baseLogger;
