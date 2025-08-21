@@ -7,7 +7,7 @@ vi.mock('@clerk/nextjs/server');
 vi.mock('@aws-sdk/client-sfn');
 
 describe('/api/stepfunctions/trigger', () => {
-  let mockSend: any;
+  let mockSend: ReturnType<typeof vi.fn>;
   
   beforeEach(() => {
     mockSend = vi.fn().mockResolvedValue({
@@ -17,7 +17,10 @@ describe('/api/stepfunctions/trigger', () => {
     
     vi.mocked(SFNClient).mockImplementation(() => ({
       send: mockSend,
-    } as any));
+      config: {},
+      destroy: vi.fn(),
+      middlewareStack: {},
+    } as unknown as SFNClient));
     
     process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN = 'arn:aws:states:us-east-1:123456789012:stateMachine:test-state-machine';
   });
@@ -27,7 +30,7 @@ describe('/api/stepfunctions/trigger', () => {
   });
   
   it('returns 401 when user is not authenticated', async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+    vi.mocked(auth).mockResolvedValue({ userId: null, sessionClaims: null, getToken: vi.fn() } as ReturnType<typeof auth>);
     
     const request = new Request('http://localhost:3000/api/stepfunctions/trigger', {
       method: 'POST',
