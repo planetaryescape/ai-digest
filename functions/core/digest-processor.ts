@@ -85,7 +85,7 @@ export class DigestProcessor {
     this.researcher = new ResearchAgent(this.costTracker);
     this.analyst = new AnalysisAgent(this.costTracker);
     this.critic = new CriticAgent(this.costTracker);
-    this.batchOperations = new GmailBatchOperations();
+    // Note: batchOperations is initialized by EmailFetcherAgent internally
 
     // Initialize circuit breakers
     this.gmailBreaker = EnhancedCircuitBreaker.getBreaker("gmail");
@@ -121,11 +121,11 @@ export class DigestProcessor {
       timings.fetchTime = Date.now() - fetchStart;
 
       this.logger.info(
-        `Fetched ${emailBatch.metadata.length} emails, ${emailBatch.stats.fetched} need processing`
+        `Fetched ${emailBatch.metadata.length} emails, ${emailBatch.stats.totalFetched} need processing`
       );
 
       // Early exit if no emails
-      if (emailBatch.stats.fetched === 0) {
+      if (!emailBatch.stats.totalFetched || emailBatch.stats.totalFetched === 0) {
         this.logger.info("No AI-related emails found, not sending digest");
         return {
           success: true,
