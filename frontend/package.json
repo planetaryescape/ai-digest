@@ -16,6 +16,7 @@
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.868.0",
     "@aws-sdk/client-lambda": "^3.865.0",
+    "@aws-sdk/client-sfn": "^3.872.0",
     "@aws-sdk/lib-dynamodb": "^3.868.0",
     "@clerk/nextjs": "^6.31.1",
     "@tanstack/react-form": "^1.19.2",
@@ -25,6 +26,7 @@
     "@tanstack/react-virtual": "^3.13.12",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
     "lucide-react": "^0.539.0",
     "next": "^15.4.6",
     "react": "^19.1.1",
