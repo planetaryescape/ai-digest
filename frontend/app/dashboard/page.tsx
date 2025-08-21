@@ -5,6 +5,7 @@ import { AlertCircle, CheckCircle, Clock, Mail, TrendingUp, Users } from "lucide
 import { DigestTrigger } from "@/components/dashboard/DigestTrigger";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StatsCard } from "@/components/dashboard/StatsCard";
+import { ExecutionHistory } from "@/components/dashboard/ExecutionHistory";
 
 export default function DashboardPage() {
   const { data: senders } = useQuery({
@@ -71,12 +72,22 @@ export default function DashboardPage() {
         />
       </div>
 
-      {/* Recent Activity */}
-      <div className="bg-white rounded-lg shadow">
-        <div className="px-6 py-4 border-b">
-          <h3 className="text-lg font-medium">Recent Activity</h3>
+      {/* Two Column Layout for Activity and Executions */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Activity */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b">
+            <h3 className="text-lg font-medium">Recent Activity</h3>
+          </div>
+          <RecentActivity />
         </div>
-        <RecentActivity />
+
+        {/* Step Functions Executions */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4">
+            <ExecutionHistory />
+          </div>
+        </div>
       </div>
     </div>
   );
