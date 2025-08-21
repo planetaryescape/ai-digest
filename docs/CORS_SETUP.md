@@ -1,21 +1,19 @@
-# CORS Configuration for AI Digest
+# CORS Configuration Guide
 
 ## Overview
 
-The AI Digest system supports CORS (Cross-Origin Resource Sharing) to allow the Vercel-hosted frontend to communicate with AWS Lambda functions. This document explains the CORS setup and configuration options.
+The AI Digest system supports CORS (Cross-Origin Resource Sharing) to allow the Vercel-hosted frontend to communicate with AWS Lambda functions.
 
 ## Lambda Function URLs vs API Gateway
 
-The system provides two ways to invoke Lambda functions from the frontend:
-
-### 1. Lambda Function URLs (Recommended)
+### Lambda Function URLs (Recommended)
 - Direct HTTP endpoints for Lambda functions
 - Built-in CORS support
 - No API Gateway overhead
 - Simpler authentication model
 - Lower latency
 
-### 2. API Gateway + Lambda
+### API Gateway + Lambda
 - Traditional REST API approach
 - More complex but more features
 - API key authentication
@@ -46,9 +44,9 @@ You have three options:
 
 3. **Hybrid Approach** - Use API Gateway for more control
 
-### Setting Up CORS
+## Setup Instructions
 
-#### Step 1: Initial Deployment (Development)
+### Step 1: Initial Deployment (Development)
 
 1. Use wildcard for initial setup in `terraform.tfvars`:
    ```hcl
@@ -67,7 +65,7 @@ You have three options:
    terraform output weekly_digest_function_url
    ```
 
-#### Step 2: Deploy Frontend to Vercel
+### Step 2: Deploy Frontend to Vercel
 
 1. Deploy your frontend:
    ```bash
@@ -77,7 +75,7 @@ You have three options:
 
 2. Note your production domain (e.g., `ai-digest.vercel.app`)
 
-#### Step 3: Update CORS for Production
+### Step 3: Update CORS for Production
 
 1. Update `terraform.tfvars` with your actual domains:
    ```hcl
@@ -99,12 +97,10 @@ You have three options:
 
 In your frontend `.env.local`:
 ```env
-# Direct Lambda Function URLs (no AWS SDK needed)
+# Direct Lambda Function URLs
 LAMBDA_RUN_NOW_URL=https://xxx.lambda-url.us-east-1.on.aws/
 LAMBDA_WEEKLY_DIGEST_URL=https://yyy.lambda-url.us-east-1.on.aws/
 ```
-
-The frontend will automatically use these URLs if configured, falling back to AWS SDK invocation if not.
 
 ### Using AWS SDK (Alternative)
 
@@ -123,7 +119,7 @@ LAMBDA_WEEKLY_FUNCTION_NAME=ai-digest-weekly-digest
 Vercel creates preview deployments with unique URLs for each PR/branch. To support these:
 
 ### Option 1: Use Wildcard (Development Only)
-Keep `allowed_origins = ["*"]` during development, but remember to restrict it for production.
+Keep `allowed_origins = ["*"]` during development.
 
 ### Option 2: Add Preview Domains
 Add known preview domains to your allowed origins:
@@ -137,10 +133,8 @@ allowed_origins = [
 ]
 ```
 
-### Option 3: Use Environment-Specific Lambda Functions
-Deploy separate Lambda functions for development/staging with wildcard CORS:
-- Production: Restricted CORS
-- Staging: Wildcard CORS
+### Option 3: Environment-Specific Lambda Functions
+Deploy separate Lambda functions for development/staging with wildcard CORS.
 
 ## Troubleshooting
 
@@ -177,39 +171,20 @@ Deploy separate Lambda functions for development/staging with wildcard CORS:
 
 ## Security Best Practices
 
-1. **Never use wildcard `*` in production** - Always specify exact domains
-2. **Use HTTPS everywhere** - Both frontend and backend
-3. **Rotate credentials regularly** - AWS keys and API tokens
-4. **Monitor access logs** - Check CloudWatch for suspicious activity
-5. **Implement authentication** - Use Clerk tokens or API keys
+1. **Never use wildcard `*` in production**
+2. **Use HTTPS everywhere**
+3. **Rotate credentials regularly**
+4. **Monitor access logs**
+5. **Implement authentication**
 
 ## Migration Guide
 
 ### From Wildcard to Specific Domains
 
-1. List all domains that need access:
-   - Local development: `http://localhost:3000`
-   - Production: `https://your-app.vercel.app`
-   - Preview deployments: `https://your-app-preview.vercel.app`
-
-2. Update Terraform configuration:
-   ```hcl
-   # terraform.tfvars
-   allowed_origins = [
-     "http://localhost:3000",
-     "https://your-app.vercel.app"
-   ]
-   ```
-
-3. Apply changes:
-   ```bash
-   terraform apply
-   ```
-
-4. Test each domain:
-   - Open browser developer tools
-   - Check Network tab for CORS headers
-   - Verify no CORS errors in console
+1. List all domains that need access
+2. Update Terraform configuration
+3. Apply changes
+4. Test each domain
 
 ## Additional Resources
 
