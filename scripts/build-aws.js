@@ -1,5 +1,10 @@
 /* eslint-disable @typescript-eslint/no-require-imports */
-const { sentryEsbuildPlugin } = require("@sentry/esbuild-plugin");
+let sentryEsbuildPlugin;
+try {
+  sentryEsbuildPlugin = require("@sentry/esbuild-plugin").sentryEsbuildPlugin;
+} catch (e) {
+  console.log("Sentry plugin not available, continuing without it");
+}
 const esbuild = require("esbuild");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -24,8 +29,8 @@ const buildFunction = async (config) => {
   try {
     const plugins = [];
 
-    // Only add Sentry plugin if auth token is available
-    if (process.env.SENTRY_AUTH_TOKEN) {
+    // Only add Sentry plugin if auth token is available and plugin is loaded
+    if (process.env.SENTRY_AUTH_TOKEN && sentryEsbuildPlugin) {
       plugins.push(
         sentryEsbuildPlugin({
           org: "ai-digest",
