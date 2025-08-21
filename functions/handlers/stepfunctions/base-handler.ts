@@ -1,5 +1,6 @@
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import type { Context } from "aws-lambda";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 import { CostTracker } from "../../lib/cost-tracker";
 import { createLogger } from "../../lib/logger";
 
@@ -13,6 +14,7 @@ export abstract class BaseStepFunctionHandler {
   protected s3Client: S3Client;
   protected costTracker: CostTracker;
   protected bucketName: string;
+  private static secretsLoaded = false;
 
   constructor() {
     this.s3Client = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
@@ -24,6 +26,18 @@ export abstract class BaseStepFunctionHandler {
    * Main handler method for Lambda
    */
   async handler(event: any, context: Context): Promise<any> {
+    // Load secrets on cold start
+    if (!BaseStepFunctionHandler.secretsLoaded) {
+      try {
+        await SecretsLoader.loadSecrets();
+        BaseStepFunctionHandler.secretsLoaded = true;
+        log.info("Secrets loaded successfully");
+      } catch (error) {
+        log.error({ error }, "Failed to load secrets from AWS Secrets Manager");
+        // Continue anyway - some handlers may not need secrets
+      }
+    }
+
     const startTime = Date.now();
     log.info({ event, context }, "Handler invoked");
 

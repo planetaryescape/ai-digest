@@ -1,5 +1,6 @@
 import { InvokeCommand, Lambda } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { SecretsLoader } from "../../lib/aws/secrets-loader";
 import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
 
 /**
@@ -13,6 +14,14 @@ async function handler(
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> {
+  // Load secrets from AWS Secrets Manager on cold start
+  try {
+    await SecretsLoader.loadSecrets();
+  } catch (error) {
+    console.error("Failed to load secrets:", error);
+    // Continue anyway as run-now doesn't need secrets directly
+  }
+
   const functionName = process.env.WEEKLY_DIGEST_FUNCTION_NAME;
 
   if (!functionName) {

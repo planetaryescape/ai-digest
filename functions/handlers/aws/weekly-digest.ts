@@ -18,7 +18,29 @@ const httpHandler = createHttpHandler();
 const scheduledHandler = createScheduledHandler();
 
 async function handler(event: any, context: Context): Promise<APIGatewayProxyResult | void> {
-  // Validate configuration on cold start
+  // Load secrets from AWS Secrets Manager on cold start
+  try {
+    await SecretsLoader.loadSecrets();
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Failed to load secrets";
+    console.error("Secrets loading failed:", errorMessage);
+    
+    // Check if this is an HTTP event
+    if (event.httpMethod) {
+      return {
+        statusCode: 500,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          success: false,
+          error: "Failed to initialize: " + errorMessage,
+          timestamp: new Date().toISOString(),
+        }),
+      };
+    }
+    throw error;
+  }
+
+  // Validate configuration after secrets are loaded
   try {
     ConfigValidator.validateOrThrow();
   } catch (error) {
@@ -38,9 +60,6 @@ async function handler(event: any, context: Context): Promise<APIGatewayProxyRes
     }
     throw error;
   }
-
-  // Load secrets on cold start
-  await SecretsLoader.loadSecrets();
 
   // Determine event type and route to appropriate handler
   const isScheduledEvent =
