@@ -1,15 +1,19 @@
 import { SFNClient, DescribeExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { sanitizeError, safeJsonParse } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 
 const sfnClient = new SFNClient({
   region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  // Let AWS SDK handle credentials via IAM roles or environment
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  } : {}),
 });
 
 export async function GET(request: Request) {
@@ -35,14 +39,9 @@ export async function GET(request: Request) {
 
     const response = await sfnClient.send(command);
 
-    let output = null;
-    if (response.output) {
-      try {
-        output = JSON.parse(response.output);
-      } catch {
-        output = response.output;
-      }
-    }
+    // Safe JSON parsing with fallback
+    const output = response.output ? safeJsonParse(response.output, response.output) : null;
+    const input = response.input ? safeJsonParse(response.input, null) : null;
 
     return NextResponse.json({
       executionArn: response.executionArn,
@@ -50,7 +49,7 @@ export async function GET(request: Request) {
       status: response.status,
       startDate: response.startDate,
       stopDate: response.stopDate,
-      input: response.input ? JSON.parse(response.input) : null,
+      input,
       output,
       error: response.error,
       cause: response.cause,
@@ -60,7 +59,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { 
         error: "Failed to get execution status",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: sanitizeError(error)
       },
       { status: 500 }
     );

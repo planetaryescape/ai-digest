@@ -1,16 +1,20 @@
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { sanitizeError } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const sfnClient = new SFNClient({
   region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  // Let AWS SDK handle credentials via IAM roles or environment
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  } : {}),
 });
 
 export async function POST(request: Request) {
@@ -61,7 +65,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { 
         error: "Failed to start Step Functions pipeline",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: sanitizeError(error)
       }, 
       { status: 500 }
     );

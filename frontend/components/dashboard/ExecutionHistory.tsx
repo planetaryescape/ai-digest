@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Clock, CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { useEffect, useState } from "react";
 
 interface Execution {
   executionArn: string;
@@ -14,6 +15,8 @@ interface Execution {
 }
 
 export function ExecutionHistory() {
+  const [isPollingEnabled, setIsPollingEnabled] = useState(true);
+
   const { data, isLoading, refetch } = useQuery({
     queryKey: ["executions"],
     queryFn: async () => {
@@ -21,8 +24,15 @@ export function ExecutionHistory() {
       if (!res.ok) throw new Error("Failed to fetch executions");
       return res.json();
     },
-    refetchInterval: 10000, // Refetch every 10 seconds
+    refetchInterval: isPollingEnabled ? 10000 : false, // Only poll when enabled
   });
+
+  // Cleanup polling on unmount
+  useEffect(() => {
+    return () => {
+      setIsPollingEnabled(false);
+    };
+  }, []);
 
   const getStatusIcon = (status: string) => {
     switch (status) {

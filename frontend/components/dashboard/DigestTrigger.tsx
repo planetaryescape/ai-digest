@@ -12,7 +12,7 @@ export function DigestTrigger() {
   const [executionArn, setExecutionArn] = useState<string | null>(null);
   const [pollingEnabled, setPollingEnabled] = useState(false);
 
-  // Poll execution status
+  // Poll execution status with exponential backoff
   const { data: executionStatus } = useQuery({
     queryKey: ["execution-status", executionArn],
     queryFn: async () => {
@@ -25,19 +25,27 @@ export function DigestTrigger() {
     refetchInterval: (query) => {
       const status = query.state.data?.status;
       if (status === "SUCCEEDED" || status === "FAILED" || status === "ABORTED") {
-        setPollingEnabled(false);
+        // Will be handled in useEffect to avoid state updates during render
         return false;
       }
-      return 2000; // Poll every 2 seconds while running
+      // Exponential backoff: 5s → 10s → 20s → 30s (max)
+      const attemptCount = query.state.dataUpdateCount || 0;
+      return Math.min(5000 * Math.pow(1.5, attemptCount), 30000);
     },
   });
 
   useEffect(() => {
     if (executionStatus?.status === "SUCCEEDED") {
+      setPollingEnabled(false);
       toast.success("Digest generation completed successfully!");
       setExecutionArn(null);
     } else if (executionStatus?.status === "FAILED") {
+      setPollingEnabled(false);
       toast.error("Digest generation failed. Check logs for details.");
+      setExecutionArn(null);
+    } else if (executionStatus?.status === "ABORTED") {
+      setPollingEnabled(false);
+      toast.error("Digest generation was aborted.");
       setExecutionArn(null);
     }
   }, [executionStatus?.status]);

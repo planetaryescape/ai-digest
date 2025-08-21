@@ -2,24 +2,31 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { sanitizeError } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const lambda = new LambdaClient({
   region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  // Let AWS SDK handle credentials via IAM roles or environment
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  } : {}),
 });
 
 const sfnClient = new SFNClient({
   region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  // Let AWS SDK handle credentials via IAM roles or environment
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  } : {}),
 });
 
 export async function POST(request: Request) {
@@ -115,6 +122,12 @@ export async function POST(request: Request) {
     });
   } catch (error) {
     console.error("Error triggering digest:", error);
-    return NextResponse.json({ error: "Failed to trigger digest generation" }, { status: 500 });
+    return NextResponse.json(
+      { 
+        error: "Failed to trigger digest generation",
+        details: sanitizeError(error)
+      }, 
+      { status: 500 }
+    );
   }
 }

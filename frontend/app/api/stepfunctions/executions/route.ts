@@ -1,15 +1,31 @@
 import { SFNClient, ListExecutionsCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { z } from "zod";
+import { sanitizeError } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 
 const sfnClient = new SFNClient({
   region: process.env.AWS_REGION || "us-east-1",
-  credentials: {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
-  },
+  // Let AWS SDK handle credentials via IAM roles or environment
+  ...(process.env.AWS_ACCESS_KEY_ID && process.env.AWS_SECRET_ACCESS_KEY ? {
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    }
+  } : {}),
+});
+
+// Input validation schema
+const querySchema = z.object({
+  status: z.enum(["RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"]).optional(),
+  maxResults: z.string().transform((val) => {
+    const num = parseInt(val);
+    if (isNaN(num)) return 10;
+    return Math.max(1, Math.min(num, 100));
+  }).optional().default("10"),
+  nextToken: z.string().optional(),
 });
 
 export async function GET(request: Request) {
@@ -29,13 +45,28 @@ export async function GET(request: Request) {
     }
 
     const { searchParams } = new URL(request.url);
-    const statusFilter = searchParams.get("status") || undefined;
-    const maxResults = parseInt(searchParams.get("maxResults") || "10");
+    
+    // Validate query parameters
+    const validationResult = querySchema.safeParse({
+      status: searchParams.get("status") || undefined,
+      maxResults: searchParams.get("maxResults") || "10",
+      nextToken: searchParams.get("nextToken") || undefined,
+    });
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: "Invalid query parameters", details: validationResult.error.errors },
+        { status: 400 }
+      );
+    }
+
+    const { status: statusFilter, maxResults, nextToken } = validationResult.data;
 
     const command = new ListExecutionsCommand({
       stateMachineArn,
-      statusFilter: statusFilter as any,
-      maxResults: Math.min(maxResults, 100),
+      statusFilter,
+      maxResults: typeof maxResults === 'string' ? parseInt(maxResults) : maxResults,
+      ...(nextToken && { nextToken }),
     });
 
     const response = await sfnClient.send(command);
@@ -57,7 +88,7 @@ export async function GET(request: Request) {
     return NextResponse.json(
       { 
         error: "Failed to list executions",
-        details: error instanceof Error ? error.message : "Unknown error"
+        details: sanitizeError(error)
       },
       { status: 500 }
     );
