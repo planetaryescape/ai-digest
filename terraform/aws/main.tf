@@ -76,6 +76,10 @@ resource "aws_dynamodb_table" "known_ai_senders" {
     projection_type = "ALL"
   }
 
+  point_in_time_recovery {
+    enabled = true
+  }
+
   tags = {
     Project     = var.PROJECT_NAME
     Environment = var.environment
@@ -108,6 +112,10 @@ resource "aws_dynamodb_table" "known_non_ai_senders" {
   ttl {
     attribute_name = "ttl"
     enabled        = true
+  }
+
+  point_in_time_recovery {
+    enabled = true
   }
 
   tags = {
