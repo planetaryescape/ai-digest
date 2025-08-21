@@ -1,4 +1,5 @@
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
+import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -6,6 +7,14 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const lambda = new LambdaClient({
+  region: process.env.AWS_REGION || "us-east-1",
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY!,
+  },
+});
+
+const sfnClient = new SFNClient({
   region: process.env.AWS_REGION || "us-east-1",
   credentials: {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID!,
@@ -21,14 +30,37 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { cleanup = false, dateRange } = body;
+    const { cleanup = false, dateRange, useStepFunctions = false } = body;
 
     const payload = {
       cleanup,
       dateRange,
       triggeredBy: userId,
       timestamp: new Date().toISOString(),
+      source: "dashboard",
     };
+
+    // Use Step Functions if requested and configured
+    if (useStepFunctions && process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN) {
+      const executionName = `digest-${Date.now()}-${userId.slice(-6)}`;
+      
+      const command = new StartExecutionCommand({
+        stateMachineArn: process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN,
+        name: executionName,
+        input: JSON.stringify(payload),
+      });
+
+      const response = await sfnClient.send(command);
+
+      return NextResponse.json({
+        success: true,
+        message: "Step Functions pipeline started",
+        executionArn: response.executionArn,
+        executionName,
+        startDate: response.startDate,
+        type: "stepfunctions",
+      });
+    }
 
     // Use Lambda Function URL if available
     const functionUrl = process.env.LAMBDA_RUN_NOW_URL;
@@ -49,6 +81,7 @@ export async function POST(request: Request) {
         success: response.ok,
         message: data.message || "Digest generation triggered via Function URL",
         data,
+        type: "lambda-url",
       });
     }
 
@@ -66,6 +99,7 @@ export async function POST(request: Request) {
         success: true,
         message: "Digest generation started (async mode)",
         requestId: response.$metadata.requestId,
+        type: "lambda-sdk",
       });
     }
 
@@ -77,6 +111,7 @@ export async function POST(request: Request) {
       success: true,
       message: "Digest generation completed",
       data: responsePayload,
+      type: "lambda-sdk",
     });
   } catch (error) {
     console.error("Error triggering digest:", error);
