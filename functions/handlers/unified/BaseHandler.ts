@@ -75,9 +75,24 @@ export abstract class BaseHandler {
     try {
       let result: DigestResult;
 
-      if (request.cleanup) {
+      // Handle different modes
+      const mode = request.mode || (request.cleanup ? "cleanup" : "weekly");
+      
+      context.logger.info(`Request mode: ${request.mode}, Cleanup: ${request.cleanup}, Resolved mode: ${mode}`);
+      context.logger.info(`Request details:`, { 
+        mode: request.mode, 
+        startDate: request.startDate, 
+        endDate: request.endDate,
+        type: request.type 
+      });
+      
+      if (mode === "historical") {
+        context.logger.info(`Processing historical digest from ${request.startDate} to ${request.endDate}`);
+        result = await processor.processHistoricalDigest(request.startDate!, request.endDate!, request.batchSize);
+      } else if (mode === "cleanup" || request.cleanup) {
         context.logger.info("Processing in cleanup mode");
-        result = await processor.processCleanupDigest();
+        const batchSize = request.batchSize || 50;
+        result = await processor.processCleanupDigest(batchSize);
       } else {
         context.logger.info("Processing weekly digest");
         result = await processor.processWeeklyDigest();
@@ -88,7 +103,7 @@ export abstract class BaseHandler {
         const metricsCollector = getMetrics();
         metricsCollector.increment("digest.processed", {
           success: result.success ? "true" : "false",
-          mode: request.cleanup ? "cleanup" : "weekly",
+          mode: mode,
           platform: this.getPlatformName(),
         });
 

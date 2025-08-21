@@ -116,7 +116,7 @@ export class DigestProcessor {
       this.logger.info("Step 1: Fetching emails");
       const fetchStart = Date.now();
       const emailBatch = await this.gmailBreaker.execute(() =>
-        this.emailFetcher.fetchEmails("weekly")
+        this.emailFetcher.fetchEmails({ mode: "weekly" })
       );
       timings.fetchTime = Date.now() - fetchStart;
 
@@ -223,7 +223,7 @@ export class DigestProcessor {
 
       // Additional validation for digest content
       const digestOutput = digest.digest as DigestOutput;
-      const hasValidContent = 
+      const hasValidContent =
         (digestOutput.whatHappened && digestOutput.whatHappened.length > 0) ||
         (digestOutput.takeaways && digestOutput.takeaways.length > 0) ||
         (digestOutput.productPlays && digestOutput.productPlays.length > 0) ||
@@ -286,8 +286,8 @@ export class DigestProcessor {
   /**
    * Process cleanup digest (all unarchived emails)
    */
-  async processCleanupDigest(): Promise<DigestResult> {
-    this.logger.info("Starting cleanup digest processing");
+  async processCleanupDigest(batchSize = 50): Promise<DigestResult> {
+    this.logger.info(`Starting cleanup digest processing with batch size ${batchSize}`);
 
     let processedCount = 0;
     let batchCount = 0;
@@ -295,7 +295,7 @@ export class DigestProcessor {
     try {
       // Fetch ALL unarchived emails
       const emailBatch = await this.gmailBreaker.execute(() =>
-        this.emailFetcher.fetchEmails("cleanup")
+        this.emailFetcher.fetchEmails({ mode: "cleanup", batchSize, cleanup: true })
       );
 
       const aiEmails = emailBatch.fullEmails;
@@ -354,6 +354,174 @@ export class DigestProcessor {
         error: error instanceof Error ? error.message : "Unknown error",
       };
     }
+  }
+
+  /**
+   * Process historical digest for a specific date range
+   */
+  async processHistoricalDigest(
+    startDate: string,
+    endDate: string,
+    batchSize?: number
+  ): Promise<DigestResult> {
+    try {
+      this.logger.info(`Processing historical digest from ${startDate} to ${endDate}`);
+      
+      // Reset cost tracker for this run
+      this.costTracker.reset();
+      const timings: any = { startTime: Date.now() };
+
+      // Step 1: Fetch emails from the date range
+      this.logger.info("Step 1: Fetching historical emails");
+      const fetchStart = Date.now();
+      const emailBatch = await this.gmailBreaker.execute(() =>
+        this.emailFetcher.fetchEmails({
+          mode: "historical",
+          startDate,
+          endDate,
+          batchSize: batchSize || 500,
+        })
+      );
+      timings.fetchTime = Date.now() - fetchStart;
+
+      const emails = emailBatch.fullEmails;
+      this.logger.info(`Found ${emails.length} emails in historical date range`);
+
+      if (emails.length === 0) {
+        return {
+          success: true,
+          emailsFound: 0,
+          emailsProcessed: 0,
+          message: `No emails found between ${startDate} and ${endDate}`,
+        };
+      }
+
+      // Check for cost limit
+      if (this.costTracker.shouldStop()) {
+        this.logger.warn("Cost limit reached before processing");
+        return {
+          success: false,
+          emailsFound: emails.length,
+          emailsProcessed: 0,
+          message: "Cost limit reached",
+        };
+      }
+
+      // Step 2: Classify unknown senders
+      this.logger.info("Step 2: Classifying senders");
+      const classifyStart = Date.now();
+      const classificationResults = await this.openaiBreaker.execute(() =>
+        this.classifier.classifyEmails(emailBatch, false)
+      );
+      timings.classificationTime = Date.now() - classifyStart;
+
+      // Filter for AI emails based on classification
+      const aiEmails = emails.filter((email) => {
+        const senderEmail = this.extractEmailAddress(email.sender);
+        const classification = classificationResults.get(senderEmail || "");
+        return classification?.classification === "AI" || 
+               emailBatch.aiEmailIds.includes(email.id);
+      });
+      this.logger.info(`Classified ${aiEmails.length} AI-related emails`);
+
+      if (aiEmails.length === 0) {
+        return {
+          success: true,
+          emailsFound: emails.length,
+          emailsProcessed: 0,
+          message: "No AI-related emails in the historical period",
+        };
+      }
+
+      // Continue with the standard pipeline for AI emails
+      // Step 3: Extract content
+      this.logger.info("Step 3: Extracting article content");
+      const extractStart = Date.now();
+      const enrichedEmails = await this.firecrawlBreaker.execute(() =>
+        this.contentExtractor.extractArticles(aiEmails)
+      );
+      timings.extractionTime = Date.now() - extractStart;
+
+      // Step 4: Research
+      this.logger.info("Step 4: Researching additional context");
+      const researchStart = Date.now();
+      const researchedEmails = await this.braveBreaker.execute(() =>
+        this.researcher.enrichWithResearch(enrichedEmails)
+      );
+      timings.researchTime = Date.now() - researchStart;
+
+      // Step 5: Analysis
+      this.logger.info("Step 5: Performing deep analysis");
+      const analysisStart = Date.now();
+      const analysisResult = await this.openaiBreaker.execute(() =>
+        this.analyst.analyzeContent(researchedEmails)
+      );
+      timings.analysisTime = Date.now() - analysisStart;
+
+      // Step 6: Commentary
+      this.logger.info("Step 6: Generating commentary");
+      const commentaryStart = Date.now();
+      const criticResult = await this.openaiBreaker.execute(() =>
+        this.critic.generateCommentary(analysisResult)
+      );
+      timings.commentaryTime = Date.now() - commentaryStart;
+
+      // Step 7: Build and send digest
+      this.logger.info("Step 7: Building and sending historical digest");
+      const digest = this.buildDigest(analysisResult, criticResult);
+      
+      if (digest) {
+        // Add historical period info to the digest
+        digest.period = `${startDate} to ${endDate}`;
+        await sendDigest(digest, this.platform);
+      }
+
+      // Don't archive historical emails - they might already be archived
+      this.logger.info("Skipping email archival for historical digest");
+
+      const totalTime = Date.now() - timings.startTime;
+      this.logger.info(`Historical digest completed in ${totalTime}ms`);
+
+      return {
+        success: true,
+        emailsFound: emails.length,
+        emailsProcessed: aiEmails.length,
+        message: `Historical digest sent for ${startDate} to ${endDate}`,
+        digest,
+        processingStats: {
+          ...timings,
+          totalTime,
+          emailsAnalyzed: aiEmails.length,
+          dateRange: { start: startDate, end: endDate },
+        },
+        costReport: this.costTracker.getCostBreakdown(),
+      };
+    } catch (error) {
+      this.logger.error("Historical digest processing failed", error);
+      
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      return {
+        success: false,
+        emailsFound: 0,
+        emailsProcessed: 0,
+        message: `Historical digest failed: ${errorMessage}`,
+        error: errorMessage,
+      };
+    }
+  }
+
+  /**
+   * Helper: Extract email address from sender string
+   */
+  private extractEmailAddress(sender: string): string | null {
+    const match = sender.match(/<([^>]+)>/);
+    if (match) {
+      return match[1].toLowerCase();
+    }
+    if (sender.includes("@")) {
+      return sender.toLowerCase();
+    }
+    return null;
   }
 
   /**
@@ -425,7 +593,7 @@ export class DigestProcessor {
     const commentary = criticResult.commentary;
 
     // Check if we have any meaningful content
-    const hasContent = 
+    const hasContent =
       (analysis.keyDevelopments && analysis.keyDevelopments.length > 0) ||
       (commentary.whatToActuallyDo && commentary.whatToActuallyDo.length > 0) ||
       (analysis.businessOpportunities && analysis.businessOpportunities.length > 0);

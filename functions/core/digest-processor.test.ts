@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { DigestProcessor } from "./digest-processor";
-import type { IStorageClient } from "../lib/interfaces/storage";
 import type { ILogger } from "../lib/interfaces/logger";
+import type { IStorageClient } from "../lib/interfaces/storage";
+import { DigestProcessor } from "./digest-processor";
 
 // Mock all dependencies
 vi.mock("../lib/agents/EmailFetcherAgent", () => ({
@@ -100,7 +100,7 @@ describe("DigestProcessor", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Setup mock storage
     mockStorage = {
       markProcessed: vi.fn().mockResolvedValue(undefined),
@@ -144,9 +144,12 @@ describe("DigestProcessor", () => {
   describe("processWeeklyDigest", () => {
     it("should handle no emails found scenario", async () => {
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue([]),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue([]),
+          }) as any
+      );
 
       const result = await processor.processWeeklyDigest();
 
@@ -157,13 +160,13 @@ describe("DigestProcessor", () => {
 
     it("should verify mock setup for email processing", async () => {
       const mockEmails = [
-        { 
-          id: "1", 
-          from: "test@ai.com", 
+        {
+          id: "1",
+          from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
           date: new Date().toISOString(),
-        }
+        },
       ];
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
@@ -173,48 +176,70 @@ describe("DigestProcessor", () => {
       const { AnalysisAgent } = await import("../lib/agents/AnalysisAgent");
       const { CriticAgent } = await import("../lib/agents/CriticAgent");
 
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
-      
-      vi.mocked(ClassifierAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
-      
-      vi.mocked(ContentExtractorAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
-      
-      vi.mocked(ResearchAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
-      
-      vi.mocked(AnalysisAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue({
-          articles: [{
-            title: "AI Test",
-            summary: "Test summary",
-            source: "test@ai.com",
-            category: "news",
-            link: "https://test.com",
-          }],
-          totalArticles: 1,
-        }),
-      }) as any);
-      
-      vi.mocked(CriticAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue({
-          articles: [{
-            title: "AI Test",
-            summary: "Test summary",
-            source: "test@ai.com",
-            category: "news",
-            link: "https://test.com",
-            commentary: "Interesting development",
-          }],
-          totalArticles: 1,
-        }),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
+
+      vi.mocked(ClassifierAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
+
+      vi.mocked(ContentExtractorAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
+
+      vi.mocked(ResearchAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
+
+      vi.mocked(AnalysisAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue({
+              articles: [
+                {
+                  title: "AI Test",
+                  summary: "Test summary",
+                  source: "test@ai.com",
+                  category: "news",
+                  link: "https://test.com",
+                },
+              ],
+              totalArticles: 1,
+            }),
+          }) as any
+      );
+
+      vi.mocked(CriticAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue({
+              articles: [
+                {
+                  title: "AI Test",
+                  summary: "Test summary",
+                  source: "test@ai.com",
+                  category: "news",
+                  link: "https://test.com",
+                  commentary: "Interesting development",
+                },
+              ],
+              totalArticles: 1,
+            }),
+          }) as any
+      );
 
       const result = await processor.processWeeklyDigest();
 
@@ -223,7 +248,6 @@ describe("DigestProcessor", () => {
       expect(result.emailsProcessed).toBe(0); // Current implementation doesn't process
       expect(result.message).toBe("No AI-related emails found to process");
     });
-
   });
 
   describe("processCleanupDigest", () => {
@@ -238,9 +262,12 @@ describe("DigestProcessor", () => {
       }));
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
 
       const result = await processor.processCleanupDigest();
 
@@ -252,9 +279,12 @@ describe("DigestProcessor", () => {
 
     it("should handle errors gracefully", async () => {
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockRejectedValue(new Error("Gmail API error")),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockRejectedValue(new Error("Gmail API error")),
+          }) as any
+      );
 
       const result = await processor.processWeeklyDigest();
 
@@ -264,27 +294,33 @@ describe("DigestProcessor", () => {
 
     it("should respect cost limits", async () => {
       const { CostTracker } = await import("../lib/cost-tracker");
-      vi.mocked(CostTracker).mockImplementation(() => ({
-        canProceed: vi.fn().mockReturnValue(false),
-        trackCost: vi.fn(),
-        getRemainingBudget: vi.fn().mockReturnValue(0),
-        getReport: vi.fn().mockReturnValue("Cost limit reached"),
-      }) as any);
+      vi.mocked(CostTracker).mockImplementation(
+        () =>
+          ({
+            canProceed: vi.fn().mockReturnValue(false),
+            trackCost: vi.fn(),
+            getRemainingBudget: vi.fn().mockReturnValue(0),
+            getReport: vi.fn().mockReturnValue("Cost limit reached"),
+          }) as any
+      );
 
       const mockEmails = [
-        { 
-          id: "1", 
-          from: "test@ai.com", 
+        {
+          id: "1",
+          from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
           date: new Date().toISOString(),
-        }
+        },
       ];
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
 
       const result = await processor.processWeeklyDigest();
 
@@ -327,19 +363,22 @@ describe("DigestProcessor", () => {
   describe("storage interactions", () => {
     it("should track processed emails", async () => {
       const mockEmails = [
-        { 
-          id: "1", 
-          from: "test@ai.com", 
+        {
+          id: "1",
+          from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
           date: new Date().toISOString(),
-        }
+        },
       ];
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
 
       await processor.processWeeklyDigest();
 
@@ -348,25 +387,31 @@ describe("DigestProcessor", () => {
 
     it("should update known AI senders", async () => {
       const mockEmails = [
-        { 
-          id: "1", 
-          from: "newsletter@openai.com", 
+        {
+          id: "1",
+          from: "newsletter@openai.com",
           subject: "OpenAI Updates",
           snippet: "Latest from OpenAI",
           date: new Date().toISOString(),
-        }
+        },
       ];
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
       const { ClassifierAgent } = await import("../lib/agents/ClassifierAgent");
-      
-      vi.mocked(EmailFetcherAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
-      
-      vi.mocked(ClassifierAgent).mockImplementation(() => ({
-        execute: vi.fn().mockResolvedValue(mockEmails),
-      }) as any);
+
+      vi.mocked(EmailFetcherAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
+
+      vi.mocked(ClassifierAgent).mockImplementation(
+        () =>
+          ({
+            execute: vi.fn().mockResolvedValue(mockEmails),
+          }) as any
+      );
 
       await processor.processWeeklyDigest();
 

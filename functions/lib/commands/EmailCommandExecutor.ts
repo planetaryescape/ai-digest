@@ -62,7 +62,7 @@ export class EmailCommandExecutor {
         }
 
         // Track metrics (safely, without breaking main flow)
-        try { 
+        try {
           getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
             success: result.success ? "true" : "false",
           });
@@ -124,7 +124,7 @@ export class EmailCommandExecutor {
         executedCommands.push(command.getName());
 
         // Track metrics (safely, without breaking main flow)
-        try { 
+        try {
           getMetrics().increment(`command.${command.getName().toLowerCase()}`, {
             success: result.success ? "true" : "false",
           });

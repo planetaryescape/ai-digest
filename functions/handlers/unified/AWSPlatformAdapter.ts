@@ -27,16 +27,32 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
     }
 
     const apiEvent = event as APIGatewayProxyEvent;
+    const body = this.parseBody(apiEvent.body);
+    const query = apiEvent.queryStringParameters || {};
+
+    // Extract batchSize from query params or body
+    const batchSize = query.batchSize
+      ? Number.parseInt(query.batchSize)
+      : body?.batchSize
+        ? Number.parseInt(body.batchSize)
+        : undefined;
+
     return {
       type: "http",
       method: apiEvent.httpMethod,
       path: apiEvent.path,
-      query: (apiEvent.queryStringParameters || {}) as Record<string, string>,
-      body: this.parseBody(apiEvent.body),
+      query: query as Record<string, string>,
+      body: body,
       headers: (apiEvent.headers || {}) as Record<string, string>,
       cleanup: this.isCleanupMode(event),
+      batchSize: batchSize,
       invocationId: context.awsRequestId,
       timestamp: new Date(),
+      // Historical mode fields
+      mode: body?.mode || (this.isCleanupMode(event) ? "cleanup" : "weekly"),
+      startDate: body?.startDate,
+      endDate: body?.endDate,
+      includeArchived: body?.includeArchived,
     };
   }
 
