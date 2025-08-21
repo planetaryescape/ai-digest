@@ -1,4 +1,0 @@
-{
-  "statusCode": 500,
-  "body": "{\"success\":false,\"error\":\"Email fetcher failed: Unknown error\"}"
-}

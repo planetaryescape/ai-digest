@@ -293,6 +293,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "pipeline_data" {
     id     = "cleanup-old-data"
     status = "Enabled"
     
+    filter {} # Empty filter applies to all objects
+    
     expiration {
       days = 7
     }
