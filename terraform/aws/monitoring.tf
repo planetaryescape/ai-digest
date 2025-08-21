@@ -70,8 +70,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "Function-Specific Performance"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/Lambda", "Duration", { "FunctionName" = aws_lambda_function.weekly_digest.function_name }, { stat = "Average", label = "Weekly Digest" }],
-            ["...", { "FunctionName" = aws_lambda_function.run_now.function_name }, { stat = "Average", label = "Run Now" }]
+            ["AWS/Lambda", "Duration", "FunctionName", aws_lambda_function.weekly_digest.function_name, { stat = "Average", label = "Weekly Digest" }],
+            ["...", "FunctionName", aws_lambda_function.run_now.function_name, { stat = "Average", label = "Run Now" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -90,8 +90,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "Error Rate by Function"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/Lambda", "Errors", { "FunctionName" = aws_lambda_function.weekly_digest.function_name }, { stat = "Sum", label = "Weekly Digest Errors", color = "#d62728" }],
-            ["...", { "FunctionName" = aws_lambda_function.run_now.function_name }, { stat = "Sum", label = "Run Now Errors", color = "#ff7f0e" }]
+            ["AWS/Lambda", "Errors", "FunctionName", aws_lambda_function.weekly_digest.function_name, { stat = "Sum", label = "Weekly Digest Errors", color = "#d62728" }],
+            ["...", "FunctionName", aws_lambda_function.run_now.function_name, { stat = "Sum", label = "Run Now Errors", color = "#ff7f0e" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -111,8 +111,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "Memory Utilization"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/Lambda", "MemoryUtilization", { "FunctionName" = aws_lambda_function.weekly_digest.function_name }, { stat = "Average", label = "Weekly Digest Memory %" }],
-            ["...", { "FunctionName" = aws_lambda_function.weekly_digest.function_name }, { stat = "Maximum", label = "Weekly Digest Max Memory %", color = "#ff7f0e" }]
+            ["AWS/Lambda", "MemoryUtilization", "FunctionName", aws_lambda_function.weekly_digest.function_name, { stat = "Average", label = "Weekly Digest Memory %" }],
+            ["...", "FunctionName", aws_lambda_function.weekly_digest.function_name, { stat = "Maximum", label = "Weekly Digest Max Memory %", color = "#ff7f0e" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -138,9 +138,9 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "DynamoDB Operations"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/DynamoDB", "UserErrors", { "TableName" = aws_dynamodb_table.known_ai_senders.name }, { stat = "Sum", label = "AI Senders Errors", color = "#d62728" }],
-            [".", "ConsumedReadCapacityUnits", { "TableName" = aws_dynamodb_table.known_ai_senders.name }, { stat = "Sum", label = "AI Senders Read Units" }],
-            [".", "ConsumedWriteCapacityUnits", { "TableName" = aws_dynamodb_table.known_ai_senders.name }, { stat = "Sum", label = "AI Senders Write Units" }]
+            ["AWS/DynamoDB", "UserErrors", "TableName", aws_dynamodb_table.known_ai_senders.name, { stat = "Sum", label = "AI Senders Errors", color = "#d62728" }],
+            [".", "ConsumedReadCapacityUnits", "TableName", aws_dynamodb_table.known_ai_senders.name, { stat = "Sum", label = "AI Senders Read Units" }],
+            [".", "ConsumedWriteCapacityUnits", "TableName", aws_dynamodb_table.known_ai_senders.name, { stat = "Sum", label = "AI Senders Write Units" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -159,9 +159,9 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "S3 Storage Operations"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/S3", "AllRequests", { "BucketName" = aws_s3_bucket.processed_emails.id, "FilterId" = "EntireBucket" }, { stat = "Sum", label = "Total Requests" }],
-            [".", "4xxErrors", { "BucketName" = aws_s3_bucket.processed_emails.id, "FilterId" = "EntireBucket" }, { stat = "Sum", label = "4xx Errors", color = "#ff7f0e" }],
-            [".", "5xxErrors", { "BucketName" = aws_s3_bucket.processed_emails.id, "FilterId" = "EntireBucket" }, { stat = "Sum", label = "5xx Errors", color = "#d62728" }]
+            ["AWS/S3", "AllRequests", "BucketName", aws_s3_bucket.processed_emails.id, "FilterId", "EntireBucket", { stat = "Sum", label = "Total Requests" }],
+            [".", "4xxErrors", "BucketName", aws_s3_bucket.processed_emails.id, "FilterId", "EntireBucket", { stat = "Sum", label = "4xx Errors", color = "#ff7f0e" }],
+            [".", "5xxErrors", "BucketName", aws_s3_bucket.processed_emails.id, "FilterId", "EntireBucket", { stat = "Sum", label = "5xx Errors", color = "#d62728" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -217,9 +217,9 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "API Gateway Performance"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/ApiGateway", "Count", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "Sum", label = "Total Requests" }],
-            [".", "4XXError", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "Sum", label = "4XX Errors", color = "#ff7f0e" }],
-            [".", "5XXError", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "Sum", label = "5XX Errors", color = "#d62728" }]
+            ["AWS/ApiGateway", "Count", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "Sum", label = "Total Requests" }],
+            [".", "4XXError", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "Sum", label = "4XX Errors", color = "#ff7f0e" }],
+            [".", "5XXError", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "Sum", label = "5XX Errors", color = "#d62728" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -238,8 +238,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_main" {
           title = "API Gateway Latency"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/ApiGateway", "Latency", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "Average", label = "Avg Latency" }],
-            ["...", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "p99", label = "p99 Latency", color = "#ff7f0e" }]
+            ["AWS/ApiGateway", "Latency", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "Average", label = "Avg Latency" }],
+            ["...", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "p99", label = "p99 Latency", color = "#ff7f0e" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -323,10 +323,10 @@ resource "aws_cloudwatch_dashboard" "ai_digest_costs" {
           title = "DynamoDB Consumed Capacity"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/DynamoDB", "ConsumedReadCapacityUnits", { "TableName" = aws_dynamodb_table.known_ai_senders.name }, { stat = "Sum", label = "AI Senders RCU" }],
-            [".", "ConsumedWriteCapacityUnits", { "TableName" = aws_dynamodb_table.known_ai_senders.name }, { stat = "Sum", label = "AI Senders WCU" }],
-            [".", "ConsumedReadCapacityUnits", { "TableName" = aws_dynamodb_table.known_non_ai_senders.name }, { stat = "Sum", label = "Non-AI Senders RCU" }],
-            [".", "ConsumedWriteCapacityUnits", { "TableName" = aws_dynamodb_table.known_non_ai_senders.name }, { stat = "Sum", label = "Non-AI Senders WCU" }]
+            ["AWS/DynamoDB", "ConsumedReadCapacityUnits", "TableName", aws_dynamodb_table.known_ai_senders.name, { stat = "Sum", label = "AI Senders RCU" }],
+            [".", "ConsumedWriteCapacityUnits", "TableName", aws_dynamodb_table.known_ai_senders.name, { stat = "Sum", label = "AI Senders WCU" }],
+            [".", "ConsumedReadCapacityUnits", "TableName", aws_dynamodb_table.known_non_ai_senders.name, { stat = "Sum", label = "Non-AI Senders RCU" }],
+            [".", "ConsumedWriteCapacityUnits", "TableName", aws_dynamodb_table.known_non_ai_senders.name, { stat = "Sum", label = "Non-AI Senders WCU" }]
           ]
           view = "timeSeries"
           stacked = true
@@ -351,8 +351,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_costs" {
           title = "S3 Storage Usage"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/S3", "BucketSizeBytes", { "BucketName" = aws_s3_bucket.processed_emails.id, "StorageType" = "StandardStorage" }, { stat = "Average", label = "Processed Emails Size" }],
-            [".", "NumberOfObjects", { "BucketName" = aws_s3_bucket.processed_emails.id, "StorageType" = "AllStorageTypes" }, { stat = "Average", label = "Number of Objects", yAxis = "right" }]
+            ["AWS/S3", "BucketSizeBytes", "BucketName", aws_s3_bucket.processed_emails.id, "StorageType", "StandardStorage", { stat = "Average", label = "Processed Emails Size" }],
+            [".", "NumberOfObjects", "BucketName", aws_s3_bucket.processed_emails.id, "StorageType", "AllStorageTypes", { stat = "Average", label = "Number of Objects", yAxis = "right" }]
           ]
           view = "timeSeries"
           stacked = false
@@ -381,7 +381,7 @@ resource "aws_cloudwatch_dashboard" "ai_digest_costs" {
           title = "API Gateway Usage"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/ApiGateway", "Count", { "ApiName" = aws_api_gateway_rest_api.api.name, "Stage" = aws_api_gateway_stage.prod.stage_name }, { stat = "Sum", label = "API Requests", id = "m1" }],
+            ["AWS/ApiGateway", "Count", "ApiName", aws_api_gateway_rest_api.api.name, "Stage", aws_api_gateway_stage.prod.stage_name, { stat = "Sum", label = "API Requests", id = "m1" }],
             [ { expression = "m1 * 0.000001", label = "Estimated Cost ($)", id = "e1", yAxis = "right" }]
           ]
           view = "timeSeries"
@@ -411,8 +411,8 @@ resource "aws_cloudwatch_dashboard" "ai_digest_costs" {
           title = "Lambda Invocation Trends (7 days)"
           region = data.aws_region.current.name
           metrics = [
-            ["AWS/Lambda", "Invocations", { "FunctionName" = aws_lambda_function.weekly_digest.function_name }, { stat = "Sum", label = "Weekly Digest" }],
-            ["...", { "FunctionName" = aws_lambda_function.run_now.function_name }, { stat = "Sum", label = "Run Now" }]
+            ["AWS/Lambda", "Invocations", "FunctionName", aws_lambda_function.weekly_digest.function_name, { stat = "Sum", label = "Weekly Digest" }],
+            ["...", "FunctionName", aws_lambda_function.run_now.function_name, { stat = "Sum", label = "Run Now" }]
           ]
           view = "timeSeries"
           stacked = true
