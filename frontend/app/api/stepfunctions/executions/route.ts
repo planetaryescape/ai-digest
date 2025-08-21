@@ -20,11 +20,11 @@ const sfnClient = new SFNClient({
 // Input validation schema
 const querySchema = z.object({
   status: z.enum(["RUNNING", "SUCCEEDED", "FAILED", "TIMED_OUT", "ABORTED"]).optional(),
-  maxResults: z.string().transform((val) => {
+  maxResults: z.string().optional().default("10").transform((val) => {
     const num = parseInt(val);
     if (isNaN(num)) return 10;
     return Math.max(1, Math.min(num, 100));
-  }).optional().default("10"),
+  }),
   nextToken: z.string().optional(),
 });
 
@@ -55,7 +55,7 @@ export async function GET(request: Request) {
 
     if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Invalid query parameters", details: validationResult.error.errors },
+        { error: "Invalid query parameters", details: validationResult.error.issues },
         { status: 400 }
       );
     }
