@@ -22,6 +22,8 @@ export const COST_LIMITS = {
   FIRECRAWL_COST_PER_URL: 0.001,
   /** Cost per Brave search in dollars */
   BRAVE_SEARCH_COST: 0.001,
+  /** Circuit breaker failure threshold */
+  CIRCUIT_BREAKER_THRESHOLD: 5,
 } as const;
 
 // Rate limiting constants
@@ -38,6 +40,12 @@ export const RATE_LIMITS = {
   OPENAI_BATCH_SIZE: 20,
   /** Firecrawl requests per minute */
   FIRECRAWL_RPM: 100,
+  /** Firecrawl concurrent requests */
+  FIRECRAWL_CONCURRENT: 5,
+  /** Delay between Firecrawl batch operations in milliseconds */
+  FIRECRAWL_BATCH_DELAY_MS: 2000,
+  /** Gmail archive batch size */
+  ARCHIVE_BATCH_SIZE: 100,
 } as const;
 
 // Batch processing limits
