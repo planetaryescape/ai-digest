@@ -1,0 +1,20 @@
+{
+  "classifiedEmails": {
+    "emails": [
+      {
+        "id": "test-123",
+        "subject": "Test Email",
+        "sender": "test@example.com",
+        "date": "2025-08-20T12:00:00Z",
+        "snippet": "This is a test email",
+        "articles": [{ "url": "https://example.com" }]
+      }
+    ]
+  },
+  "metadata": {
+    "executionId": "test-exec-456",
+    "mode": "test",
+    "startTime": "2025-08-20T13:00:00Z"
+  },
+  "costSoFar": 0
+}
