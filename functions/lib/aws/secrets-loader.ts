@@ -50,8 +50,8 @@ export class SecretsLoader {
         SecretsLoader.isLoaded = true;
       }
     } catch (error) {
-      console.error("Failed to load secrets from Secrets Manager", error);
-      throw error;
+      console.warn("Failed to load secrets from Secrets Manager, using environment variables as fallback", error);
+      return; // Fall back to existing env vars
     }
   }
 

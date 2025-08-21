@@ -98,6 +98,48 @@ terraform plan
 terraform apply
 ```
 
+## 🔑 Secrets Management
+
+After deploying the infrastructure, you need to populate the secrets in AWS Secrets Manager:
+
+### Option 1: Via AWS Console
+1. Navigate to AWS Secrets Manager in the AWS Console
+2. Find the secret named `${PROJECT_NAME}-api-keys`
+3. Click "Retrieve secret value" → "Edit"
+4. Update the JSON with your actual API keys:
+```json
+{
+  "gmail_client_id": "your-actual-gmail-client-id",
+  "gmail_client_secret": "your-actual-gmail-client-secret",
+  "gmail_refresh_token": "your-actual-gmail-refresh-token",
+  "openai_api_key": "your-actual-openai-api-key",
+  "helicone_api_key": "your-actual-helicone-api-key",
+  "resend_api_key": "your-actual-resend-api-key",
+  "resend_from": "your-email@example.com"
+}
+```
+
+### Option 2: Via AWS CLI
+```bash
+aws secretsmanager update-secret \
+  --secret-id ai-digest-api-keys \
+  --secret-string '{
+    "gmail_client_id": "your-actual-gmail-client-id",
+    "gmail_client_secret": "your-actual-gmail-client-secret",
+    "gmail_refresh_token": "your-actual-gmail-refresh-token",
+    "openai_api_key": "your-actual-openai-api-key",
+    "helicone_api_key": "your-actual-helicone-api-key",
+    "resend_api_key": "your-actual-resend-api-key",
+    "resend_from": "your-email@example.com"
+  }'
+```
+
+### Important Notes:
+- Secrets are loaded at Lambda cold start and cached for performance
+- If Secrets Manager is unavailable, functions will fall back to environment variables
+- Rotate secrets regularly using AWS Secrets Manager rotation feature
+- Cost: ~$0.40/month for the secret storage
+
 ## 🔐 Required Permissions
 
 Your AWS user/role needs these permissions:
