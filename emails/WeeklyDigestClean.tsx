@@ -627,6 +627,54 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
               </Section>
             )}
 
+            {/* Sources Citation */}
+            {digest.sources && digest.sources.length > 0 && (
+              <Section style={{ marginBottom: "32px", marginTop: "32px" }}>
+                <Hr style={{ borderColor: "#eee", margin: "32px 0" }} />
+                <Heading
+                  as="h3"
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "600",
+                    color: "#666",
+                    margin: "0 0 12px 0",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.5px",
+                  }}
+                >
+                  Sources
+                </Heading>
+                <Text
+                  style={{
+                    fontSize: "11px",
+                    color: "#999",
+                    margin: "0 0 8px 0",
+                  }}
+                >
+                  This digest was generated from {digest.sources.length} email sources:
+                </Text>
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#666",
+                    lineHeight: "1.8",
+                  }}
+                >
+                  {digest.sources.map((source, i) => (
+                    <div key={i} style={{ marginBottom: "4px" }}>
+                      • <strong>{source.sender}</strong>: "{source.subject}"
+                      {source.articleCount > 0 && (
+                        <span style={{ color: "#999", fontSize: "11px" }}>
+                          {" "}
+                          ({source.articleCount} article{source.articleCount !== 1 ? "s" : ""})
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </Section>
+            )}
+
             {/* Footer */}
             <Section style={{ textAlign: "center" }}>
               <Text
