@@ -285,7 +285,7 @@ export async function POST(request: NextRequest) {
     };
     const docClient = getDocClient();
     const command = new PutCommand({
-      TableName: tableName,
+      TableName: aiSendersTable,
       Item: newSender,
     });
 
@@ -358,7 +358,7 @@ export async function DELETE(request: NextRequest) {
 
       const command = new BatchWriteCommand({
         RequestItems: {
-          [tableName]: deleteRequests,
+          [aiSendersTable]: deleteRequests,
         },
       });
 
