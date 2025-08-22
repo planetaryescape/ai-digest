@@ -84,7 +84,10 @@ export class PinoLoggerAdapter implements ILogger {
     const otherArgs = args.filter((arg) => !(arg instanceof Error));
 
     if (error) {
-      this.logger.error({ err: error, data: otherArgs.length > 0 ? otherArgs : undefined }, message);
+      this.logger.error(
+        { err: error, data: otherArgs.length > 0 ? otherArgs : undefined },
+        message
+      );
     } else if (args.length > 0) {
       this.logger.error({ data: args }, message);
     } else {
@@ -99,6 +102,15 @@ export class PinoLoggerAdapter implements ILogger {
       this.logger.debug(message);
     }
   }
+}
+
+// Export Logger class as alias for PinoLoggerAdapter
+export const Logger = PinoLoggerAdapter;
+
+// Timer functionality
+export function createTimer() {
+  const start = Date.now();
+  return () => Date.now() - start;
 }
 
 export default baseLogger;

@@ -26,7 +26,9 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error("Failed to add sender");
+      if (!res.ok) {
+        throw new Error("Failed to add sender");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -44,7 +46,9 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
     addMutation.mutate(formData);
   };
 
-  if (!open) return null;
+  if (!open) {
+    return null;
+  }
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -108,7 +112,7 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
                 max="100"
                 value={formData.confidence}
                 onChange={(e) =>
-                  setFormData({ ...formData, confidence: Number.parseInt(e.target.value) })
+                  setFormData({ ...formData, confidence: Number.parseInt(e.target.value, 10) })
                 }
                 className="w-full"
               />

@@ -43,7 +43,6 @@ export function SenderTable() {
       const res = await fetch("/api/senders");
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
-        console.error("Failed to fetch senders:", errorData);
 
         if (errorData.details) {
           throw new Error(errorData.details);
@@ -66,7 +65,9 @@ export function SenderTable() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ emails }),
       });
-      if (!res.ok) throw new Error("Failed to delete senders");
+      if (!res.ok) {
+        throw new Error("Failed to delete senders");
+      }
       return res.json();
     },
     onSuccess: () => {
@@ -158,10 +159,7 @@ export function SenderTable() {
         id: "actions",
         cell: ({ row }) => (
           <div className="flex space-x-2">
-            <button
-              onClick={() => console.log("Edit", row.original)}
-              className="p-1 text-gray-600 hover:text-gray-900"
-            >
+            <button onClick={() => {}} className="p-1 text-gray-600 hover:text-gray-900">
               <Edit className="h-4 w-4" />
             </button>
             <button

@@ -1,7 +1,7 @@
 import OpenAI from "openai";
-import { CostTracker } from "../cost-tracker";
-import { createLogger } from "../logger";
 import { COST_LIMITS } from "../constants";
+import type { CostTracker } from "../cost-tracker";
+import { createLogger } from "../logger";
 import type { Summary } from "../types";
 
 const log = createLogger("CriticAgent");
@@ -38,9 +38,9 @@ export class CriticAgent {
     }
 
     log.info(
-      { 
+      {
         processed: summaries.length,
-        critiqued: this.stats.critiquesGenerated 
+        critiqued: this.stats.critiquesGenerated,
       },
       "Critical commentary complete"
     );
@@ -63,7 +63,8 @@ Give a contrarian or critical perspective (2-3 sentences) that challenges assump
         messages: [
           {
             role: "system",
-            content: "You are a tech critic providing thoughtful, contrarian perspectives on AI developments.",
+            content:
+              "You are a tech critic providing thoughtful, contrarian perspectives on AI developments.",
           },
           {
             role: "user",
@@ -78,7 +79,7 @@ Give a contrarian or critical perspective (2-3 sentences) that challenges assump
       this.costTracker.recordApiCall("openai", "critique", COST_LIMITS.OPENAI_GPT4O_MINI_COST);
 
       const critique = response.choices[0].message.content || "";
-      
+
       return {
         ...summary,
         critique,

@@ -8,8 +8,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
   // Load secrets from AWS Secrets Manager on cold start
   try {
     await SecretsLoader.loadSecrets();
-  } catch (error) {
-    console.error("Failed to load secrets:", error);
+  } catch (_error) {
     // Continue anyway as this handler doesn't need secrets directly
   }
 
@@ -39,7 +38,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
       const end = new Date(endDate);
       const now = new Date();
 
-      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         throw new Error("Invalid date format. Use YYYY-MM-DD");
       }
 

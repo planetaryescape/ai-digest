@@ -129,7 +129,7 @@ export class ConfigValidator {
     }
 
     if (result.warnings.length > 0) {
-      log.warn("Configuration warnings: " + result.warnings.join(", "));
+      log.warn(`Configuration warnings: ${result.warnings.join(", ")}`);
     } else {
       log.info("Configuration validation passed ✅");
     }
@@ -203,7 +203,9 @@ export class ConfigValidator {
    */
   static getMaskedValue(varName: string): string {
     const value = process.env[varName];
-    if (!value) return "NOT_SET";
+    if (!value) {
+      return "NOT_SET";
+    }
 
     const sensitiveVars = [
       "GMAIL_CLIENT_SECRET",

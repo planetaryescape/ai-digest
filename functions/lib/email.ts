@@ -70,15 +70,23 @@ function generateDigestHtml(summaries: Summary[], mode: string): string {
         <h3>${summary.title}</h3>
         <p><strong>From:</strong> ${summary.sender}</p>
         <p>${summary.summary}</p>
-        ${summary.keyInsights ? `
+        ${
+          summary.keyInsights
+            ? `
           <h4>Key Insights:</h4>
-          <ul>${summary.keyInsights.map(insight => `<li>${insight}</li>`).join("")}</ul>
-        ` : ""}
+          <ul>${summary.keyInsights.map((insight) => `<li>${insight}</li>`).join("")}</ul>
+        `
+            : ""
+        }
         ${summary.whyItMatters ? `<p><strong>Why it matters:</strong> ${summary.whyItMatters}</p>` : ""}
-        ${summary.actionItems ? `
+        ${
+          summary.actionItems
+            ? `
           <h4>Action Items:</h4>
-          <ul>${summary.actionItems.map(item => `<li>${item}</li>`).join("")}</ul>
-        ` : ""}
+          <ul>${summary.actionItems.map((item) => `<li>${item}</li>`).join("")}</ul>
+        `
+            : ""
+        }
         ${summary.critique ? `<p><em>Critical Take: ${summary.critique}</em></p>` : ""}
       </div>
     `

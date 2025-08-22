@@ -6,7 +6,7 @@ import type {
 } from "aws-lambda";
 import type { DigestResult } from "../../core/digest-processor";
 import type { IPlatformAdapter } from "./IPlatformAdapter";
-import type { UnifiedContext, UnifiedLogger, UnifiedRequest, UnifiedResponse } from "./types";
+import type { UnifiedContext, UnifiedLogger, UnifiedRequest } from "./types";
 
 /**
  * AWS Lambda platform adapter
@@ -32,9 +32,9 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
 
     // Extract batchSize from query params or body
     const batchSize = query.batchSize
-      ? Number.parseInt(query.batchSize)
+      ? Number.parseInt(query.batchSize, 10)
       : body?.batchSize
-        ? Number.parseInt(body.batchSize)
+        ? Number.parseInt(body.batchSize, 10)
         : undefined;
 
     return {
@@ -58,10 +58,10 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
 
   createContext(context: Context): UnifiedContext {
     const logger: UnifiedLogger = {
-      info: (message: string, ...args: any[]) => console.log(`[INFO] ${message}`, ...args),
-      warn: (message: string, ...args: any[]) => console.warn(`[WARN] ${message}`, ...args),
-      error: (message: string, ...args: any[]) => console.error(`[ERROR] ${message}`, ...args),
-      debug: (message: string, ...args: any[]) => console.debug(`[DEBUG] ${message}`, ...args),
+      info: (_message: string, ..._args: any[]) => {},
+      warn: (_message: string, ..._args: any[]) => {},
+      error: (_message: string, ..._args: any[]) => {},
+      debug: (_message: string, ..._args: any[]) => {},
     };
 
     return {
@@ -155,7 +155,9 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
   }
 
   private parseBody(body: string | null): any {
-    if (!body) return null;
+    if (!body) {
+      return null;
+    }
 
     try {
       return JSON.parse(body);

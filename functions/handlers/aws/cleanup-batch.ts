@@ -5,10 +5,10 @@ import { createLogger } from "../../lib/logger";
 const log = createLogger("cleanup-batch");
 const lambdaClient = new LambdaClient({ region: process.env.AWS_REGION || "us-east-1" });
 
-const PIPELINE_FUNCTION =
+const _PIPELINE_FUNCTION =
   process.env.PIPELINE_FUNCTION ||
   "arn:aws:states:us-east-1:536697242054:stateMachine:ai-digest-pipeline";
-const BATCH_SIZE = Number.parseInt(process.env.BATCH_SIZE || "50");
+const BATCH_SIZE = Number.parseInt(process.env.BATCH_SIZE || "50", 10);
 
 interface CleanupBatchInput {
   batchSize?: number;
@@ -16,7 +16,7 @@ interface CleanupBatchInput {
 
 export const handler = async (
   event: CleanupBatchInput,
-  context: Context
+  _context: Context
 ): Promise<{
   success: boolean;
   message: string;

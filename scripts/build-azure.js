@@ -60,22 +60,16 @@ const buildFunction = async (functionName) => {
     if (fs.existsSync(functionJsonSrc)) {
       fs.copyFileSync(functionJsonSrc, functionJsonDst);
     }
-
-    console.log(`✅ Built Azure function: ${functionName}`);
-  } catch (error) {
-    console.error(`❌ Failed to build Azure function: ${functionName}`, error);
+  } catch (_error) {
     process.exit(1);
   }
 };
 
 // Run all builds in parallel but wait for them to complete
 const main = async () => {
-  console.log("🔨 Building Azure Functions...");
   try {
     await Promise.all(functions.map(buildFunction));
-    console.log("✅ All Azure functions built successfully");
-  } catch (error) {
-    console.error("❌ Build failed", error);
+  } catch (_error) {
     process.exit(1);
   }
 };

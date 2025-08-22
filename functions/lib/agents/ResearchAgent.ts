@@ -1,6 +1,5 @@
-import { CostTracker } from "../cost-tracker";
+import type { CostTracker } from "../cost-tracker";
 import { createLogger } from "../logger";
-import { COST_LIMITS } from "../constants";
 
 const log = createLogger("ResearchAgent");
 
@@ -11,7 +10,7 @@ export class ResearchAgent {
     errors: 0,
   };
 
-  constructor(private costTracker: CostTracker) {}
+  constructor(_costTracker: CostTracker) {}
 
   async enrichWithResearch(emails: any[]): Promise<any[]> {
     log.info({ count: emails.length }, "Starting research enrichment");
@@ -41,9 +40,9 @@ export class ResearchAgent {
     }
 
     log.info(
-      { 
+      {
         processed: enrichedEmails.length,
-        researched: this.stats.researchCompleted 
+        researched: this.stats.researchCompleted,
       },
       "Research enrichment complete"
     );

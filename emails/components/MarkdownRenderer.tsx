@@ -9,7 +9,9 @@ interface MarkdownRendererProps {
  * Simple markdown-like content renderer for email templates
  */
 export const MarkdownRenderer = ({ content, className }: MarkdownRendererProps) => {
-  if (!content) return null;
+  if (!content) {
+    return null;
+  }
 
   const lines = content.split("\n").filter((line) => line.trim());
 

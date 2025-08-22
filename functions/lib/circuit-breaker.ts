@@ -181,7 +181,9 @@ export class CircuitBreaker {
    * Check if enough time has passed to attempt reset
    */
   private shouldAttemptReset(): boolean {
-    if (!this.lastFailTime) return false;
+    if (!this.lastFailTime) {
+      return false;
+    }
 
     const now = new Date();
     const timeSinceLastFailure = now.getTime() - this.lastFailTime.getTime();

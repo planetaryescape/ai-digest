@@ -1,11 +1,11 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { QueryClient, type QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DigestTrigger } from '@/components/dashboard/DigestTrigger';
+import { HttpResponse, http } from 'msw';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DigestTrigger } from '@/components/dashboard/DigestTrigger';
 import { ExecutionHistory } from '@/components/dashboard/ExecutionHistory';
 import { server } from '@/test/mocks/server';
-import { http, HttpResponse } from 'msw';
 
 const createWrapper = () => {
   const queryClient = new QueryClient({

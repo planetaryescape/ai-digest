@@ -16,7 +16,7 @@ export class ClassifierHandler extends BaseStepFunctionHandler {
     this.classifier = new ClassifierAgent(this.costTracker);
   }
 
-  async process(event: any, context: Context): Promise<any> {
+  async process(event: any, _context: Context): Promise<any> {
     const executionId = event.metadata?.executionId;
     const mode = event.metadata?.mode;
     const startTime = event.metadata?.startTime;
@@ -37,7 +37,7 @@ export class ClassifierHandler extends BaseStepFunctionHandler {
     }
 
     // Get stats from the previous step
-    const stats = event.stats || {};
+    const _stats = event.stats || {};
 
     // Create an EmailBatch structure that ClassifierAgent expects
     const emailBatch = {

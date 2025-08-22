@@ -34,7 +34,9 @@ interface ToolListProps {
 }
 
 export const ToolList = ({ tools, className }: ToolListProps) => {
-  if (!tools || tools.length === 0) return null;
+  if (!tools || tools.length === 0) {
+    return null;
+  }
 
   return (
     <div className={className}>

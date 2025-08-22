@@ -2,9 +2,7 @@
 let sentryEsbuildPlugin;
 try {
   sentryEsbuildPlugin = require("@sentry/esbuild-plugin").sentryEsbuildPlugin;
-} catch (e) {
-  console.log("Sentry plugin not available, continuing without it");
-}
+} catch (_e) {}
 const esbuild = require("esbuild");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -70,20 +68,13 @@ const buildFunction = async (config) => {
 
     // Check if exports.handler or module.exports is already present
     if (!content.includes("exports.handler") && !content.includes("exports = {")) {
-      console.warn(`⚠️  Warning: handler export not found in ${config.name}.js`);
-      console.warn("   Lambda may not be able to find the handler function");
     }
-
-    console.log(`✅ Built Lambda function: ${config.name}`);
-  } catch (error) {
-    console.error(`❌ Failed to build Lambda function: ${config.name}`, error);
+  } catch (_error) {
     process.exit(1);
   }
 };
 
 const createDeploymentPackage = () => {
-  console.log("📦 Creating Lambda deployment package...");
-
   const packagePath = path.join(outputDir, "..", "lambda.zip");
 
   // Remove old package if exists
@@ -101,19 +92,14 @@ const createDeploymentPackage = () => {
   // Create zip file with all Lambda functions
   const zipCommand = `cd ${outputDir} && zip -r ../lambda.zip . -q`;
   execSync(zipCommand);
-
-  console.log(`✅ Created deployment package: ${packagePath}`);
 };
 
 // Run all builds in parallel but wait for them to complete
 const main = async () => {
-  console.log("🔨 Building AWS Lambda functions...");
   try {
     await Promise.all(lambdaFunctions.map(buildFunction));
     createDeploymentPackage();
-    console.log("✅ All Lambda functions built and packaged successfully");
-  } catch (error) {
-    console.error("❌ Build failed", error);
+  } catch (_error) {
     process.exit(1);
   }
 };

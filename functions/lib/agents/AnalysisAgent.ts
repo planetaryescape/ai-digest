@@ -1,7 +1,7 @@
 import OpenAI from "openai";
-import { CostTracker } from "../cost-tracker";
-import { createLogger } from "../logger";
 import { COST_LIMITS } from "../constants";
+import type { CostTracker } from "../cost-tracker";
+import { createLogger } from "../logger";
 import type { Summary } from "../types";
 
 const log = createLogger("AnalysisAgent");
@@ -37,9 +37,9 @@ export class AnalysisAgent {
     }
 
     log.info(
-      { 
+      {
         processed: emails.length,
-        analyzed: summaries.length 
+        analyzed: summaries.length,
       },
       "Content analysis complete"
     );
@@ -78,7 +78,7 @@ Content: ${(email.body || email.snippet || "").substring(0, 1000)}`;
       this.costTracker.recordApiCall("openai", "analyze", COST_LIMITS.OPENAI_GPT4O_MINI_COST);
 
       const content = response.choices[0].message.content || "";
-      
+
       // Parse the response into structured format
       return {
         title: email.subject,

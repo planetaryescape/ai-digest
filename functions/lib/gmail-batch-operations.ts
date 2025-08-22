@@ -1,7 +1,7 @@
-import { gmail_v1 } from "googleapis";
-import { CostTracker } from "./cost-tracker";
-import { createLogger } from "./logger";
+import type { gmail_v1 } from "googleapis";
 import { BATCH_LIMITS, RATE_LIMITS } from "./constants";
+import type { CostTracker } from "./cost-tracker";
+import { createLogger } from "./logger";
 
 const log = createLogger("GmailBatchOperations");
 
@@ -16,9 +16,7 @@ export class GmailBatchOperations {
     const batches = this.createBatches(messageIds, BATCH_LIMITS.GMAIL_API);
 
     for (const batch of batches) {
-      const batchResults = await Promise.all(
-        batch.map((id) => this.getMessage(id))
-      );
+      const batchResults = await Promise.all(batch.map((id) => this.getMessage(id)));
       messages.push(...batchResults.filter(Boolean));
 
       // Rate limiting between batches

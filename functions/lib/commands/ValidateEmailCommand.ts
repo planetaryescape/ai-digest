@@ -94,7 +94,7 @@ export class ValidateEmailCommand implements IEmailCommand<ValidationResult> {
 
   private isValidDate(date: string): boolean {
     const parsed = new Date(date);
-    return !isNaN(parsed.getTime());
+    return !Number.isNaN(parsed.getTime());
   }
 
   private isSuspiciousEmail(email: EmailItem): boolean {

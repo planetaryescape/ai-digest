@@ -77,18 +77,26 @@ export abstract class BaseHandler {
 
       // Handle different modes
       const mode = request.mode || (request.cleanup ? "cleanup" : "weekly");
-      
-      context.logger.info(`Request mode: ${request.mode}, Cleanup: ${request.cleanup}, Resolved mode: ${mode}`);
-      context.logger.info(`Request details:`, { 
-        mode: request.mode, 
-        startDate: request.startDate, 
+
+      context.logger.info(
+        `Request mode: ${request.mode}, Cleanup: ${request.cleanup}, Resolved mode: ${mode}`
+      );
+      context.logger.info("Request details:", {
+        mode: request.mode,
+        startDate: request.startDate,
         endDate: request.endDate,
-        type: request.type 
+        type: request.type,
       });
-      
+
       if (mode === "historical") {
-        context.logger.info(`Processing historical digest from ${request.startDate} to ${request.endDate}`);
-        result = await processor.processHistoricalDigest(request.startDate!, request.endDate!, request.batchSize);
+        context.logger.info(
+          `Processing historical digest from ${request.startDate} to ${request.endDate}`
+        );
+        result = await processor.processHistoricalDigest(
+          request.startDate!,
+          request.endDate!,
+          request.batchSize
+        );
       } else if (mode === "cleanup" || request.cleanup) {
         context.logger.info("Processing in cleanup mode");
         const batchSize = request.batchSize || 50;

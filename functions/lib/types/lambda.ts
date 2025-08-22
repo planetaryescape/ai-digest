@@ -64,4 +64,4 @@ export interface DigestResponseBody {
 export type DigestLambdaHandler = (
   event: LambdaEvent,
   context: Context
-) => Promise<void | DigestLambdaResponse>;
+) => Promise<undefined | DigestLambdaResponse>;

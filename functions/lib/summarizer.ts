@@ -89,8 +89,6 @@ export async function summarize(items: EmailItem[]): Promise<Summary> {
   const productContext = formatProductContext();
   const professions = formatProfessions();
 
-  console.log(`Summarizing ${items.length} emails with GPT-5...`);
-
   try {
     const { object } = await generateObject({
       model: openai(config.openai.models.summarization), // Use smartest model for analysis
@@ -191,9 +189,7 @@ YES:
       items,
       generatedAt: new Date().toISOString(),
     };
-  } catch (error) {
-    console.error("Error during summarization:", error);
-
+  } catch (_error) {
     // Fallback to basic summary
     return fallbackSummary(items);
   }

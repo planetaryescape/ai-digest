@@ -1,5 +1,10 @@
 # AI Digest - Weekly Newsletter Summarizer
 
+[![statements](https://img.shields.io/badge/statements-0.0%25-red)](./coverage/lcov-report/index.html)
+[![branches](https://img.shields.io/badge/branches-37.8%25-red)](./coverage/lcov-report/index.html)
+[![functions](https://img.shields.io/badge/functions-37.8%25-red)](./coverage/lcov-report/index.html)
+[![lines](https://img.shields.io/badge/lines-0.0%25-red)](./coverage/lcov-report/index.html)
+
 An automated system that fetches AI-related newsletters from your Gmail, summarizes them using GPT models, and sends you a beautifully formatted weekly digest with role-specific advice and product opportunities.
 
 ## Features

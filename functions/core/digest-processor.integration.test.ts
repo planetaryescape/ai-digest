@@ -1,22 +1,8 @@
-import { beforeEach, describe, expect, it, vi, afterEach, Mock } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { EnhancedCircuitBreaker } from "../lib/circuit-breaker-enhanced";
 import type { ILogger } from "../lib/interfaces/logger";
 import type { IStorageClient } from "../lib/interfaces/storage";
 import { DigestProcessor } from "./digest-processor";
-import { EmailFetcherAgent } from "../lib/agents/EmailFetcherAgent";
-import { ClassifierAgent } from "../lib/agents/ClassifierAgent";
-import { ContentExtractorAgent } from "../lib/agents/ContentExtractorAgent";
-import { ResearchAgent } from "../lib/agents/ResearchAgent";
-import { AnalysisAgent } from "../lib/agents/AnalysisAgent";
-import { CriticAgent } from "../lib/agents/CriticAgent";
-import { EnhancedCircuitBreaker } from "../lib/circuit-breaker-enhanced";
-import {
-  MockEmailFetcherAgent,
-  MockClassifierAgent,
-  MockContentExtractorAgent,
-  MockResearchAgent,
-  MockAnalysisAgent,
-  MockCriticAgent,
-} from "./test-helpers/mock-agents";
 
 // Mock the agent constructors to inject test-friendly versions
 vi.mock("../lib/agents/EmailFetcherAgent", async () => {
@@ -85,7 +71,7 @@ vi.mock("googleapis", () => ({
         request: vi.fn().mockResolvedValue({ data: {} }),
       })),
     },
-    gmail: vi.fn().mockImplementation((options) => ({
+    gmail: vi.fn().mockImplementation((_options) => ({
       users: {
         messages: {
           list: vi.fn(),
@@ -167,7 +153,7 @@ describe("DigestProcessor Integration Tests", () => {
   let processor: DigestProcessor;
   let mockStorage: IStorageClient;
   let mockLogger: ILogger;
-  
+
   // Store original env vars
   const originalEnv = process.env;
 
@@ -204,7 +190,7 @@ describe("DigestProcessor Integration Tests", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock environment variables
     process.env = {
       ...originalEnv,
@@ -235,7 +221,7 @@ describe("DigestProcessor Integration Tests", () => {
     };
 
     // Reset circuit breaker states by getting each breaker and resetting
-    ["gmail", "openai", "firecrawl", "brave"].forEach(name => {
+    ["gmail", "openai", "firecrawl", "brave"].forEach((name) => {
       const breaker = EnhancedCircuitBreaker.getBreaker(name);
       breaker.reset();
     });
@@ -246,7 +232,7 @@ describe("DigestProcessor Integration Tests", () => {
       logger: mockLogger,
       platform: "test",
     });
-    
+
     // Initialize batchOperations if not set by mocked EmailFetcherAgent
     if (!(processor as any).batchOperations) {
       (processor as any).batchOperations = {
@@ -267,32 +253,32 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API responses
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       // Mock email list response - handle both with and without userId
-      vi.mocked(gmailMock.users.messages.list).mockImplementation((params?: any) => {
+      vi.mocked(gmailMock.users.messages.list).mockImplementation((_params?: any) => {
         return Promise.resolve({
           data: {
-            messages: mockEmails.map(e => ({ id: e.id, threadId: e.id })),
+            messages: mockEmails.map((e) => ({ id: e.id, threadId: e.id })),
           },
         });
       });
 
       // Mock individual email fetches
-      mockEmails.forEach(email => {
-        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce((params?: any) => {
+      mockEmails.forEach((email) => {
+        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce((_params?: any) => {
           return Promise.resolve({
             data: {
-            id: email.id,
-            payload: {
-              headers: [
-                { name: "From", value: email.from },
-                { name: "Subject", value: email.subject },
-                { name: "Date", value: email.date },
-              ],
-              snippet: email.snippet,
-              body: { data: Buffer.from(email.body).toString("base64") },
+              id: email.id,
+              payload: {
+                headers: [
+                  { name: "From", value: email.from },
+                  { name: "Subject", value: email.subject },
+                  { name: "Date", value: email.date },
+                ],
+                snippet: email.snippet,
+                body: { data: Buffer.from(email.body).toString("base64") },
+              },
             },
-          },
           });
         });
       });
@@ -312,7 +298,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock content extraction (Firecrawl)
       vi.mocked(generateObject).mockResolvedValueOnce({
         object: {
-          emails: mockEmails.slice(0, 2).map(email => ({
+          emails: mockEmails.slice(0, 2).map((email) => ({
             ...email,
             extractedContent: `Extracted content from ${email.subject}`,
             articles: [
@@ -329,7 +315,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock research enrichment
       vi.mocked(generateObject).mockResolvedValueOnce({
         object: {
-          emails: mockEmails.slice(0, 2).map(email => ({
+          emails: mockEmails.slice(0, 2).map((email) => ({
             ...email,
             research: {
               additionalContext: `Research findings about ${email.subject}`,
@@ -387,12 +373,7 @@ describe("DigestProcessor Integration Tests", () => {
 
       // Execute the weekly digest pipeline
       let result;
-      try {
-        result = await processor.processWeeklyDigest();
-      } catch (error) {
-        console.error("Test error:", error);
-        throw error;
-      }
+      result = await processor.processWeeklyDigest();
 
       // Verify the result
       if (!result.success) {
@@ -424,34 +405,37 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API to work
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: mockEmails.map(e => ({ id: e.id, threadId: e.id })),
-        },
-      }));
 
-      mockEmails.forEach(email => {
-        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() => 
-          Promise.resolve({
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
           data: {
-            id: email.id,
-            payload: {
-              headers: [
-                { name: "From", value: email.from },
-                { name: "Subject", value: email.subject },
-              ],
-              snippet: email.snippet,
-            },
+            messages: mockEmails.map((e) => ({ id: e.id, threadId: e.id })),
           },
-        }));
+        })
+      );
+
+      mockEmails.forEach((email) => {
+        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() =>
+          Promise.resolve({
+            data: {
+              id: email.id,
+              payload: {
+                headers: [
+                  { name: "From", value: email.from },
+                  { name: "Subject", value: email.subject },
+                ],
+                snippet: email.snippet,
+              },
+            },
+          })
+        );
       });
 
       // Mock classification to work
       const { generateObject } = await import("ai");
       vi.mocked(generateObject).mockResolvedValueOnce({
         object: {
-          classifications: mockEmails.map(email => ({
+          classifications: mockEmails.map((email) => ({
             emailId: email.id,
             classification: "AI",
             confidence: 0.9,
@@ -460,9 +444,7 @@ describe("DigestProcessor Integration Tests", () => {
       });
 
       // Mock content extraction to fail
-      vi.mocked(generateObject).mockRejectedValueOnce(
-        new Error("Firecrawl API error")
-      );
+      vi.mocked(generateObject).mockRejectedValueOnce(new Error("Firecrawl API error"));
 
       // Execute pipeline
       const result = await processor.processWeeklyDigest();
@@ -478,12 +460,14 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: [{ id: "email3", threadId: "email3" }], // Only non-AI email
-        },
-      }));
+
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
+          data: {
+            messages: [{ id: "email3", threadId: "email3" }], // Only non-AI email
+          },
+        })
+      );
 
       vi.mocked(gmailMock.users.messages.get).mockResolvedValueOnce({
         data: {
@@ -502,9 +486,7 @@ describe("DigestProcessor Integration Tests", () => {
       const { generateObject } = await import("ai");
       vi.mocked(generateObject).mockResolvedValueOnce({
         object: {
-          classifications: [
-            { emailId: "email3", classification: "NOT_AI", confidence: 0.95 },
-          ],
+          classifications: [{ emailId: "email3", classification: "NOT_AI", confidence: 0.95 }],
         },
       });
 
@@ -534,36 +516,39 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API for cleanup mode
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      // Return emails in batches
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: cleanupEmails.map(e => ({ id: e.id, threadId: e.id })),
-        },
-      }));
 
-      // Mock individual email fetches
-      cleanupEmails.forEach(email => {
-        vi.mocked(gmailMock.users.messages.get).mockImplementation(() => 
+      // Return emails in batches
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
         Promise.resolve({
           data: {
-            id: email.id,
-            payload: {
-              headers: [
-                { name: "From", value: email.from },
-                { name: "Subject", value: email.subject },
-              ],
-              snippet: email.snippet,
-            },
+            messages: cleanupEmails.map((e) => ({ id: e.id, threadId: e.id })),
           },
-        }));
+        })
+      );
+
+      // Mock individual email fetches
+      cleanupEmails.forEach((email) => {
+        vi.mocked(gmailMock.users.messages.get).mockImplementation(() =>
+          Promise.resolve({
+            data: {
+              id: email.id,
+              payload: {
+                headers: [
+                  { name: "From", value: email.from },
+                  { name: "Subject", value: email.subject },
+                ],
+                snippet: email.snippet,
+              },
+            },
+          })
+        );
       });
 
       // Mock batch classification
       const { generateObject } = await import("ai");
       vi.mocked(generateObject).mockResolvedValue({
         object: {
-          classifications: cleanupEmails.slice(0, 50).map(email => ({
+          classifications: cleanupEmails.slice(0, 50).map((email) => ({
             emailId: email.id,
             classification: "AI",
             confidence: 0.9,
@@ -578,7 +563,7 @@ describe("DigestProcessor Integration Tests", () => {
       expect(result.success).toBe(true);
       expect(result.batches).toBeGreaterThan(1);
       expect(result.message).toContain("Cleanup digest completed");
-      
+
       // Verify multiple digest emails were sent (one per batch)
       const { sendDigest } = await import("../lib/email");
       expect(sendDigest).toHaveBeenCalledTimes(Math.ceil(150 / 50));
@@ -588,31 +573,34 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       const emails = Array.from({ length: 60 }, (_, i) => ({
         id: `email-${i}`,
         threadId: `email-${i}`,
       }));
 
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: { messages: emails },
-      }));
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
+          data: { messages: emails },
+        })
+      );
 
       // Mock first batch to succeed
       emails.slice(0, 50).forEach((_, i) => {
-        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() => 
+        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() =>
           Promise.resolve({
-          data: {
-            id: `email-${i}`,
-            payload: {
-              headers: [
-                { name: "From", value: `sender${i}@ai.com` },
-                { name: "Subject", value: `Subject ${i}` },
-              ],
-              snippet: `Snippet ${i}`,
+            data: {
+              id: `email-${i}`,
+              payload: {
+                headers: [
+                  { name: "From", value: `sender${i}@ai.com` },
+                  { name: "Subject", value: `Subject ${i}` },
+                ],
+                snippet: `Snippet ${i}`,
+              },
             },
-          },
-        }));
+          })
+        );
       });
 
       // Mock second batch to fail
@@ -637,7 +625,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail API to fail
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       vi.mocked(gmailMock.users.messages.list).mockRejectedValue(
         new Error("Gmail API authentication failed")
       );
@@ -662,29 +650,30 @@ describe("DigestProcessor Integration Tests", () => {
       // Mock Gmail to succeed
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: [{ id: "email1", threadId: "email1" }],
-        },
-      }));
 
-      vi.mocked(gmailMock.users.messages.get).mockImplementation(() => 
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
         Promise.resolve({
-        data: {
-          id: "email1",
-          payload: {
-            headers: [{ name: "From", value: "test@ai.com" }],
-            snippet: "Test",
+          data: {
+            messages: [{ id: "email1", threadId: "email1" }],
           },
-        },
-      }));
+        })
+      );
+
+      vi.mocked(gmailMock.users.messages.get).mockImplementation(() =>
+        Promise.resolve({
+          data: {
+            id: "email1",
+            payload: {
+              headers: [{ name: "From", value: "test@ai.com" }],
+              snippet: "Test",
+            },
+          },
+        })
+      );
 
       // Mock classification to fail
       const { generateObject } = await import("ai");
-      vi.mocked(generateObject).mockRejectedValueOnce(
-        new Error("OpenAI API key invalid")
-      );
+      vi.mocked(generateObject).mockRejectedValueOnce(new Error("OpenAI API key invalid"));
 
       // Execute pipeline
       const result = await processor.processWeeklyDigest();
@@ -698,33 +687,34 @@ describe("DigestProcessor Integration Tests", () => {
       // Setup successful email fetch
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: mockEmails.map(e => ({ id: e.id, threadId: e.id })),
-        },
-      }));
 
-      mockEmails.forEach(email => {
-        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() => 
-          Promise.resolve({
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
           data: {
-            id: email.id,
-            payload: {
-              headers: [
-                { name: "From", value: email.from },
-              ],
-              snippet: email.snippet,
-            },
+            messages: mockEmails.map((e) => ({ id: e.id, threadId: e.id })),
           },
-        }));
+        })
+      );
+
+      mockEmails.forEach((email) => {
+        vi.mocked(gmailMock.users.messages.get).mockImplementationOnce(() =>
+          Promise.resolve({
+            data: {
+              id: email.id,
+              payload: {
+                headers: [{ name: "From", value: email.from }],
+                snippet: email.snippet,
+              },
+            },
+          })
+        );
       });
 
       // Setup successful classification
       const { generateObject } = await import("ai");
       vi.mocked(generateObject).mockResolvedValueOnce({
         object: {
-          classifications: mockEmails.map(email => ({
+          classifications: mockEmails.map((email) => ({
             emailId: email.id,
             classification: "AI",
             confidence: 0.9,
@@ -733,11 +723,13 @@ describe("DigestProcessor Integration Tests", () => {
       });
 
       // Mock content extraction to fail after partial success
-      vi.mocked(generateObject).mockResolvedValueOnce({
-        object: {
-          emails: [mockEmails[0]],
-        },
-      }).mockRejectedValueOnce(new Error("Extraction quota exceeded"));
+      vi.mocked(generateObject)
+        .mockResolvedValueOnce({
+          object: {
+            emails: [mockEmails[0]],
+          },
+        })
+        .mockRejectedValueOnce(new Error("Extraction quota exceeded"));
 
       // Execute
       const result = await processor.processWeeklyDigest();
@@ -755,7 +747,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Force multiple Gmail API failures
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       const apiError = new Error("Gmail API error");
       vi.mocked(gmailMock.users.messages.list).mockRejectedValue(apiError);
 
@@ -782,7 +774,7 @@ describe("DigestProcessor Integration Tests", () => {
     it("should transition circuit breaker from OPEN to HALF_OPEN after timeout", async () => {
       // Configure circuit breaker with short timeout for testing
       const breaker = EnhancedCircuitBreaker.getBreaker("openai");
-      
+
       // Force circuit to open
       const { generateObject } = await import("ai");
       vi.mocked(generateObject).mockRejectedValue(new Error("API error"));
@@ -797,14 +789,14 @@ describe("DigestProcessor Integration Tests", () => {
       expect(breaker.getState()).toBe("OPEN");
 
       // Wait for timeout (mock time advancement would be better)
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // Next call should attempt half-open
       vi.mocked(generateObject).mockResolvedValueOnce({ object: {} });
-      
+
       const result = await breaker.execute(() => generateObject({} as any));
       expect(result).toBeDefined();
-      
+
       // Circuit should close after success
       expect(breaker.getState()).toBe("CLOSED");
     });
@@ -844,10 +836,12 @@ describe("DigestProcessor Integration Tests", () => {
       // Setup Gmail to work
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: { messages: [] },
-      }));
+
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
+          data: { messages: [] },
+        })
+      );
 
       // Force OpenAI circuit to open
       const openaiBreaker = EnhancedCircuitBreaker.getBreaker("openai");
@@ -864,7 +858,7 @@ describe("DigestProcessor Integration Tests", () => {
 
       // Gmail should still work
       const result = await processor.processWeeklyDigest();
-      
+
       // Should get to classification step and fail
       expect(result.success).toBe(true); // No emails to process
       expect(result.message).toContain("No AI-related emails");
@@ -875,13 +869,15 @@ describe("DigestProcessor Integration Tests", () => {
     it("should correctly transform data between EmailFetcher and Classifier", async () => {
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       // Mock email fetch
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: [{ id: "test1", threadId: "test1" }],
-        },
-      }));
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
+        Promise.resolve({
+          data: {
+            messages: [{ id: "test1", threadId: "test1" }],
+          },
+        })
+      );
 
       const emailData = {
         id: "test1",
@@ -896,10 +892,11 @@ describe("DigestProcessor Integration Tests", () => {
         },
       };
 
-      vi.mocked(gmailMock.users.messages.get).mockImplementation(() => 
+      vi.mocked(gmailMock.users.messages.get).mockImplementation(() =>
         Promise.resolve({
-        data: emailData,
-      }));
+          data: emailData,
+        })
+      );
 
       // Spy on agent methods on the instances instead of prototype
       const fetcherSpy = vi.spyOn(processor.emailFetcher as any, "fetchEmails");
@@ -911,7 +908,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Verify data flow
       expect(fetcherSpy).toHaveBeenCalled();
       expect(classifierSpy).toHaveBeenCalled();
-      
+
       // Verify transformed data structure
       const classifierCall = classifierSpy.mock.calls[0][0];
       expect(classifierCall).toHaveProperty("fullEmails");
@@ -923,7 +920,7 @@ describe("DigestProcessor Integration Tests", () => {
       // Setup complete mock chain
       const { google } = await import("googleapis");
       const gmailMock = google.gmail();
-      
+
       const originalEmail = {
         id: "integrity-test",
         from: "test@ai.com",
@@ -933,42 +930,47 @@ describe("DigestProcessor Integration Tests", () => {
         date: new Date().toISOString(),
       };
 
-      vi.mocked(gmailMock.users.messages.list).mockImplementation(() => Promise.resolve({
-        data: {
-          messages: [{ id: originalEmail.id, threadId: originalEmail.id }],
-        },
-      }));
-
-      vi.mocked(gmailMock.users.messages.get).mockImplementation(() => 
+      vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>
         Promise.resolve({
-        data: {
-          id: originalEmail.id,
-          payload: {
-            headers: [
-              { name: "From", value: originalEmail.from },
-              { name: "Subject", value: originalEmail.subject },
-              { name: "Date", value: originalEmail.date },
-            ],
-            snippet: originalEmail.snippet,
-            body: { data: Buffer.from(originalEmail.body).toString("base64") },
+          data: {
+            messages: [{ id: originalEmail.id, threadId: originalEmail.id }],
           },
-        },
-      }));
+        })
+      );
+
+      vi.mocked(gmailMock.users.messages.get).mockImplementation(() =>
+        Promise.resolve({
+          data: {
+            id: originalEmail.id,
+            payload: {
+              headers: [
+                { name: "From", value: originalEmail.from },
+                { name: "Subject", value: originalEmail.subject },
+                { name: "Date", value: originalEmail.date },
+              ],
+              snippet: originalEmail.snippet,
+              body: { data: Buffer.from(originalEmail.body).toString("base64") },
+            },
+          },
+        })
+      );
 
       // Track data through agents
       const dataTrace: any[] = [];
 
       // Intercept agent calls - spy on instances
       const originalFetch = processor.emailFetcher.fetchEmails.bind(processor.emailFetcher);
-      const fetcherSpy = vi.spyOn(processor.emailFetcher as any, "fetchEmails")
-        .mockImplementation(async function(options) {
+      const _fetcherSpy = vi
+        .spyOn(processor.emailFetcher as any, "fetchEmails")
+        .mockImplementation(async (options) => {
           const result = await originalFetch(options);
           dataTrace.push({ agent: "fetcher", data: result });
           return result;
         });
 
-      const classifierSpy = vi.spyOn(processor.classifier as any, "classifyEmails")
-        .mockImplementation(async function(batch) {
+      const _classifierSpy = vi
+        .spyOn(processor.classifier as any, "classifyEmails")
+        .mockImplementation(async (batch) => {
           dataTrace.push({ agent: "classifier", input: batch });
           return new Map([[originalEmail.id, { classification: "AI", confidence: 0.95 }]]);
         });
@@ -978,13 +980,13 @@ describe("DigestProcessor Integration Tests", () => {
 
       // Verify data consistency
       expect(dataTrace.length).toBeGreaterThan(0);
-      
-      const fetcherOutput = dataTrace.find(t => t.agent === "fetcher");
-      const classifierInput = dataTrace.find(t => t.agent === "classifier");
-      
+
+      const fetcherOutput = dataTrace.find((t) => t.agent === "fetcher");
+      const classifierInput = dataTrace.find((t) => t.agent === "classifier");
+
       expect(fetcherOutput).toBeDefined();
       expect(classifierInput).toBeDefined();
-      
+
       // Email ID should be preserved
       if (fetcherOutput?.data?.fullEmails?.[0]) {
         expect(fetcherOutput.data.fullEmails[0].id).toBe(originalEmail.id);

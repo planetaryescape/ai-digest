@@ -1,10 +1,10 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Clock, CheckCircle, XCircle, Loader2, RefreshCw } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
+import { CheckCircle, Clock, Loader2, RefreshCw, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface Execution {
   executionArn: string;
@@ -21,7 +21,9 @@ export function ExecutionHistory() {
     queryKey: ["executions"],
     queryFn: async () => {
       const res = await fetch("/api/stepfunctions/executions?maxResults=10");
-      if (!res.ok) throw new Error("Failed to fetch executions");
+      if (!res.ok) {
+        throw new Error("Failed to fetch executions");
+      }
       return res.json();
     },
     refetchInterval: isPollingEnabled ? 10000 : false, // Only poll when enabled
@@ -102,21 +104,23 @@ export function ExecutionHistory() {
               <div className="flex items-center space-x-3">
                 {getStatusIcon(execution.status)}
                 <div>
-                  <div className="text-sm font-medium text-gray-900">
-                    {execution.name}
-                  </div>
+                  <div className="text-sm font-medium text-gray-900">{execution.name}</div>
                   <div className="text-xs text-gray-500">
                     Started {formatDistanceToNow(new Date(execution.startDate))} ago
                   </div>
                 </div>
               </div>
               <div className="flex items-center space-x-2">
-                <span className={getStatusBadge(execution.status)}>
-                  {execution.status}
-                </span>
+                <span className={getStatusBadge(execution.status)}>{execution.status}</span>
                 {execution.stopDate && (
                   <span className="text-xs text-gray-500">
-                    Duration: {Math.round((new Date(execution.stopDate).getTime() - new Date(execution.startDate).getTime()) / 1000)}s
+                    Duration:{" "}
+                    {Math.round(
+                      (new Date(execution.stopDate).getTime() -
+                        new Date(execution.startDate).getTime()) /
+                        1000
+                    )}
+                    s
                   </span>
                 )}
               </div>

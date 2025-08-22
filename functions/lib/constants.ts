@@ -15,7 +15,7 @@ export const COST_LIMITS = {
   /** Maximum Brave searches per run */
   MAX_BRAVE_SEARCHES_PER_RUN: 50,
   /** Cost per GPT-5 (GPT-4o) API call in dollars (rough estimate) */
-  OPENAI_GPT5_COST: 0.10,
+  OPENAI_GPT5_COST: 0.1,
   /** Cost per GPT-4o-mini API call in dollars (rough estimate) */
   OPENAI_GPT4O_MINI_COST: 0.01,
   /** Cost per Firecrawl URL extraction in dollars */

@@ -90,7 +90,9 @@ class InMemoryMetricsCollector implements MetricsCollector {
   }
 
   async flush(): Promise<void> {
-    if (this.metrics.length === 0) return;
+    if (this.metrics.length === 0) {
+      return;
+    }
 
     const metricsToFlush = [...this.metrics];
     this.metrics = [];
@@ -144,7 +146,9 @@ class InMemoryMetricsCollector implements MetricsCollector {
   }
 
   private calculateStats(values: number[]): Record<string, number> {
-    if (values.length === 0) return {};
+    if (values.length === 0) {
+      return {};
+    }
 
     const sorted = [...values].sort((a, b) => a - b);
     const sum = values.reduce((a, b) => a + b, 0);

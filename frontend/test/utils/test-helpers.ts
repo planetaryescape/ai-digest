@@ -1,11 +1,11 @@
-import { vi } from 'vitest';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
+import { vi } from "vitest";
 
 /**
  * Creates a mock auth response for testing
  */
-export function createMockAuth(userId: string | null = 'test-user-123') {
+export function createMockAuth(userId: string | null = "test-user-123") {
   return {
     userId,
     sessionClaims: null,
@@ -35,11 +35,10 @@ export function createQueryWrapper() {
       mutations: { retry: false },
     },
   });
-  
-  const Wrapper = ({ children }: { children: React.ReactNode }) => (
-    React.createElement(QueryClientProvider, { client: queryClient }, children)
-  );
-  Wrapper.displayName = 'QueryWrapper';
+
+  const Wrapper = ({ children }: { children: React.ReactNode }) =>
+    React.createElement(QueryClientProvider, { client: queryClient }, children);
+  Wrapper.displayName = "QueryWrapper";
   return Wrapper;
 }
 
@@ -50,11 +49,11 @@ export function mockConsole() {
   const originalError = console.error;
   const originalWarn = console.warn;
   const originalLog = console.log;
-  
-  const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-  const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-  const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-  
+
+  const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+  const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+
   return {
     errorSpy,
     warnSpy,
@@ -74,10 +73,11 @@ export function mockConsole() {
  * Common environment variable setup for tests
  */
 export function setupTestEnv() {
-  process.env.AWS_REGION = 'us-east-1';
-  process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN = 'arn:aws:states:us-east-1:123456789012:stateMachine:test-state-machine';
-  process.env.LAMBDA_FUNCTION_ARN = 'arn:aws:lambda:us-east-1:123456789012:function:test-function';
-  process.env.LAMBDA_DIGEST_FUNCTION_NAME = 'ai-digest-run-now';
+  process.env.AWS_REGION = "us-east-1";
+  process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN =
+    "arn:aws:states:us-east-1:123456789012:stateMachine:test-state-machine";
+  process.env.LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:123456789012:function:test-function";
+  process.env.LAMBDA_DIGEST_FUNCTION_NAME = "ai-digest-run-now";
 }
 
 /**

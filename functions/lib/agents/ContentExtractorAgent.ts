@@ -1,6 +1,6 @@
-import { CostTracker } from "../cost-tracker";
+import { RATE_LIMITS } from "../constants";
+import type { CostTracker } from "../cost-tracker";
 import { createLogger } from "../logger";
-import { COST_LIMITS, RATE_LIMITS } from "../constants";
 
 const log = createLogger("ContentExtractorAgent");
 
@@ -11,7 +11,7 @@ export class ContentExtractorAgent {
     errors: 0,
   };
 
-  constructor(private costTracker: CostTracker) {}
+  constructor(_costTracker: CostTracker) {}
 
   async extractArticles(emails: any[]): Promise<any[]> {
     log.info({ count: emails.length }, "Starting article extraction");
@@ -22,7 +22,7 @@ export class ContentExtractorAgent {
       try {
         // Extract URLs from email content
         const urls = this.extractUrls(email.body || email.snippet || "");
-        
+
         // For now, just add the URLs to the email
         // In production, this would use Firecrawl to extract content
         const enrichedEmail = {
@@ -41,9 +41,9 @@ export class ContentExtractorAgent {
     }
 
     log.info(
-      { 
+      {
         processed: enrichedEmails.length,
-        articlesExtracted: this.stats.articlesExtracted 
+        articlesExtracted: this.stats.articlesExtracted,
       },
       "Article extraction complete"
     );
@@ -52,7 +52,8 @@ export class ContentExtractorAgent {
   }
 
   private extractUrls(text: string): string[] {
-    const urlRegex = /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*)/gi;
+    const urlRegex =
+      /https?:\/\/(www\.)?[-a-zA-Z0-9@:%._+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_+.~#?&//=]*)/gi;
     const matches = text.match(urlRegex) || [];
     return [...new Set(matches)]; // Remove duplicates
   }

@@ -34,24 +34,17 @@ export class SecretsLoader {
 
     const arn = secretArn || process.env.SECRET_ARN;
     if (!arn) {
-      console.warn("SECRET_ARN not configured, using environment variables");
       return;
     }
+    const command = new GetSecretValueCommand({
+      SecretId: arn,
+    });
+    const response = await this.client.send(command);
 
-    try {
-      const command = new GetSecretValueCommand({
-        SecretId: arn,
-      });
-      const response = await this.client.send(command);
-
-      if (response.SecretString) {
-        const secrets = JSON.parse(response.SecretString) as SecretValues;
-        this.setEnvironmentVariables(secrets);
-        SecretsLoader.isLoaded = true;
-      }
-    } catch (error) {
-      console.error("Failed to load secrets from Secrets Manager", error);
-      throw error;
+    if (response.SecretString) {
+      const secrets = JSON.parse(response.SecretString) as SecretValues;
+      this.setEnvironmentVariables(secrets);
+      SecretsLoader.isLoaded = true;
     }
   }
 

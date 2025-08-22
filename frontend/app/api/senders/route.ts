@@ -14,10 +14,8 @@ export const dynamic = "force-dynamic";
 
 function createDynamoDBClient() {
   const region = process.env.AWS_REGION || "us-east-1";
-  console.log("Creating DynamoDB client for region:", region);
 
   if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-    console.error("AWS credentials not configured");
     throw new Error("AWS credentials not configured");
   }
 
@@ -43,9 +41,7 @@ function getDocClient() {
 
 const tableName = process.env.DYNAMODB_TABLE_NAME || "ai-digest-known-ai-senders";
 
-export async function GET(request: NextRequest) {
-  console.log("GET /api/senders - Start");
-
+export async function GET(_request: NextRequest) {
   const headers = {
     "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_APP_URL || "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -55,12 +51,10 @@ export async function GET(request: NextRequest) {
   try {
     const { userId } = await auth();
     if (!userId) {
-      console.log("GET /api/senders - Unauthorized");
       return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
     }
 
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
-      console.error("AWS credentials not configured");
       return NextResponse.json(
         {
           error: "AWS credentials not configured",
@@ -73,21 +67,16 @@ export async function GET(request: NextRequest) {
         { status: 500, headers }
       );
     }
-
-    console.log("Scanning DynamoDB table:", tableName);
     const docClient = getDocClient();
     const command = new ScanCommand({
       TableName: tableName,
     });
 
     const response = await docClient.send(command);
-    console.log("DynamoDB scan successful, items:", response.Items?.length || 0);
 
     const senders = response.Items as KnownSender[];
     return NextResponse.json(senders || [], { headers });
   } catch (error) {
-    console.error("Error fetching senders:", error);
-
     if (error instanceof Error) {
       if (error.message.includes("ResourceNotFoundException")) {
         return NextResponse.json(
@@ -136,8 +125,6 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  console.log("POST /api/senders - Start");
-
   const headers = {
     "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_APP_URL || "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -177,8 +164,6 @@ export async function POST(request: NextRequest) {
       confidence,
       emailCount: 1,
     };
-
-    console.log("Adding sender to DynamoDB:", newSender.senderEmail);
     const docClient = getDocClient();
     const command = new PutCommand({
       TableName: tableName,
@@ -186,7 +171,6 @@ export async function POST(request: NextRequest) {
     });
 
     await docClient.send(command);
-    console.log("Sender added successfully");
 
     return NextResponse.json(
       {
@@ -196,7 +180,6 @@ export async function POST(request: NextRequest) {
       { headers }
     );
   } catch (error) {
-    console.error("Error adding sender:", error);
     return NextResponse.json(
       {
         error: "Failed to add sender",
@@ -208,8 +191,6 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  console.log("DELETE /api/senders - Start");
-
   const headers = {
     "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_APP_URL || "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -235,8 +216,6 @@ export async function DELETE(request: NextRequest) {
     if (!emails || !Array.isArray(emails) || emails.length === 0) {
       return NextResponse.json({ error: "Emails array is required" }, { status: 400, headers });
     }
-
-    console.log("Deleting senders:", emails);
     const docClient = getDocClient();
 
     const batchSize = 25;
@@ -258,8 +237,6 @@ export async function DELETE(request: NextRequest) {
 
       await docClient.send(command);
     }
-
-    console.log("Senders deleted successfully");
     return NextResponse.json(
       {
         success: true,
@@ -268,7 +245,6 @@ export async function DELETE(request: NextRequest) {
       { headers }
     );
   } catch (error) {
-    console.error("Error deleting senders:", error);
     return NextResponse.json(
       {
         error: "Failed to delete senders",
