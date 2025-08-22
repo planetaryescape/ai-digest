@@ -31,6 +31,33 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    // Check if AWS credentials are configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      // Return demo data when AWS credentials are not configured
+      const demoExecutions = [
+        {
+          executionArn: "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-1",
+          name: "demo-execution-1",
+          status: "SUCCEEDED",
+          startDate: new Date(Date.now() - 3600000).toISOString(),
+          stopDate: new Date(Date.now() - 3000000).toISOString(),
+        },
+        {
+          executionArn: "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-2",
+          name: "demo-execution-2",
+          status: "RUNNING",
+          startDate: new Date(Date.now() - 600000).toISOString(),
+          stopDate: null,
+        },
+      ];
+      
+      return NextResponse.json({
+        executions: demoExecutions,
+        nextToken: null,
+        demo: true,
+      });
+    }
+
     const stateMachineArn = process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN;
 
     if (!stateMachineArn) {
