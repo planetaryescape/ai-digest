@@ -29,8 +29,7 @@ export class CircuitBreakerWrapper {
       name: service,
       enabled: true,
       allowWarmUp: false,
-      volumeThreshold: 1,
-      errorThreshold: options.failureThreshold ?? 5,
+      volumeThreshold: options.failureThreshold ?? 5,
     };
 
     this.breaker = new OposumCircuitBreaker(
