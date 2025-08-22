@@ -118,7 +118,9 @@ The digest runs automatically every Sunday at 8:00 AM. To change the schedule:
 bun run dev:email
 
 # Run tests
-bun run test
+bun run test              # Full test suite
+bun run test:fast         # Fast tests only (excludes integration tests)
+bun run test:integration  # Integration tests only
 
 # Type checking
 bun run typecheck
