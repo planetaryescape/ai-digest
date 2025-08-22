@@ -319,4 +319,8 @@ export class EmailFetcherAgent {
   getStats() {
     return { ...this.stats };
   }
+
+  getBatchOperations(): GmailBatchOperations {
+    return this.batchOps;
+  }
 }
