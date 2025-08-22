@@ -48,11 +48,12 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { cleanup = false, dateRange, useStepFunctions = false } = body;
+    const { cleanup = false, dateRange, useStepFunctions = false, historicalMode = false } = body;
 
     const payload = {
       cleanup,
       dateRange,
+      historicalMode,
       triggeredBy: userId,
       timestamp: new Date().toISOString(),
       source: "dashboard",
@@ -74,12 +75,30 @@ export async function POST(request: Request) {
       });
     }
 
-    // Use Step Functions if requested and configured
-    if (useStepFunctions && process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN) {
+    // Use Step Functions if requested
+    if (useStepFunctions) {
+      const stateMachineArn =
+        process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN ||
+        process.env.NEXT_PUBLIC_STEP_FUNCTIONS_STATE_MACHINE_ARN;
+
+      if (!stateMachineArn) {
+        console.error("Step Functions ARN not configured but useStepFunctions=true");
+        return NextResponse.json(
+          {
+            success: false,
+            error: "Step Functions state machine ARN not configured",
+            message:
+              "Please configure STEP_FUNCTIONS_STATE_MACHINE_ARN in your environment variables",
+            type: "configuration-error",
+          },
+          { status: 500 }
+        );
+      }
+
       const executionName = `digest-${Date.now()}-${userId.slice(-6)}`;
 
       const command = new StartExecutionCommand({
-        stateMachineArn: process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN,
+        stateMachineArn: stateMachineArn,
         name: executionName,
         input: JSON.stringify(payload),
       });

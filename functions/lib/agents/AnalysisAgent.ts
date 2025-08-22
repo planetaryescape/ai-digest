@@ -2,12 +2,14 @@ import OpenAI from "openai";
 import { COST_LIMITS } from "../constants";
 import type { CostTracker } from "../cost-tracker";
 import { createLogger } from "../logger";
+import { getPromptManager } from "../prompt-manager";
 import type { Summary } from "../types";
 
 const log = createLogger("AnalysisAgent");
 
 export class AnalysisAgent {
   private openai: OpenAI;
+  private promptManager = getPromptManager();
   private stats = {
     analysisCompleted: 0,
     apiCallsMade: 0,
@@ -48,7 +50,28 @@ export class AnalysisAgent {
   }
 
   private async analyzeEmail(email: any): Promise<Summary> {
-    const prompt = `Analyze this AI/tech newsletter content and provide:
+    // Try to get dynamic prompt from DynamoDB
+    const promptTemplate = await this.promptManager.getPrompt("analysis-main");
+
+    let prompt: string;
+
+    if (promptTemplate && promptTemplate.isActive) {
+      // Use dynamic prompt with variable substitution
+      const variables = {
+        subject: email.subject || "",
+        content: (email.body || email.snippet || "").substring(0, 1000),
+        role: process.env.TARGET_ROLE || "technology",
+        industry: process.env.TARGET_INDUSTRY || "AI/Tech",
+      };
+
+      prompt = this.promptManager.renderPrompt(promptTemplate.template, variables);
+      log.info(
+        { promptId: promptTemplate.promptId, version: promptTemplate.version },
+        "Using dynamic prompt"
+      );
+    } else {
+      // Fallback to default prompt
+      prompt = `Analyze this AI/tech newsletter content and provide:
 1. A concise title (max 10 words)
 2. Key insights (2-3 bullet points)
 3. Why this matters (1-2 sentences)
@@ -56,6 +79,9 @@ export class AnalysisAgent {
 
 Email subject: ${email.subject}
 Content: ${(email.body || email.snippet || "").substring(0, 1000)}`;
+
+      log.warn("Using fallback prompt - dynamic prompt not available");
+    }
 
     try {
       const response = await this.openai.chat.completions.create({

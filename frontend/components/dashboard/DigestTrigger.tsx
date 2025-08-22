@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Activity, Loader2, Play, Trash2, Zap } from "lucide-react";
+import { Activity, Calendar, Loader2, Play, Trash2, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -9,6 +9,9 @@ import { cn } from "@/lib/utils";
 export function DigestTrigger() {
   const [cleanup, setCleanup] = useState(false);
   const [useStepFunctions, setUseStepFunctions] = useState(true);
+  const [historicalMode, setHistoricalMode] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [executionArn, setExecutionArn] = useState<string | null>(null);
   const [pollingEnabled, setPollingEnabled] = useState(false);
 
@@ -57,7 +60,12 @@ export function DigestTrigger() {
   }, [executionStatus?.status]);
 
   const triggerMutation = useMutation({
-    mutationFn: async (options: { cleanup: boolean; useStepFunctions: boolean }) => {
+    mutationFn: async (options: {
+      cleanup: boolean;
+      useStepFunctions: boolean;
+      historicalMode: boolean;
+      dateRange?: { start: string; end: string };
+    }) => {
       const res = await fetch("/api/digest/trigger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -65,7 +73,8 @@ export function DigestTrigger() {
       });
 
       if (!res.ok) {
-        throw new Error("Failed to trigger digest");
+        const error = await res.json();
+        throw new Error(error.message || "Failed to trigger digest");
       }
 
       return res.json();
@@ -89,7 +98,30 @@ export function DigestTrigger() {
   });
 
   const handleTrigger = () => {
-    triggerMutation.mutate({ cleanup, useStepFunctions });
+    // Validate date range if in historical mode
+    if (historicalMode) {
+      if (!startDate || !endDate) {
+        toast.error("Please select both start and end dates for historical mode");
+        return;
+      }
+      if (new Date(startDate) > new Date(endDate)) {
+        toast.error("Start date must be before end date");
+        return;
+      }
+    }
+
+    const options = {
+      cleanup,
+      useStepFunctions,
+      historicalMode,
+      ...(historicalMode &&
+        startDate &&
+        endDate && {
+          dateRange: { start: startDate, end: endDate },
+        }),
+    };
+
+    triggerMutation.mutate(options);
   };
 
   return (
@@ -121,8 +153,15 @@ export function DigestTrigger() {
           <input
             type="checkbox"
             checked={cleanup}
-            onChange={(e) => setCleanup(e.target.checked)}
-            disabled={triggerMutation.isPending || !!executionArn}
+            onChange={(e) => {
+              setCleanup(e.target.checked);
+              if (e.target.checked) {
+                setHistoricalMode(false);
+                setStartDate("");
+                setEndDate("");
+              }
+            }}
+            disabled={triggerMutation.isPending || !!executionArn || historicalMode}
             className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
           />
           <span className="text-sm font-medium text-gray-700">Cleanup Mode</span>
@@ -140,7 +179,65 @@ export function DigestTrigger() {
           <span className="text-sm font-medium text-gray-700">Use Step Functions</span>
           <Zap className="h-4 w-4 text-yellow-500" />
         </label>
+
+        <label className="flex items-center space-x-2 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={historicalMode}
+            onChange={(e) => {
+              setHistoricalMode(e.target.checked);
+              if (!e.target.checked) {
+                setStartDate("");
+                setEndDate("");
+              }
+            }}
+            disabled={triggerMutation.isPending || !!executionArn || cleanup}
+            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          />
+          <span className="text-sm font-medium text-gray-700">Historical Mode</span>
+          <Calendar className="h-4 w-4 text-indigo-500" />
+        </label>
       </div>
+
+      {/* Date Range Selectors for Historical Mode */}
+      {historicalMode && !cleanup && (
+        <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg space-y-3">
+          <p className="text-sm text-indigo-800 font-medium">
+            Select date range for historical digest:
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+              <input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                max={new Date().toISOString().split("T")[0]}
+                disabled={triggerMutation.isPending || !!executionArn}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                min={startDate}
+                max={new Date().toISOString().split("T")[0]}
+                disabled={triggerMutation.isPending || !!executionArn}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+          {startDate && endDate && (
+            <p className="text-sm text-indigo-600">
+              Will process emails from {new Date(startDate).toLocaleDateString()} to{" "}
+              {new Date(endDate).toLocaleDateString()}
+            </p>
+          )}
+        </div>
+      )}
 
       {cleanup && (
         <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">

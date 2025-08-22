@@ -26,7 +26,15 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { KnownSender } from "@/types/sender";
 
-export function SenderTable() {
+interface ExtendedSender extends KnownSender {
+  classification?: "ai" | "non-ai";
+}
+
+interface SenderTableProps {
+  filter?: "all" | "ai" | "non-ai";
+}
+
+export function SenderTable({ filter = "all" }: SenderTableProps) {
   const queryClient = useQueryClient();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -38,9 +46,9 @@ export function SenderTable() {
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["senders"],
+    queryKey: ["senders", filter],
     queryFn: async () => {
-      const res = await fetch("/api/senders");
+      const res = await fetch(`/api/senders?filter=${filter}`);
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
 
@@ -52,7 +60,7 @@ export function SenderTable() {
         }
         throw new Error(`Failed to fetch senders (${res.status})`);
       }
-      return res.json() as Promise<KnownSender[]>;
+      return res.json() as Promise<ExtendedSender[]>;
     },
     retry: 1,
     retryDelay: 1000,
@@ -80,7 +88,7 @@ export function SenderTable() {
     },
   });
 
-  const columns = useMemo<ColumnDef<KnownSender>[]>(
+  const columns = useMemo<ColumnDef<ExtendedSender>[]>(
     () => [
       {
         id: "select",
@@ -117,6 +125,25 @@ export function SenderTable() {
         accessorKey: "newsletterName",
         header: "Newsletter",
         cell: ({ getValue }) => getValue() || "-",
+      },
+      {
+        accessorKey: "classification",
+        header: "Type",
+        cell: ({ row }) => {
+          const classification = row.original.classification;
+          if (!classification) return "-";
+
+          return (
+            <span
+              className={cn(
+                "px-2 py-1 text-xs font-medium rounded-full",
+                classification === "ai" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
+              )}
+            >
+              {classification === "ai" ? "AI" : "Non-AI"}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "confidence",

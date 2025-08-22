@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 // Temporarily bypass auth middleware if Clerk isn't configured
 // This allows the app to build and run without Clerk credentials

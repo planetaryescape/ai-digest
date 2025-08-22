@@ -102,8 +102,19 @@ export abstract class BaseHandler {
         const batchSize = request.batchSize || 50;
         result = await processor.processCleanupDigest(batchSize);
       } else {
-        context.logger.info("Processing weekly digest");
-        result = await processor.processWeeklyDigest();
+        // Support date range for weekly mode if provided
+        if (request.startDate && request.endDate) {
+          context.logger.info(
+            `Processing weekly digest with date range from ${request.startDate} to ${request.endDate}`
+          );
+          result = await processor.processWeeklyDigest({
+            start: request.startDate,
+            end: request.endDate,
+          });
+        } else {
+          context.logger.info("Processing weekly digest");
+          result = await processor.processWeeklyDigest();
+        }
       }
 
       // Record metrics (safely, without breaking main flow)

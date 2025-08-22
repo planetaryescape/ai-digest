@@ -19,7 +19,7 @@ export interface CircuitBreakerOptions {
 export class EnhancedCircuitBreaker {
   private static breakers: Map<string, EnhancedCircuitBreaker> = new Map();
   private breaker: OpossumCircuitBreaker;
-  
+
   constructor(
     private name: string,
     options: CircuitBreakerOptions = {}
@@ -78,15 +78,18 @@ export class EnhancedCircuitBreaker {
     });
 
     this.breaker.on("healthCheckFailed", (error) => {
-      log.error({ circuit: this.name, error: error.message }, "Circuit breaker health check failed");
+      log.error(
+        { circuit: this.name, error: error.message },
+        "Circuit breaker health check failed"
+      );
     });
   }
 
   static getBreaker(name: string, options?: CircuitBreakerOptions): EnhancedCircuitBreaker {
-    if (!this.breakers.has(name)) {
-      this.breakers.set(name, new EnhancedCircuitBreaker(name, options));
+    if (!EnhancedCircuitBreaker.breakers.has(name)) {
+      EnhancedCircuitBreaker.breakers.set(name, new EnhancedCircuitBreaker(name, options));
     }
-    return this.breakers.get(name)!;
+    return EnhancedCircuitBreaker.breakers.get(name)!;
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
