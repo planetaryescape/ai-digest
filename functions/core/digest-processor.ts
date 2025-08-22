@@ -98,8 +98,12 @@ export class DigestProcessor {
   /**
    * Process weekly digest with full agent pipeline
    */
-  async processWeeklyDigest(): Promise<DigestResult> {
-    this.logger.info("Starting weekly digest processing");
+  async processWeeklyDigest(dateRange?: { start: string; end: string }): Promise<DigestResult> {
+    this.logger.info(
+      dateRange
+        ? `Starting historical digest processing from ${dateRange.start} to ${dateRange.end}`
+        : "Starting weekly digest processing"
+    );
 
     const startTime = Date.now();
     const timings = {
@@ -117,7 +121,11 @@ export class DigestProcessor {
       this.logger.info("Step 1: Fetching emails");
       const fetchStart = Date.now();
       const emailBatch = await this.gmailBreaker.execute(() =>
-        this.emailFetcher.fetchEmails({ mode: "weekly" })
+        this.emailFetcher.fetchEmails({
+          mode: dateRange ? "historical" : "weekly",
+          startDate: dateRange?.start,
+          endDate: dateRange?.end,
+        })
       );
       timings.fetchTime = Date.now() - fetchStart;
 

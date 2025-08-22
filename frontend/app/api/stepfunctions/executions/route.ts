@@ -61,13 +61,23 @@ export async function GET(request: Request) {
       });
     }
 
-    const stateMachineArn = process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN;
+    const stateMachineArn =
+      process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN ||
+      process.env.NEXT_PUBLIC_STEP_FUNCTIONS_STATE_MACHINE_ARN;
 
     if (!stateMachineArn) {
-      return NextResponse.json(
-        { error: "Step Functions state machine ARN not configured" },
-        { status: 500 }
+      console.error(
+        "Step Functions ARN not configured. Please set STEP_FUNCTIONS_STATE_MACHINE_ARN environment variable."
       );
+
+      // Return empty executions list instead of error to prevent UI crashes
+      return NextResponse.json({
+        executions: [],
+        nextToken: null,
+        message:
+          "Step Functions state machine ARN not configured. Please configure STEP_FUNCTIONS_STATE_MACHINE_ARN in your environment variables.",
+        demo: false,
+      });
     }
 
     const { searchParams } = new URL(request.url);

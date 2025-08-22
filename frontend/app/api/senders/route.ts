@@ -39,9 +39,14 @@ function getDocClient() {
   return docClient;
 }
 
-const tableName = process.env.DYNAMODB_TABLE_NAME || "ai-digest-known-ai-senders";
+const aiSendersTable = process.env.DYNAMODB_TABLE_NAME || "ai-digest-known-ai-senders";
+const nonAiSendersTable = process.env.NON_AI_SENDERS_TABLE || "ai-digest-known-non-ai-senders";
 
-export async function GET(_request: NextRequest) {
+interface ExtendedSender extends KnownSender {
+  classification?: "ai" | "non-ai";
+}
+
+export async function GET(request: NextRequest) {
   const headers = {
     "Access-Control-Allow-Origin": process.env.NEXT_PUBLIC_APP_URL || "*",
     "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
@@ -57,9 +62,13 @@ export async function GET(_request: NextRequest) {
     //   }
     // }
 
+    // Parse query parameters
+    const { searchParams } = new URL(request.url);
+    const filter = searchParams.get("filter") || "all"; // all, ai, non-ai
+
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
       // Return demo data when AWS credentials are not configured
-      const demoSenders: KnownSender[] = [
+      const demoSenders: ExtendedSender[] = [
         {
           senderEmail: "newsletter@openai.com",
           domain: "openai.com",
@@ -69,6 +78,7 @@ export async function GET(_request: NextRequest) {
           lastSeen: new Date().toISOString(),
           confidence: 95,
           emailCount: 10,
+          classification: "ai",
         },
         {
           senderEmail: "updates@anthropic.com",
@@ -79,6 +89,7 @@ export async function GET(_request: NextRequest) {
           lastSeen: new Date().toISOString(),
           confidence: 92,
           emailCount: 8,
+          classification: "ai",
         },
         {
           senderEmail: "digest@theverge.com",
@@ -89,27 +100,87 @@ export async function GET(_request: NextRequest) {
           lastSeen: new Date().toISOString(),
           confidence: 88,
           emailCount: 15,
+          classification: "ai",
+        },
+        {
+          senderEmail: "news@techcrunch.com",
+          domain: "techcrunch.com",
+          senderName: "TechCrunch",
+          newsletterName: "TechCrunch Daily",
+          confirmedAt: new Date().toISOString(),
+          lastSeen: new Date().toISOString(),
+          confidence: 45,
+          emailCount: 20,
+          classification: "non-ai",
+        },
+        {
+          senderEmail: "marketing@company.com",
+          domain: "company.com",
+          senderName: "Company Marketing",
+          newsletterName: "Marketing Updates",
+          confirmedAt: new Date().toISOString(),
+          lastSeen: new Date().toISOString(),
+          confidence: 30,
+          emailCount: 5,
+          classification: "non-ai",
         },
       ];
-      return NextResponse.json(demoSenders, { headers });
+
+      // Filter demo data based on query parameter
+      const filteredData =
+        filter === "all" ? demoSenders : demoSenders.filter((s) => s.classification === filter);
+
+      return NextResponse.json(filteredData, { headers });
     }
+
     const docClient = getDocClient();
-    const command = new ScanCommand({
-      TableName: tableName,
+    const allSenders: ExtendedSender[] = [];
+
+    // Fetch AI senders if needed
+    if (filter === "all" || filter === "ai") {
+      const aiCommand = new ScanCommand({
+        TableName: aiSendersTable,
+      });
+
+      const aiResponse = await docClient.send(aiCommand);
+      const aiSenders = (aiResponse.Items || []) as KnownSender[];
+      allSenders.push(...aiSenders.map((s) => ({ ...s, classification: "ai" as const })));
+    }
+
+    // Fetch non-AI senders if needed
+    if (filter === "all" || filter === "non-ai") {
+      const nonAiCommand = new ScanCommand({
+        TableName: nonAiSendersTable,
+      });
+
+      try {
+        const nonAiResponse = await docClient.send(nonAiCommand);
+        const nonAiSenders = (nonAiResponse.Items || []) as KnownSender[];
+        allSenders.push(...nonAiSenders.map((s) => ({ ...s, classification: "non-ai" as const })));
+      } catch (error) {
+        // Non-AI table might not exist yet, log warning but continue
+        console.warn("Non-AI senders table not accessible:", error);
+      }
+    }
+
+    // Sort by confidence (descending) and then by email count (descending)
+    allSenders.sort((a, b) => {
+      if (b.confidence !== a.confidence) {
+        return b.confidence - a.confidence;
+      }
+      return (b.emailCount || 0) - (a.emailCount || 0);
     });
 
-    const response = await docClient.send(command);
-
-    const senders = response.Items as KnownSender[];
-    return NextResponse.json(senders || [], { headers });
+    return NextResponse.json(allSenders, { headers });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes("ResourceNotFoundException")) {
         return NextResponse.json(
           {
             error: "DynamoDB table not found",
-            details: `Table '${tableName}' does not exist in region ${process.env.AWS_REGION || "us-east-1"}`,
-            tableName,
+            details: `Tables '${aiSendersTable}' or '${nonAiSendersTable}' do not exist in region ${process.env.AWS_REGION || "us-east-1"}`,
+            aiSendersTable,
+            nonAiSendersTable,
             region: process.env.AWS_REGION || "us-east-1",
           },
           { status: 500, headers }
@@ -214,7 +285,7 @@ export async function POST(request: NextRequest) {
     };
     const docClient = getDocClient();
     const command = new PutCommand({
-      TableName: tableName,
+      TableName: aiSendersTable,
       Item: newSender,
     });
 
@@ -287,7 +358,7 @@ export async function DELETE(request: NextRequest) {
 
       const command = new BatchWriteCommand({
         RequestItems: {
-          [tableName]: deleteRequests,
+          [aiSendersTable]: deleteRequests,
         },
       });
 

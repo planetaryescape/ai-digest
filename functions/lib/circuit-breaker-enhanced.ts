@@ -86,10 +86,10 @@ export class EnhancedCircuitBreaker {
   }
 
   static getBreaker(name: string, options?: CircuitBreakerOptions): EnhancedCircuitBreaker {
-    if (!this.breakers.has(name)) {
-      this.breakers.set(name, new EnhancedCircuitBreaker(name, options));
+    if (!EnhancedCircuitBreaker.breakers.has(name)) {
+      EnhancedCircuitBreaker.breakers.set(name, new EnhancedCircuitBreaker(name, options));
     }
-    return this.breakers.get(name)!;
+    return EnhancedCircuitBreaker.breakers.get(name)!;
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
