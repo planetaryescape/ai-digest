@@ -1,4 +1,4 @@
-import CircuitBreaker from "opossum";
+import OposumCircuitBreaker from "opossum";
 import { createLogger } from "./logger";
 
 const log = createLogger("EnhancedCircuitBreaker");
@@ -18,13 +18,13 @@ export interface CircuitBreakerOptions {
 
 export class EnhancedCircuitBreaker {
   private static breakers: Map<string, EnhancedCircuitBreaker> = new Map();
-  private breaker: CircuitBreaker;
+  private breaker: OposumCircuitBreaker;
   
   constructor(
     private name: string,
     options: CircuitBreakerOptions = {}
   ) {
-    const opossumOptions: CircuitBreaker.Options = {
+    const opossumOptions: OposumCircuitBreaker.Options = {
       timeout: 30000,
       errorThresholdPercentage: 50,
       resetTimeout: options.resetTimeout || 60000,
@@ -37,7 +37,7 @@ export class EnhancedCircuitBreaker {
       errorThreshold: options.failureThreshold || 5,
     };
 
-    this.breaker = new CircuitBreaker(
+    this.breaker = new OposumCircuitBreaker(
       async (fn: () => Promise<any>) => fn(),
       opossumOptions
     );

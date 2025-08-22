@@ -1,4 +1,4 @@
-import CircuitBreaker from "opossum";
+import OposumCircuitBreaker from "opossum";
 
 export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
@@ -9,7 +9,7 @@ export interface CircuitBreakerOptions {
 }
 
 export class CircuitBreakerWrapper {
-  private breaker: CircuitBreaker;
+  private breaker: OposumCircuitBreaker;
   private readonly service: string;
 
   private static breakers = new Map<string, CircuitBreakerWrapper>();
@@ -20,7 +20,7 @@ export class CircuitBreakerWrapper {
   ) {
     this.service = service;
 
-    const opossumOptions: CircuitBreaker.Options = {
+    const opossumOptions: OposumCircuitBreaker.Options = {
       timeout: 30000,
       errorThresholdPercentage: 50,
       resetTimeout: options.resetTimeout ?? 60000,
@@ -33,7 +33,7 @@ export class CircuitBreakerWrapper {
       errorThreshold: options.failureThreshold ?? 5,
     };
 
-    this.breaker = new CircuitBreaker(
+    this.breaker = new OposumCircuitBreaker(
       async (fn: () => Promise<any>) => fn(),
       opossumOptions
     );
