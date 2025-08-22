@@ -108,9 +108,15 @@ export class PinoLoggerAdapter implements ILogger {
 export const Logger = PinoLoggerAdapter;
 
 // Timer functionality
-export function createTimer() {
+export function createTimer(logger: pino.Logger, operation: string) {
   const start = Date.now();
-  return () => Date.now() - start;
+  return {
+    end: (metadata?: Record<string, any>) => {
+      const duration = Date.now() - start;
+      logger.info({ duration, operation, ...metadata }, `Timer: ${operation} completed`);
+      return duration;
+    },
+  };
 }
 
 export default baseLogger;

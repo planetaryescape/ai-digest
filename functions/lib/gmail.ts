@@ -325,6 +325,9 @@ export class GmailClient {
           date,
           articles,
           gmailLink: this.buildGmailLink(messageId),
+          body: message.snippet || "",
+          threadId: message.threadId || messageId,
+          snippet: message.snippet || "",
         });
 
         // Update sender tracker for confirmed AI emails

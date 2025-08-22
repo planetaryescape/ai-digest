@@ -22,6 +22,17 @@ export const DigestOutputSchema = z.object({
   }),
   mode: z.string(),
   timestamp: z.string(),
+  headline: z.string().optional(),
+  shortMessage: z.string().optional(),
+  whatHappened: z.union([z.string(), z.array(z.any())]).optional(),
+  takeaways: z.union([z.string(), z.array(z.any())]).optional(),
+  summary: z.string().optional(),
+  productPlays: z.array(z.any()).optional(),
+  keyThemes: z.array(z.string()).optional(),
+  competitiveIntel: z.array(z.any()).optional(),
+  tools: z.array(z.any()).optional(),
+  rolePlays: z.array(z.any()).optional(),
+  sources: z.array(z.any()).optional(),
 });
 
 export type DigestOutput = z.infer<typeof DigestOutputSchema>;

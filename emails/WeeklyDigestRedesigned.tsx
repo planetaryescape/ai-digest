@@ -136,7 +136,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                   </Heading>
                 </div>
                 <div className="bg-card rounded-xl border border-border p-6">
-                  {digest.whatHappened.map((item, i) => (
+                  {Array.isArray(digest.whatHappened) && digest.whatHappened.map((item, i) => (
                     <div
                       key={i}
                       className={`${
@@ -171,7 +171,7 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                   </Heading>
                 </div>
                 <Row>
-                  {digest.takeaways.map((takeaway, i) => {
+                  {Array.isArray(digest.takeaways) && digest.takeaways.map((takeaway, i) => {
                     const colors = {
                       technical: {
                         bg: "bg-primary/10",

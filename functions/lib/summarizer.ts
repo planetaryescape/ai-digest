@@ -66,11 +66,19 @@ function formatProfessions(): string {
 export async function summarize(items: EmailItem[]): Promise<Summary> {
   if (items.length === 0) {
     const emptyDigest: DigestOutput = {
+      summaries: [],
+      stats: {
+        totalEmails: 0,
+        aiEmails: 0,
+        processedEmails: 0,
+        totalCost: 0,
+      },
+      mode: "weekly",
+      timestamp: new Date().toISOString(),
       headline: "No AI Updates This Week",
       summary: "No AI-related emails detected this week.",
-      whatHappened: [],
-      takeaways: [],
-      rolePlays: [],
+      whatHappened: "No AI-related activity in your inbox this week.",
+      takeaways: "Take a break and explore some AI resources on your own!",
       productPlays: [],
       tools: [],
       shortMessage: "Quiet week on AI in my inbox.",
@@ -185,7 +193,7 @@ YES:
 
     return {
       digest: object,
-      message: object.shortMessage,
+      message: object.shortMessage || "Weekly AI digest generated",
       items,
       generatedAt: new Date().toISOString(),
     };
@@ -200,26 +208,25 @@ YES:
  */
 function fallbackSummary(items: EmailItem[]): Summary {
   const fallbackDigest: DigestOutput = {
+    summaries: items.slice(0, 10).map((item) => ({
+      title: item.subject,
+      summary: item.snippet || "No summary available",
+      sender: item.sender,
+      date: item.date,
+      category: "industry",
+    })),
+    stats: {
+      totalEmails: items.length,
+      aiEmails: items.length,
+      processedEmails: items.length,
+      totalCost: 0,
+    },
+    mode: "weekly",
+    timestamp: new Date().toISOString(),
     headline: "Weekly AI Digest - Processing Error",
     summary: `Received ${items.length} AI-related emails this week. Unable to generate detailed analysis due to an error.`,
-    whatHappened: items.slice(0, 10).map((item) => {
-      const firstArticle = item.articles[0];
-      return {
-        title: item.subject,
-        source: item.sender,
-        description: firstArticle?.desc || firstArticle?.snippet || "No description available",
-        category: "industry" as const,
-      };
-    }),
-    takeaways: [
-      {
-        category: "technical" as const,
-        title: "Manual Review Required",
-        description: "Due to processing error, please review original emails for technical updates",
-        actionable: true,
-      },
-    ],
-    rolePlays: [],
+    whatHappened: "Processing error occurred. Manual review of emails recommended.",
+    takeaways: "Review emails manually for important updates.",
     productPlays: [],
     tools: [],
     shortMessage: `${items.length} AI emails this week. Manual review recommended due to processing error.`,
@@ -229,7 +236,7 @@ function fallbackSummary(items: EmailItem[]): Summary {
 
   return {
     digest: fallbackDigest,
-    message: fallbackDigest.shortMessage,
+    message: fallbackDigest.shortMessage || "Weekly AI digest generated",
     items,
     generatedAt: new Date().toISOString(),
   };
