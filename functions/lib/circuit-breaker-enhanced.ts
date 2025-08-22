@@ -1,4 +1,4 @@
-import OposumCircuitBreaker from "opossum";
+import OpossumCircuitBreaker from "opossum";
 import { createLogger } from "./logger";
 
 const log = createLogger("EnhancedCircuitBreaker");
@@ -18,13 +18,13 @@ export interface CircuitBreakerOptions {
 
 export class EnhancedCircuitBreaker {
   private static breakers: Map<string, EnhancedCircuitBreaker> = new Map();
-  private breaker: OposumCircuitBreaker;
+  private breaker: OpossumCircuitBreaker;
   
   constructor(
     private name: string,
     options: CircuitBreakerOptions = {}
   ) {
-    const opossumOptions: OposumCircuitBreaker.Options = {
+    const opossumOptions: OpossumCircuitBreaker.Options = {
       timeout: 30000,
       errorThresholdPercentage: 50,
       resetTimeout: options.resetTimeout || 60000,
@@ -36,8 +36,8 @@ export class EnhancedCircuitBreaker {
       volumeThreshold: options.failureThreshold || 5,
     };
 
-    this.breaker = new OposumCircuitBreaker(
-      async (fn: () => Promise<any>) => fn(),
+    this.breaker = new OpossumCircuitBreaker(
+      async (fn: () => Promise<any>) => await fn(),
       opossumOptions
     );
 
@@ -91,7 +91,8 @@ export class EnhancedCircuitBreaker {
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     try {
-      return await this.breaker.fire(fn) as T;
+      const result = await this.breaker.fire(fn);
+      return result as T;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Breaker is open")) {
         throw new Error(`Circuit breaker ${this.name} is OPEN`);
@@ -111,12 +112,12 @@ export class EnhancedCircuitBreaker {
   }
 
   getStats() {
-    const stats = this.breaker.toJSON();
+    const stats = this.breaker.stats;
     return {
       state: this.getState(),
-      failureCount: stats.failures || 0,
-      successCount: stats.successes || 0,
-      lastFailureTime: stats.lastCircuitOpen ? new Date(stats.lastCircuitOpen) : undefined,
+      failureCount: stats.failures,
+      successCount: stats.successes,
+      lastFailureTime: undefined,
     };
   }
 

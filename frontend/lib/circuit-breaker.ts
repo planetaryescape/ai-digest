@@ -1,4 +1,4 @@
-import OposumCircuitBreaker from "opossum";
+import OpossumCircuitBreaker from "opossum";
 
 export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
@@ -9,7 +9,7 @@ export interface CircuitBreakerOptions {
 }
 
 export class CircuitBreakerWrapper {
-  private breaker: OposumCircuitBreaker;
+  private breaker: OpossumCircuitBreaker;
   private readonly service: string;
 
   private static breakers = new Map<string, CircuitBreakerWrapper>();
@@ -20,7 +20,7 @@ export class CircuitBreakerWrapper {
   ) {
     this.service = service;
 
-    const opossumOptions: OposumCircuitBreaker.Options = {
+    const opossumOptions: OpossumCircuitBreaker.Options = {
       timeout: 30000,
       errorThresholdPercentage: 50,
       resetTimeout: options.resetTimeout ?? 60000,
@@ -32,8 +32,8 @@ export class CircuitBreakerWrapper {
       volumeThreshold: options.failureThreshold ?? 5,
     };
 
-    this.breaker = new OposumCircuitBreaker(
-      async (fn: () => Promise<any>) => fn(),
+    this.breaker = new OpossumCircuitBreaker(
+      async (fn: () => Promise<any>) => await fn(),
       opossumOptions
     );
 
@@ -75,7 +75,8 @@ export class CircuitBreakerWrapper {
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     try {
-      return await this.breaker.fire(fn) as T;
+      const result = await this.breaker.fire(fn);
+      return result as T;
     } catch (error) {
       if (error instanceof Error && error.message.includes("Breaker is open")) {
         throw new Error(`Circuit breaker OPEN for ${this.service}`);
@@ -85,7 +86,7 @@ export class CircuitBreakerWrapper {
   }
 
   getStats() {
-    const stats = this.breaker.toJSON();
+    const stats = this.breaker.stats;
     const state = this.breaker.opened 
       ? "OPEN" 
       : this.breaker.halfOpen 
@@ -94,9 +95,9 @@ export class CircuitBreakerWrapper {
 
     return {
       state: state as CircuitState,
-      failures: stats.failures || 0,
-      successes: stats.successes || 0,
-      lastFailureTime: stats.lastCircuitOpen || 0,
+      failures: stats.failures,
+      successes: stats.successes,
+      lastFailureTime: 0,
       lastError: undefined,
     };
   }
