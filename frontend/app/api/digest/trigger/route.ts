@@ -56,6 +56,22 @@ export async function POST(request: Request) {
       source: "dashboard",
     };
 
+    // Check if AWS credentials are configured
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+      // Return demo response when AWS credentials are not configured
+      return NextResponse.json({
+        success: true,
+        message: "Demo mode: Digest generation simulated (AWS credentials not configured)",
+        data: {
+          demo: true,
+          payload,
+          generatedAt: new Date().toISOString(),
+          estimatedCompletion: new Date(Date.now() + 120000).toISOString(), // 2 minutes from now
+        },
+        type: "demo",
+      });
+    }
+
     // Use Step Functions if requested and configured
     if (useStepFunctions && process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN) {
       const executionName = `digest-${Date.now()}-${userId.slice(-6)}`;
