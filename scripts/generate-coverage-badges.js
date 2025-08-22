@@ -46,7 +46,7 @@ function updateReadmeBadges() {
 
   // Replace badges one by one
   const badgeTypes = ["statements", "branches", "functions", "lines"];
-  
+
   badgeTypes.forEach((type, index) => {
     const regex = new RegExp(`!\\[.*?\\]\\(https://img\\.shields\\.io/badge/.*?${type}.*?\\)`, "g");
     readme = readme.replace(regex, badges[index]);

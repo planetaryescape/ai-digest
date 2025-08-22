@@ -8,7 +8,7 @@ export interface Summary {
   sender: string;
   date: string;
   critique?: string;
-  digest?: string;
+  digest?: any; // Can be DigestOutput or string
   message?: string;
   items?: any[];
   headline?: string;
@@ -61,8 +61,8 @@ export interface ProcessedEmail {
 
 export interface Article {
   url: string;
-  title: string;
-  content: string;
+  title?: string;
+  content?: string;
   publishedAt?: string;
   author?: string;
   snippet?: string;
@@ -77,6 +77,7 @@ export interface App {
   keywords?: string[];
   url?: string;
   desc?: string;
+  icon?: string;
 }
 
 export interface ProductContext {

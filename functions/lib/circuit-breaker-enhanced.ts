@@ -19,7 +19,7 @@ export interface CircuitBreakerOptions {
 export class EnhancedCircuitBreaker {
   private static breakers: Map<string, EnhancedCircuitBreaker> = new Map();
   private breaker: OpossumCircuitBreaker;
-  
+
   constructor(
     private name: string,
     options: CircuitBreakerOptions = {}
@@ -78,7 +78,10 @@ export class EnhancedCircuitBreaker {
     });
 
     this.breaker.on("healthCheckFailed", (error) => {
-      log.error({ circuit: this.name, error: error.message }, "Circuit breaker health check failed");
+      log.error(
+        { circuit: this.name, error: error.message },
+        "Circuit breaker health check failed"
+      );
     });
   }
 

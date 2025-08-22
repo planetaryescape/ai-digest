@@ -227,7 +227,11 @@ export const metrics = {
     getMetrics().increment("emails.processed", { ...tags, count: count.toString() });
   },
 
-  apiCall: async function<T>(service: string, operation: string, fn: () => Promise<T>): Promise<T> {
+  apiCall: async function <T>(
+    service: string,
+    operation: string,
+    fn: () => Promise<T>
+  ): Promise<T> {
     return getMetrics().timer(`api.${service}.${operation}`, fn, { service, operation });
   },
 
@@ -241,7 +245,7 @@ export const metrics = {
     getMetrics().increment("errors", { ...tags, error });
   },
 
-  storageOperation: async function<T>(operation: string, fn: () => Promise<T>): Promise<T> {
+  storageOperation: async function <T>(operation: string, fn: () => Promise<T>): Promise<T> {
     return getMetrics().timer(`storage.${operation}`, fn);
   },
 

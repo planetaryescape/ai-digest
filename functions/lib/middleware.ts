@@ -1,10 +1,10 @@
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
-import { createLogger, type Logger } from "./logger";
+import { createLogger, Logger } from "./logger";
 
 export interface RequestContext {
   requestId: string;
   userId?: string;
-  logger: Logger;
+  logger: InstanceType<typeof Logger>;
 }
 
 export function compose(...middlewares: any[]) {

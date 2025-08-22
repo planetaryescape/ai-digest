@@ -1,6 +1,6 @@
-import { S3StorageClient } from "./aws/s3-storage";
-import { DynamoDBStorageClient } from "./aws/storage";
-import { AzureStorageClient } from "./azure/storage";
+// import { S3StorageClient } from "./aws/s3-storage";
+// import { DynamoDBStorageClient } from "./aws/storage";
+// import { AzureStorageClient } from "./azure/storage";
 import type { IStorageClient } from "./interfaces/storage";
 
 export enum StorageType {
@@ -15,9 +15,9 @@ export enum StorageType {
  */
 export class StorageFactory {
   private static storageProviders = new Map<string, () => IStorageClient>([
-    [StorageType.S3, () => new S3StorageClient()],
-    [StorageType.DynamoDB, () => new DynamoDBStorageClient()],
-    [StorageType.Azure, () => new AzureStorageClient()],
+    // [StorageType.S3, () => new S3StorageClient()],
+    // [StorageType.DynamoDB, () => new DynamoDBStorageClient()],
+    // [StorageType.Azure, () => new AzureStorageClient()],
   ]);
 
   /**
