@@ -178,8 +178,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.json(
           {
             error: "DynamoDB table not found",
-            details: `Table '${tableName}' does not exist in region ${process.env.AWS_REGION || "us-east-1"}`,
-            tableName,
+            details: `Tables '${aiSendersTable}' or '${nonAiSendersTable}' do not exist in region ${process.env.AWS_REGION || "us-east-1"}`,
+            aiSendersTable,
+            nonAiSendersTable,
             region: process.env.AWS_REGION || "us-east-1",
           },
           { status: 500, headers }

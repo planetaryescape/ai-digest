@@ -99,7 +99,7 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
                 >
                   What Happened
                 </Heading>
-                {digest.whatHappened.map((item, i) => (
+                {Array.isArray(digest.whatHappened) && digest.whatHappened.map((item, i) => (
                   <div
                     key={i}
                     style={{
@@ -159,7 +159,7 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
                 >
                   Do This
                 </Heading>
-                {digest.takeaways.map((takeaway, i) => (
+                {Array.isArray(digest.takeaways) && digest.takeaways.map((takeaway, i) => (
                   <div
                     key={i}
                     style={{

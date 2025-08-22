@@ -31,7 +31,15 @@
     "test:watch": "vitest watch",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
-    "test:coverage:update-badges": "vitest run --coverage && node scripts/generate-coverage-badges.js"
+    "test:coverage:update-badges": "vitest run --coverage && node scripts/generate-coverage-badges.js",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test --debug",
+    "test:bench": "bun run test:bench:digest && bun run test:bench:agents",
+    "test:bench:digest": "bun run test/benchmarks/digest-processing.bench.ts",
+    "test:bench:agents": "bun run test/benchmarks/agents.bench.ts",
+    "test:bench:update": "UPDATE_BASELINE=true bun run test:bench",
+    "test:all": "bun run test && bun run test:e2e && bun run test:bench"
   },
   "dependencies": {
     "@ai-sdk/openai": "^2.0.19",
@@ -65,6 +73,7 @@
     "@aws-sdk/client-cloudwatch-logs": "^3.864.0",
     "@aws-sdk/client-sfn": "^3.864.0",
     "@biomejs/biome": "^2.2.0",
+    "@playwright/test": "^1.55.0",
     "@sentry/esbuild-plugin": "^4.1.1",
     "@testing-library/jest-dom": "^6.7.0",
     "@types/aws-lambda": "^8.10.152",
@@ -78,6 +87,7 @@
     "happy-dom": "^18.0.1",
     "msw": "^2.10.5",
     "react-email": "^4.2.8",
+    "tinybench": "^5.0.0",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
   }
