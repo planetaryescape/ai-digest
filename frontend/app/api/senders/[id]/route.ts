@@ -24,7 +24,7 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 const tableName = process.env.DYNAMODB_TABLE_NAME || "ai-digest-known-ai-senders";
 
-export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -48,8 +48,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     }
 
     return NextResponse.json(response.Item);
-  } catch (error) {
-    console.error("Error fetching sender:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to fetch sender" }, { status: 500 });
   }
 }
@@ -109,13 +108,12 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       success: true,
       sender: response.Attributes,
     });
-  } catch (error) {
-    console.error("Error updating sender:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to update sender" }, { status: 500 });
   }
 }
 
-export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function DELETE(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { userId } = await auth();
     if (!userId) {
@@ -138,8 +136,7 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
       success: true,
       message: "Sender deleted successfully",
     });
-  } catch (error) {
-    console.error("Error deleting sender:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to delete sender" }, { status: 500 });
   }
 }

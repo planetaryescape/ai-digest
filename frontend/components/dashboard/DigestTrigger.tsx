@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader2, Play, Trash2, Zap, Activity } from "lucide-react";
-import { useState, useEffect } from "react";
+import { Activity, Loader2, Play, Trash2, Zap } from "lucide-react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -16,9 +16,15 @@ export function DigestTrigger() {
   const { data: executionStatus } = useQuery({
     queryKey: ["execution-status", executionArn],
     queryFn: async () => {
-      if (!executionArn) return null;
-      const res = await fetch(`/api/stepfunctions/status?executionArn=${encodeURIComponent(executionArn)}`);
-      if (!res.ok) throw new Error("Failed to fetch execution status");
+      if (!executionArn) {
+        return null;
+      }
+      const res = await fetch(
+        `/api/stepfunctions/status?executionArn=${encodeURIComponent(executionArn)}`
+      );
+      if (!res.ok) {
+        throw new Error("Failed to fetch execution status");
+      }
       return res.json();
     },
     enabled: !!executionArn && pollingEnabled,
@@ -30,7 +36,7 @@ export function DigestTrigger() {
       }
       // Exponential backoff: 5s → 10s → 20s → 30s (max)
       const attemptCount = query.state.dataUpdateCount || 0;
-      return Math.min(5000 * Math.pow(1.5, attemptCount), 30000);
+      return Math.min(5000 * 1.5 ** attemptCount, 30000);
     },
   });
 
@@ -68,9 +74,7 @@ export function DigestTrigger() {
       if (data.executionArn) {
         setExecutionArn(data.executionArn);
         setPollingEnabled(true);
-        toast.success(
-          `Step Functions pipeline started! Execution: ${data.executionName}`
-        );
+        toast.success(`Step Functions pipeline started! Execution: ${data.executionName}`);
       } else {
         toast.success(
           cleanup
@@ -150,7 +154,8 @@ export function DigestTrigger() {
       {useStepFunctions && (
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
           <p className="text-sm text-blue-800">
-            <strong>Step Functions:</strong> Using the new orchestrated pipeline for better observability and error handling.
+            <strong>Step Functions:</strong> Using the new orchestrated pipeline for better
+            observability and error handling.
           </p>
         </div>
       )}
@@ -159,23 +164,27 @@ export function DigestTrigger() {
         <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-gray-700">Execution Status</span>
-            <span className={cn(
-              "px-2 py-1 text-xs font-semibold rounded-full",
-              executionStatus.status === "RUNNING" && "bg-blue-100 text-blue-800",
-              executionStatus.status === "SUCCEEDED" && "bg-green-100 text-green-800",
-              executionStatus.status === "FAILED" && "bg-red-100 text-red-800"
-            )}>
+            <span
+              className={cn(
+                "px-2 py-1 text-xs font-semibold rounded-full",
+                executionStatus.status === "RUNNING" && "bg-blue-100 text-blue-800",
+                executionStatus.status === "SUCCEEDED" && "bg-green-100 text-green-800",
+                executionStatus.status === "FAILED" && "bg-red-100 text-red-800"
+              )}
+            >
               {executionStatus.status}
             </span>
           </div>
           {executionStatus.status === "RUNNING" && (
             <div className="flex items-center space-x-2">
               <Activity className="h-4 w-4 text-blue-500 animate-pulse" />
-              <span className="text-sm text-gray-600">Processing emails through the pipeline...</span>
+              <span className="text-sm text-gray-600">
+                Processing emails through the pipeline...
+              </span>
             </div>
           )}
           <div className="text-xs text-gray-500 font-mono truncate">
-            {executionArn.split(':').pop()}
+            {executionArn.split(":").pop()}
           </div>
         </div>
       )}
@@ -183,8 +192,8 @@ export function DigestTrigger() {
       {triggerMutation.isSuccess && !executionArn && (
         <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
           <p className="text-sm text-green-800">
-            Digest generation has been triggered successfully. You&apos;ll receive an email once it&apos;s
-            complete.
+            Digest generation has been triggered successfully. You&apos;ll receive an email once
+            it&apos;s complete.
           </p>
         </div>
       )}

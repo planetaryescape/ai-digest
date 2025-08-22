@@ -29,14 +29,6 @@ export class CircuitBreaker {
     this.halfOpenMaxAttempts = options.halfOpenMaxAttempts ?? 3;
 
     CircuitBreaker.breakers.set(service, this);
-
-    console.log(
-      `Circuit breaker initialized for ${service}`,
-      {
-        failureThreshold: this.failureThreshold,
-        resetTimeout: this.resetTimeout,
-      }
-    );
   }
 
   static getBreaker(service: string, options?: CircuitBreakerOptions): CircuitBreaker {
@@ -52,10 +44,6 @@ export class CircuitBreaker {
         this.transitionToHalfOpen();
       } else {
         const error = new Error(`Circuit breaker OPEN for ${this.service}`);
-        console.warn(error.message, {
-          failures: this.failures,
-          lastFailureTime: this.lastFailureTime,
-        });
         throw error;
       }
     }
@@ -77,20 +65,18 @@ export class CircuitBreaker {
   private transitionToHalfOpen(): void {
     this.state = "HALF_OPEN";
     this.halfOpenAttempts = 0;
-    console.log(`Circuit breaker HALF_OPEN for ${this.service}`);
   }
 
   private onSuccess(): void {
     this.failures = 0;
-    
+
     if (this.state === "HALF_OPEN") {
       this.successes++;
       this.halfOpenAttempts++;
-      
+
       if (this.halfOpenAttempts >= this.halfOpenMaxAttempts) {
         this.state = "CLOSED";
         this.successes = 0;
-        console.log(`Circuit breaker CLOSED for ${this.service} (recovered)`);
       }
     }
   }
@@ -102,10 +88,6 @@ export class CircuitBreaker {
 
     if (this.state === "HALF_OPEN" || this.failures >= this.failureThreshold) {
       this.state = "OPEN";
-      console.error(`Circuit breaker OPEN for ${this.service}`, {
-        failures: this.failures,
-        error: error.message,
-      });
     }
   }
 

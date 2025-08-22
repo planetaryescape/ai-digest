@@ -2,10 +2,10 @@ import { InvokeCommand } from "@aws-sdk/client-lambda";
 import { StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { sanitizeError } from "@/lib/utils/error-handling";
-import { getSFNClient, getLambdaClient } from "@/lib/aws/clients";
-import { checkRateLimit } from "@/lib/rate-limiter";
+import { getLambdaClient, getSFNClient } from "@/lib/aws/clients";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { sanitizeError } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
-        { 
+        {
           status: 429,
           headers: {
             "Retry-After": rateLimitResult.retryAfter?.toString() || "3600",
@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     // Use Step Functions if requested and configured
     if (useStepFunctions && process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN) {
       const executionName = `digest-${Date.now()}-${userId.slice(-6)}`;
-      
+
       const command = new StartExecutionCommand({
         stateMachineArn: process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN,
         name: executionName,
@@ -67,7 +67,7 @@ export async function POST(request: Request) {
       });
 
       const sfnClient = getSFNClient();
-      
+
       const response = await sfnCircuitBreaker.execute(async () => {
         return await sfnClient.send(command);
       });
@@ -115,7 +115,7 @@ export async function POST(request: Request) {
     });
 
     const lambda = getLambdaClient();
-    
+
     const response = await lambdaCircuitBreaker.execute(async () => {
       return await lambda.send(command);
     });
@@ -140,12 +140,11 @@ export async function POST(request: Request) {
       type: "lambda-sdk",
     });
   } catch (error) {
-    console.error("Error triggering digest:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to trigger digest generation",
-        details: sanitizeError(error)
-      }, 
+        details: sanitizeError(error),
+      },
       { status: 500 }
     );
   }

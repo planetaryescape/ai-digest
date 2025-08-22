@@ -1,7 +1,7 @@
 import type { HttpRequest, InvocationContext, Timer } from "@azure/functions";
 import type { DigestResult } from "../../core/digest-processor";
 import type { IPlatformAdapter } from "./IPlatformAdapter";
-import type { UnifiedContext, UnifiedLogger, UnifiedRequest, UnifiedResponse } from "./types";
+import type { UnifiedContext, UnifiedLogger, UnifiedRequest } from "./types";
 
 /**
  * Azure Functions platform adapter

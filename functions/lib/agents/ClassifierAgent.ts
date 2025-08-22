@@ -1,13 +1,10 @@
-import OpenAI from "openai";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  BatchWriteCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { CostTracker } from "../cost-tracker";
+import { BatchWriteCommand, DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
+import OpenAI from "openai";
+import { BATCH_LIMITS, COST_LIMITS, RATE_LIMITS } from "../constants";
+import type { CostTracker } from "../cost-tracker";
 import { createLogger } from "../logger";
-import { COST_LIMITS, RATE_LIMITS, BATCH_LIMITS } from "../constants";
-import { EmailBatch } from "./EmailFetcherAgent";
+import type { EmailBatch } from "./EmailFetcherAgent";
 
 const log = createLogger("ClassifierAgent");
 
@@ -66,11 +63,11 @@ export class ClassifierAgent {
 
     // Process in batches
     const batches = this.createBatches(unknownEmails, RATE_LIMITS.OPENAI_BATCH_SIZE);
-    
+
     for (const batch of batches) {
       try {
         const classifications = await this.classifyBatch(batch, isCleanupMode);
-        
+
         // Store results
         for (const [emailId, classification] of classifications) {
           results.set(emailId, classification);
@@ -170,7 +167,7 @@ export class ClassifierAgent {
 
   private buildClassificationPrompt(emailSummaries: any[], isCleanupMode: boolean): string {
     const mode = isCleanupMode ? "cleanup (be more inclusive)" : "regular";
-    
+
     return `Classify these emails as AI/tech-related or not. Mode: ${mode}
 
 AI/tech-related includes:
@@ -204,7 +201,9 @@ ${JSON.stringify(emailSummaries, null, 2)}`;
 
     for (const email of emails) {
       const classification = classifications.get(email.id);
-      if (!classification) continue;
+      if (!classification) {
+        continue;
+      }
 
       const senderEmail = this.extractEmailAddress(email.sender);
       const senderData = {

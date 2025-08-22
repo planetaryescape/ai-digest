@@ -67,7 +67,7 @@ export class EmailCommandExecutor {
             success: result.success ? "true" : "false",
           });
           getMetrics().gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
-        } catch (metricsError) {
+        } catch (_metricsError) {
           // Ignore metrics errors - they shouldn't break the main flow
         }
 
@@ -129,7 +129,7 @@ export class EmailCommandExecutor {
             success: result.success ? "true" : "false",
           });
           getMetrics().gauge(`command.${command.getName().toLowerCase()}.duration_ms`, commandTime);
-        } catch (metricsError) {
+        } catch (_metricsError) {
           // Ignore metrics errors - they shouldn't break the main flow
         }
 

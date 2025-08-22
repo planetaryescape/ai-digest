@@ -1,11 +1,10 @@
 import { vi } from "vitest";
-import type { CostTracker } from "../../lib/cost-tracker";
-import type { EmailBatch, FetchEmailsOptions } from "../../lib/agents/EmailFetcherAgent";
 import type { Classification } from "../../lib/agents/ClassifierAgent";
+import type { EmailBatch, FetchEmailsOptions } from "../../lib/agents/EmailFetcherAgent";
+import type { CostTracker } from "../../lib/cost-tracker";
 
 // Mock EmailFetcherAgent
 export class MockEmailFetcherAgent {
-  private costTracker: CostTracker;
   private gmail: any;
   private batchOps: any;
 
@@ -27,15 +26,15 @@ export class MockEmailFetcherAgent {
     };
   }
 
-  async fetchEmails(options: FetchEmailsOptions): Promise<EmailBatch> {
+  async fetchEmails(_options: FetchEmailsOptions): Promise<EmailBatch> {
     // Use the mocked googleapis instead of internal mock
     const { google } = require("googleapis");
     const gmail = google.gmail();
-    
+
     const messages = await gmail.users.messages.list({ userId: "me" });
     const fullEmails: any[] = [];
     const metadata: any[] = [];
-    
+
     if (messages.data?.messages) {
       for (const msg of messages.data.messages) {
         const full = await gmail.users.messages.get({ userId: "me", id: msg.id });
@@ -45,18 +44,19 @@ export class MockEmailFetcherAgent {
           const fromHeader = headers.find((h: any) => h.name === "From");
           const subjectHeader = headers.find((h: any) => h.name === "Subject");
           const dateHeader = headers.find((h: any) => h.name === "Date");
-          
+
           const email = {
             id: full.data.id,
             from: fromHeader?.value || "",
             subject: subjectHeader?.value || "",
             snippet: full.data.snippet || full.data.payload?.snippet || "",
-            body: full.data.payload?.body?.data ? 
-              Buffer.from(full.data.payload.body.data, "base64").toString() : "",
+            body: full.data.payload?.body?.data
+              ? Buffer.from(full.data.payload.body.data, "base64").toString()
+              : "",
             date: dateHeader?.value || new Date().toISOString(),
             payload: full.data.payload,
           };
-          
+
           fullEmails.push(email);
           metadata.push({
             id: email.id,
@@ -72,7 +72,7 @@ export class MockEmailFetcherAgent {
       fullEmails,
       metadata,
       aiEmailIds: [],
-      unknownEmailIds: fullEmails.map(e => e.id),
+      unknownEmailIds: fullEmails.map((e) => e.id),
       classifications: new Map(),
       stats: {
         totalFetched: fullEmails.length,
@@ -91,22 +91,20 @@ export class MockEmailFetcherAgent {
 
 // Mock ClassifierAgent
 export class MockClassifierAgent {
-  private costTracker: CostTracker;
-
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
 
   async classifyEmails(
-    emailBatch: EmailBatch,
-    isCleanupMode = false
+    _emailBatch: EmailBatch,
+    _isCleanupMode = false
   ): Promise<Map<string, Classification>> {
     // Use the mocked generateObject
     const { generateObject } = require("ai");
     const result = await generateObject();
-    
+
     const classifications = new Map<string, Classification>();
-    
+
     if (result?.object?.classifications) {
       for (const cls of result.object.classifications) {
         classifications.set(cls.emailId, {
@@ -115,15 +113,13 @@ export class MockClassifierAgent {
         });
       }
     }
-    
+
     return classifications;
   }
 }
 
 // Mock ContentExtractorAgent
 export class MockContentExtractorAgent {
-  private costTracker: CostTracker;
-
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -137,8 +133,6 @@ export class MockContentExtractorAgent {
 
 // Mock ResearchAgent
 export class MockResearchAgent {
-  private costTracker: CostTracker;
-
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -152,39 +146,39 @@ export class MockResearchAgent {
 
 // Mock AnalysisAgent
 export class MockAnalysisAgent {
-  private costTracker: CostTracker;
-
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
 
-  async analyze(emails: any[]): Promise<any> {
+  async analyze(_emails: any[]): Promise<any> {
     const { generateObject } = require("ai");
     const result = await generateObject();
-    return result?.object || {
-      whatHappened: [],
-      takeaways: [],
-      productPlays: [],
-      tools: [],
-    };
+    return (
+      result?.object || {
+        whatHappened: [],
+        takeaways: [],
+        productPlays: [],
+        tools: [],
+      }
+    );
   }
 }
 
 // Mock CriticAgent
 export class MockCriticAgent {
-  private costTracker: CostTracker;
-
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
 
-  async generateCommentary(analysis: any): Promise<any> {
+  async generateCommentary(_analysis: any): Promise<any> {
     const { generateObject } = require("ai");
     const result = await generateObject();
-    return result?.object?.commentary || {
-      spicyTake: "",
-      reality: "",
-      contrarian: "",
-    };
+    return (
+      result?.object?.commentary || {
+        spicyTake: "",
+        reality: "",
+        contrarian: "",
+      }
+    );
   }
 }

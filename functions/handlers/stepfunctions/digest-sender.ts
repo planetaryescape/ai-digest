@@ -38,7 +38,7 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
     }
   }
 
-  async process(event: any, context: Context): Promise<any> {
+  async process(event: any, _context: Context): Promise<any> {
     const executionId = event.metadata?.executionId;
     const mode = event.metadata?.mode;
     const startTime = event.metadata?.startTime;
@@ -78,28 +78,39 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
     const emails = classifiedEmails.emails || [];
 
     log.info({ emailCount: emails.length }, "Preparing to send digest");
-    
+
     // Log the analysis structure for debugging
-    if (analysisResult && analysisResult.analysis) {
+    if (analysisResult?.analysis) {
       const analysis = analysisResult.analysis;
-      log.info({
-        keyDevelopments: Array.isArray(analysis.keyDevelopments) ? analysis.keyDevelopments.length : 0,
-        keyDevelopmentsSample: analysis.keyDevelopments?.[0],
-        patterns: Array.isArray(analysis.patterns) ? analysis.patterns.length : 0,
-        technicalInsights: Array.isArray(analysis.technicalInsights) ? analysis.technicalInsights.length : 0,
-        businessOpportunities: Array.isArray(analysis.businessOpportunities) ? analysis.businessOpportunities.length : 0,
-      }, "Analysis structure");
+      log.info(
+        {
+          keyDevelopments: Array.isArray(analysis.keyDevelopments)
+            ? analysis.keyDevelopments.length
+            : 0,
+          keyDevelopmentsSample: analysis.keyDevelopments?.[0],
+          patterns: Array.isArray(analysis.patterns) ? analysis.patterns.length : 0,
+          technicalInsights: Array.isArray(analysis.technicalInsights)
+            ? analysis.technicalInsights.length
+            : 0,
+          businessOpportunities: Array.isArray(analysis.businessOpportunities)
+            ? analysis.businessOpportunities.length
+            : 0,
+        },
+        "Analysis structure"
+      );
     }
 
     // Helper function to extract text from analysis items
     const extractText = (item: any): string => {
-      if (typeof item === 'string') return item;
-      if (typeof item === 'object' && item !== null) {
+      if (typeof item === "string") {
+        return item;
+      }
+      if (typeof item === "object" && item !== null) {
         // Handle patterns with specific structure
         if (item.pattern) {
           let text = item.pattern;
           if (item.evidence && Array.isArray(item.evidence)) {
-            text += `. Evidence: ${item.evidence.join('; ')}`;
+            text += `. Evidence: ${item.evidence.join("; ")}`;
           }
           if (item.interpretation) {
             text += `. ${item.interpretation}`;
@@ -109,7 +120,7 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
           }
           return text;
         }
-        
+
         // Handle technical insights/concepts
         if (item.concept) {
           let text = item.concept;
@@ -120,11 +131,11 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
             text += `. How to apply: ${item.practicalApplication}`;
           }
           if (item.limitations && Array.isArray(item.limitations)) {
-            text += `. Limitations: ${item.limitations.join('; ')}`;
+            text += `. Limitations: ${item.limitations.join("; ")}`;
           }
           return text;
         }
-        
+
         // Handle business opportunities
         if (item.opportunity) {
           let text = item.opportunity;
@@ -139,34 +150,49 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
           }
           return text;
         }
-        
+
         // Handle complex GPT-5 response objects with title/significance
         if (item.title && item.significance) {
           let text = item.title;
-          if (item.significance) text += `: ${item.significance}`;
+          if (item.significance) {
+            text += `: ${item.significance}`;
+          }
           if (item.implications) {
-            const implications = Array.isArray(item.implications) 
-              ? item.implications.join('; ')
+            const implications = Array.isArray(item.implications)
+              ? item.implications.join("; ")
               : item.implications;
             text += ` (${implications})`;
           }
           return text;
         }
-        
+
         // Handle key developments with specific structure
         if (item.development) {
           let text = item.development;
-          if (item.context) text += `: ${item.context}`;
-          if (item.impact) text += `. Impact: ${item.impact}`;
+          if (item.context) {
+            text += `: ${item.context}`;
+          }
+          if (item.impact) {
+            text += `. Impact: ${item.impact}`;
+          }
           return text;
         }
-        
+
         // Fallback to other common fields
-        const fallbackText = item.title || item.description || item.text || 
-                           item.summary || item.content || item.value || 
-                           item.insight || item.finding || item.observation;
-        if (fallbackText) return fallbackText;
-        
+        const fallbackText =
+          item.title ||
+          item.description ||
+          item.text ||
+          item.summary ||
+          item.content ||
+          item.value ||
+          item.insight ||
+          item.finding ||
+          item.observation;
+        if (fallbackText) {
+          return fallbackText;
+        }
+
         // For completely unknown objects, try to extract meaningful text
         const keys = Object.keys(item);
         if (keys.length > 0) {
@@ -174,25 +200,25 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
           const parts = [];
           for (const key of keys) {
             const value = item[key];
-            if (typeof value === 'string' && value.length > 0) {
+            if (typeof value === "string" && value.length > 0) {
               // Skip metadata fields
-              if (!['id', 'type', 'category', 'confidence', 'strength'].includes(key)) {
+              if (!["id", "type", "category", "confidence", "strength"].includes(key)) {
                 parts.push(value);
               }
             } else if (Array.isArray(value) && value.length > 0) {
-              const strValues = value.filter(v => typeof v === 'string');
+              const strValues = value.filter((v) => typeof v === "string");
               if (strValues.length > 0) {
-                parts.push(strValues.join('; '));
+                parts.push(strValues.join("; "));
               }
             }
           }
           if (parts.length > 0) {
-            return parts.join('. ');
+            return parts.join(". ");
           }
         }
-        
+
         // Absolute last resort - should rarely reach here
-        return '[Unable to parse content]';
+        return "[Unable to parse content]";
       }
       return String(item);
     };
@@ -200,112 +226,116 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
     // Transform analysis result to match email template structure
     const transformedDigest = {
       whatHappened: [
-        ...(analysisResult.analysis.keyDevelopments || []).map(dev => {
+        ...(analysisResult.analysis.keyDevelopments || []).map((dev) => {
           const text = extractText(dev);
           // For key developments, extract title if object, otherwise use first 60 chars
           let title = text;
           let description = text;
-          
-          if (typeof dev === 'object' && dev.title) {
+
+          if (typeof dev === "object" && dev.title) {
             title = dev.title;
             description = text; // Full formatted text
           } else if (text.length > 60) {
             // Create title from first sentence or 60 chars
             const firstSentence = text.match(/^[^.!?]+[.!?]/);
-            title = firstSentence ? firstSentence[0] : text.substring(0, 60) + '...';
+            title = firstSentence ? firstSentence[0] : `${text.substring(0, 60)}...`;
           }
-          
+
           return {
             title: title,
             source: "AI Industry Updates",
             category: "Key Development",
-            description: description
+            description: description,
           };
         }),
-        ...(analysisResult.analysis.patterns || []).map(pattern => {
+        ...(analysisResult.analysis.patterns || []).map((pattern) => {
           const text = extractText(pattern);
           let title = text;
           let description = text;
-          
-          if (typeof pattern === 'object' && pattern.title) {
+
+          if (typeof pattern === "object" && pattern.title) {
             title = pattern.title;
             description = text;
           } else if (text.length > 60) {
             const firstSentence = text.match(/^[^.!?]+[.!?]/);
-            title = firstSentence ? firstSentence[0] : text.substring(0, 60) + '...';
+            title = firstSentence ? firstSentence[0] : `${text.substring(0, 60)}...`;
           }
-          
+
           return {
             title: title,
             source: "Trend Analysis",
             category: "Pattern",
-            description: description
+            description: description,
           };
-        })
+        }),
       ].slice(0, 5), // Limit to top 5 items
-      
+
       takeaways: [
         ...(analysisResult.analysis.technicalInsights || []).map((insight, index) => {
           const text = extractText(insight);
           let title = `Technical Insight #${index + 1}`;
-          
+
           // Try to extract a better title from the object
-          if (typeof insight === 'object') {
+          if (typeof insight === "object") {
             if (insight.title) {
               title = insight.title;
             } else if (insight.concept) {
               title = insight.concept;
             } else if (insight.insight) {
               // Use first 50 chars of insight as title
-              title = insight.insight.length > 50 
-                ? insight.insight.substring(0, 50) + '...'
-                : insight.insight;
+              title =
+                insight.insight.length > 50
+                  ? `${insight.insight.substring(0, 50)}...`
+                  : insight.insight;
             }
           }
-          
+
           return {
             category: "technical",
             title: title,
             description: text,
-            actionable: true
+            actionable: true,
           };
         }),
         ...(analysisResult.analysis.businessOpportunities || []).map((opp, index) => {
           const text = extractText(opp);
           let title = `Business Opportunity #${index + 1}`;
-          
+
           // Try to extract a better title from the object
-          if (typeof opp === 'object') {
+          if (typeof opp === "object") {
             if (opp.title) {
               title = opp.title;
             } else if (opp.opportunity) {
-              title = opp.opportunity.length > 50
-                ? opp.opportunity.substring(0, 50) + '...'
-                : opp.opportunity;
+              title =
+                opp.opportunity.length > 50
+                  ? `${opp.opportunity.substring(0, 50)}...`
+                  : opp.opportunity;
             }
           }
-          
+
           return {
             category: "business",
             title: title,
             description: text,
-            actionable: true
+            actionable: true,
           };
         }),
         ...(analysisResult.analysis.overlooked || []).map((item, index) => {
           const text = extractText(item);
-          const title = typeof item === 'object' && item.title ? 
-                       item.title : `Overlooked Insight #${index + 1}`;
+          const title =
+            typeof item === "object" && item.title
+              ? item.title
+              : `Overlooked Insight #${index + 1}`;
           return {
             category: "strategic",
             title: title,
             description: text,
-            actionable: false
+            actionable: false,
           };
-        })
+        }),
       ].slice(0, 5), // Limit to top 5 items
-      
-      sources: analysisResult.analysis.sources || []
+
+      sources: analysisResult.analysis.sources || [],
     };
 
     // Prepare summary for email template
@@ -375,7 +405,7 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
     }
 
     return {
-      executionId,  // Add at top level for Step Functions
+      executionId, // Add at top level for Step Functions
       success: true,
       emailSent: true,
       emailsArchived,

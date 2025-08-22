@@ -266,7 +266,7 @@ describe("CircuitBreakerRegistry", () => {
 
   it("should get stats for all breakers", () => {
     const breaker1 = CircuitBreakerRegistry.getBreaker("service1");
-    const breaker2 = CircuitBreakerRegistry.getBreaker("service2");
+    const _breaker2 = CircuitBreakerRegistry.getBreaker("service2");
 
     breaker1.open();
 

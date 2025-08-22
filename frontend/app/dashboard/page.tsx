@@ -1,18 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { AlertCircle, CheckCircle, Clock, Mail, TrendingUp, Users } from "lucide-react";
+import { AlertCircle, CheckCircle, Mail, Users } from "lucide-react";
 import { DigestTrigger } from "@/components/dashboard/DigestTrigger";
+import { ExecutionHistory } from "@/components/dashboard/ExecutionHistory";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StatsCard } from "@/components/dashboard/StatsCard";
-import { ExecutionHistory } from "@/components/dashboard/ExecutionHistory";
 
 export default function DashboardPage() {
   const { data: senders } = useQuery({
     queryKey: ["senders"],
     queryFn: async () => {
       const res = await fetch("/api/senders");
-      if (!res.ok) throw new Error("Failed to fetch senders");
+      if (!res.ok) {
+        throw new Error("Failed to fetch senders");
+      }
       return res.json();
     },
   });

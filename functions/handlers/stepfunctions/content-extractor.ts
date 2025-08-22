@@ -16,7 +16,7 @@ export class ContentExtractorHandler extends BaseStepFunctionHandler {
     this.extractor = new ContentExtractorAgent(this.costTracker);
   }
 
-  async process(event: any, context: Context): Promise<any> {
+  async process(event: any, _context: Context): Promise<any> {
     const executionId = event.metadata?.executionId;
     const mode = event.metadata?.mode;
     const startTime = event.metadata?.startTime;
@@ -67,7 +67,7 @@ export class ContentExtractorHandler extends BaseStepFunctionHandler {
     const costSoFar = (event.costSoFar || 0) + this.costTracker.getTotalCost();
 
     return {
-      executionId,  // Add at top level for Step Functions
+      executionId, // Add at top level for Step Functions
       articles: articlesOutput,
       extractionStats: {
         totalArticles: articles.length,

@@ -40,10 +40,18 @@ export function serializeError(error: unknown, trace?: RequestTrace): Serialized
 
     // Add any custom properties from the error
     const errorObj = error as any;
-    if (errorObj.code) serialized.code = errorObj.code;
-    if (errorObj.statusCode) serialized.statusCode = errorObj.statusCode;
-    if (errorObj.requestId) serialized.requestId = errorObj.requestId;
-    if (errorObj.context) serialized.context = errorObj.context;
+    if (errorObj.code) {
+      serialized.code = errorObj.code;
+    }
+    if (errorObj.statusCode) {
+      serialized.statusCode = errorObj.statusCode;
+    }
+    if (errorObj.requestId) {
+      serialized.requestId = errorObj.requestId;
+    }
+    if (errorObj.context) {
+      serialized.context = errorObj.context;
+    }
 
     // Add trace information if available
     if (trace) {

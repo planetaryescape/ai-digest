@@ -8,12 +8,11 @@ import { EnhancedCircuitBreaker } from "../lib/circuit-breaker-enhanced";
 import { BATCH_LIMITS } from "../lib/constants";
 import { CostTracker } from "../lib/cost-tracker";
 import { sendDigest, sendErrorNotification } from "../lib/email";
-import { GmailBatchOperations } from "../lib/gmail-batch-operations";
+import type { GmailBatchOperations } from "../lib/gmail-batch-operations";
 import type { ILogger } from "../lib/interfaces/logger";
 import type { IStorageClient } from "../lib/interfaces/storage";
 import { createLogger } from "../lib/logger";
-import { getMetrics } from "../lib/metrics";
-import { type DigestOutput, DigestOutputSchema } from "../lib/schemas/digest";
+import type { DigestOutput } from "../lib/schemas/digest";
 import type { Summary } from "../lib/types";
 
 const log = createLogger("digest-processor");
@@ -85,7 +84,7 @@ export class DigestProcessor {
     this.researcher = new ResearchAgent(this.costTracker);
     this.analyst = new AnalysisAgent(this.costTracker);
     this.critic = new CriticAgent(this.costTracker);
-    
+
     // Initialize batchOperations from EmailFetcherAgent
     this.batchOperations = this.emailFetcher.getBatchOperations();
 
@@ -258,7 +257,7 @@ export class DigestProcessor {
 
       // Generate cost report
       const costReport = this.costTracker.generateReport();
-      this.logger.info("Cost Report:\n" + costReport);
+      this.logger.info(`Cost Report:\n${costReport}`);
 
       return {
         success: true,
@@ -368,7 +367,7 @@ export class DigestProcessor {
   ): Promise<DigestResult> {
     try {
       this.logger.info(`Processing historical digest from ${startDate} to ${endDate}`);
-      
+
       // Reset cost tracker for this run
       this.costTracker.reset();
       const timings: any = { startTime: Date.now() };
@@ -421,8 +420,7 @@ export class DigestProcessor {
       const aiEmails = emails.filter((email) => {
         const senderEmail = this.extractEmailAddress(email.sender);
         const classification = classificationResults.get(senderEmail || "");
-        return classification?.classification === "AI" || 
-               emailBatch.aiEmailIds.includes(email.id);
+        return classification?.classification === "AI" || emailBatch.aiEmailIds.includes(email.id);
       });
       this.logger.info(`Classified ${aiEmails.length} AI-related emails`);
 
@@ -471,7 +469,7 @@ export class DigestProcessor {
       // Step 7: Build and send digest
       this.logger.info("Step 7: Building and sending historical digest");
       const digest = this.buildDigest(analysisResult, criticResult);
-      
+
       if (digest) {
         // Add historical period info to the digest
         digest.period = `${startDate} to ${endDate}`;
@@ -500,7 +498,7 @@ export class DigestProcessor {
       };
     } catch (error) {
       this.logger.error("Historical digest processing failed", error);
-      
+
       const errorMessage = error instanceof Error ? error.message : "Unknown error";
       return {
         success: false,

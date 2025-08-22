@@ -10,7 +10,7 @@ interface RateLimitConfig {
 
 class InMemoryRateLimiter {
   private limits: Map<string, RateLimitEntry> = new Map();
-  
+
   constructor(private config: RateLimitConfig) {}
 
   isAllowed(key: string): { allowed: boolean; retryAfter?: number } {
@@ -46,14 +46,17 @@ class InMemoryRateLimiter {
 
 const expensiveOperationsLimiter = new InMemoryRateLimiter({
   maxRequests: 10,
-  windowMs: 60 * 60 * 1000, 
+  windowMs: 60 * 60 * 1000,
 });
 
 setInterval(() => {
   expensiveOperationsLimiter.cleanup();
 }, 60 * 1000);
 
-export function checkRateLimit(userId: string, endpoint: string): { allowed: boolean; retryAfter?: number } {
+export function checkRateLimit(
+  userId: string,
+  endpoint: string
+): { allowed: boolean; retryAfter?: number } {
   const key = `${userId}:${endpoint}`;
   return expensiveOperationsLimiter.isAllowed(key);
 }

@@ -1,5 +1,4 @@
 import type { ILogger } from "../interfaces/logger";
-import { PinoLoggerAdapter } from "../logger";
 
 /**
  * AWS CloudWatch logger implementation

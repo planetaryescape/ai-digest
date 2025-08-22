@@ -16,7 +16,7 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
     this.emailFetcher = new EmailFetcherAgent(this.costTracker);
   }
 
-  async process(event: any, context: Context): Promise<any> {
+  async process(event: any, _context: Context): Promise<any> {
     // Extract input parameters (handle both direct and nested input)
     const input = event.input || event;
     const mode = input.mode || "weekly";
@@ -61,10 +61,10 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
     );
 
     // Store in S3 if too large
-    let emailsOutput: any = fetchResult.fullEmails;
+    let _emailsOutput: any = fetchResult.fullEmails;
     if (this.shouldUseS3(fetchResult.fullEmails)) {
       log.info("Emails too large, storing in S3");
-      emailsOutput = await this.storeInS3(
+      _emailsOutput = await this.storeInS3(
         fetchResult.fullEmails,
         `${executionId}/emails-${Date.now()}.json`
       );

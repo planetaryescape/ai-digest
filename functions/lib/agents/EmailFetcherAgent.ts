@@ -1,15 +1,11 @@
-import { gmail_v1, google } from "googleapis";
-import { OAuth2Client } from "google-auth-library";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import {
-  DynamoDBDocumentClient,
-  QueryCommand,
-  BatchWriteCommand,
-} from "@aws-sdk/lib-dynamodb";
-import { CostTracker } from "../cost-tracker";
-import { createLogger } from "../logger";
+import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { OAuth2Client } from "google-auth-library";
+import { type gmail_v1, google } from "googleapis";
 import { BATCH_LIMITS, RATE_LIMITS } from "../constants";
+import type { CostTracker } from "../cost-tracker";
 import { GmailBatchOperations } from "../gmail-batch-operations";
+import { createLogger } from "../logger";
 
 const log = createLogger("EmailFetcherAgent");
 
@@ -82,17 +78,17 @@ export class EmailFetcherAgent {
 
     try {
       // Build query based on mode
-      let query = this.buildQuery(options);
-      
+      const query = this.buildQuery(options);
+
       // Fetch messages
       const messages = await this.fetchMessages(query, options.batchSize);
-      
+
       // Fetch full message details
       const fullEmails = await this.fetchFullMessages(messages);
-      
+
       // Check senders against known lists
       const categorizedEmails = await this.categorizeBySender(fullEmails);
-      
+
       // Archive emails if in cleanup mode
       if (options.cleanup) {
         await this.archiveEmails(categorizedEmails.aiEmailIds);
@@ -152,7 +148,7 @@ export class EmailFetcherAgent {
     const batchSize = maxResults || BATCH_LIMITS.GMAIL_API;
 
     do {
-      const response = await this.gmail!.users.messages.list({
+      const response = await this.gmail?.users.messages.list({
         userId: "me",
         q: query,
         maxResults: Math.min(batchSize, BATCH_LIMITS.GMAIL_API),
@@ -183,11 +179,11 @@ export class EmailFetcherAgent {
   }
 
   private async fetchFullMessages(messages: any[]): Promise<any[]> {
-    if (!messages.length) return [];
+    if (!messages.length) {
+      return [];
+    }
 
-    const fullEmails = await this.batchOps.batchGetMessages(
-      messages.map((m) => m.id)
-    );
+    const fullEmails = await this.batchOps.batchGetMessages(messages.map((m) => m.id));
 
     this.stats.emailsFetched += fullEmails.length;
 
@@ -211,7 +207,9 @@ export class EmailFetcherAgent {
   }
 
   private extractBody(payload: any): string {
-    if (!payload) return "";
+    if (!payload) {
+      return "";
+    }
 
     // Check for plain text part
     if (payload.mimeType === "text/plain" && payload.body?.data) {
@@ -227,7 +225,9 @@ export class EmailFetcherAgent {
     if (payload.parts) {
       for (const part of payload.parts) {
         const body = this.extractBody(part);
-        if (body) return body;
+        if (body) {
+          return body;
+        }
       }
     }
 
@@ -244,17 +244,17 @@ export class EmailFetcherAgent {
 
     const categorizedEmails = emails.map((email) => {
       const senderEmail = this.extractEmailAddress(email.sender);
-      
+
       if (knownAISenders.has(senderEmail)) {
         aiEmailIds.push(email.id);
         return { ...email, isKnownAI: true };
-      } else if (knownNonAISenders.has(senderEmail)) {
+      }
+      if (knownNonAISenders.has(senderEmail)) {
         knownNonAICount++;
         return { ...email, isKnownNonAI: true };
-      } else {
-        unknownEmailIds.push(email.id);
-        return { ...email, isUnknown: true };
       }
+      unknownEmailIds.push(email.id);
+      return { ...email, isUnknown: true };
     });
 
     const metadata = emails.map((email) => ({
@@ -275,7 +275,7 @@ export class EmailFetcherAgent {
 
   private async getKnownSenders(tableName: string): Promise<Set<string>> {
     const senders = new Set<string>();
-    
+
     try {
       const response = await this.dynamodb.send(
         new QueryCommand({
@@ -307,7 +307,9 @@ export class EmailFetcherAgent {
   }
 
   private async archiveEmails(emailIds: string[]): Promise<void> {
-    if (!emailIds.length) return;
+    if (!emailIds.length) {
+      return;
+    }
 
     await this.batchOps.batchModifyMessages(emailIds, {
       removeLabelIds: ["INBOX"],

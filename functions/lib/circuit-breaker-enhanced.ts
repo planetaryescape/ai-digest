@@ -17,13 +17,13 @@ export interface CircuitBreakerOptions {
 
 export class EnhancedCircuitBreaker {
   private static breakers: Map<string, EnhancedCircuitBreaker> = new Map();
-  
+
   private state: CircuitState = CircuitState.CLOSED;
   private failureCount = 0;
   private successCount = 0;
   private lastFailureTime?: Date;
   private halfOpenAttempts = 0;
-  
+
   private readonly failureThreshold: number;
   private readonly resetTimeout: number;
   private readonly monitoringPeriod: number;
@@ -40,10 +40,10 @@ export class EnhancedCircuitBreaker {
   }
 
   static getBreaker(name: string, options?: CircuitBreakerOptions): EnhancedCircuitBreaker {
-    if (!this.breakers.has(name)) {
-      this.breakers.set(name, new EnhancedCircuitBreaker(name, options));
+    if (!EnhancedCircuitBreaker.breakers.has(name)) {
+      EnhancedCircuitBreaker.breakers.set(name, new EnhancedCircuitBreaker(name, options));
     }
-    return this.breakers.get(name)!;
+    return EnhancedCircuitBreaker.breakers.get(name)!;
   }
 
   async execute<T>(fn: () => Promise<T>): Promise<T> {
@@ -69,7 +69,7 @@ export class EnhancedCircuitBreaker {
 
   private onSuccess(): void {
     this.successCount++;
-    
+
     if (this.state === CircuitState.HALF_OPEN) {
       this.halfOpenAttempts++;
       if (this.halfOpenAttempts >= this.halfOpenMaxAttempts) {
@@ -85,7 +85,7 @@ export class EnhancedCircuitBreaker {
   private onFailure(): void {
     this.failureCount++;
     this.lastFailureTime = new Date();
-    
+
     if (this.state === CircuitState.HALF_OPEN) {
       this.state = CircuitState.OPEN;
       log.warn({ circuit: this.name }, "Circuit opened from half-open state");
@@ -99,8 +99,10 @@ export class EnhancedCircuitBreaker {
   }
 
   private shouldAttemptReset(): boolean {
-    if (!this.lastFailureTime) return true;
-    
+    if (!this.lastFailureTime) {
+      return true;
+    }
+
     const timeSinceLastFailure = Date.now() - this.lastFailureTime.getTime();
     return timeSinceLastFailure >= this.resetTimeout;
   }

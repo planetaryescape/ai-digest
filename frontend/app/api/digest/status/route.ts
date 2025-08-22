@@ -1,5 +1,5 @@
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient } from "@aws-sdk/lib-dynamodb";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 
@@ -13,7 +13,7 @@ const client = new DynamoDBClient({
   },
 });
 
-const docClient = DynamoDBDocumentClient.from(client);
+const _docClient = DynamoDBDocumentClient.from(client);
 
 export async function GET(request: Request) {
   try {
@@ -38,8 +38,7 @@ export async function GET(request: Request) {
       message: "Digest generation completed successfully",
       timestamp: new Date().toISOString(),
     });
-  } catch (error) {
-    console.error("Error checking digest status:", error);
+  } catch (_error) {
     return NextResponse.json({ error: "Failed to check digest status" }, { status: 500 });
   }
 }

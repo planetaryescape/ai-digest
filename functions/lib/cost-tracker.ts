@@ -1,5 +1,5 @@
-import { createLogger } from "./logger";
 import { COST_LIMITS } from "./constants";
+import { createLogger } from "./logger";
 
 const log = createLogger("CostTracker");
 
@@ -18,7 +18,7 @@ export class CostTracker {
   recordApiCall(service: string, operation: string, cost?: number): void {
     // Calculate cost if not provided
     const actualCost = cost || this.calculateCost(service, operation);
-    
+
     const apiCost: ApiCost = {
       service,
       operation,
@@ -55,16 +55,16 @@ export class CostTracker {
           return COST_LIMITS.OPENAI_GPT4O_MINI_COST;
         }
         return COST_LIMITS.OPENAI_GPT5_COST;
-      
+
       case "firecrawl":
         return COST_LIMITS.FIRECRAWL_COST_PER_URL;
-      
+
       case "brave":
         return COST_LIMITS.BRAVE_SEARCH_COST;
-      
+
       case "gmail":
         return 0; // Gmail API is free
-      
+
       default:
         return 0;
     }
@@ -106,11 +106,11 @@ export class CostTracker {
 
   private getCostByService(): Record<string, number> {
     const costByService: Record<string, number> = {};
-    
+
     for (const cost of this.costs) {
       costByService[cost.service] = (costByService[cost.service] || 0) + cost.cost;
     }
-    
+
     return costByService;
   }
 

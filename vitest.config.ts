@@ -8,7 +8,7 @@ export default defineConfig({
     setupFiles: ["./test/setup.ts"],
     coverage: {
       provider: "v8",
-      reporter: ["text", "json", "html", "lcov"],
+      reporter: ["text", "json", "html", "lcov", "json-summary"],
       exclude: [
         "node_modules/**",
         "test/**",
@@ -24,10 +24,36 @@ export default defineConfig({
         "coverage/**",
       ],
       thresholds: {
-        statements: 50,
-        branches: 50,
-        functions: 50,
-        lines: 50,
+        global: {
+          statements: 50,
+          branches: 50,
+          functions: 50,
+          lines: 50,
+        },
+        "functions/core/digest-processor.ts": {
+          statements: 80,
+          branches: 80,
+          functions: 80,
+          lines: 80,
+        },
+        "functions/lib/agents/*.ts": {
+          statements: 75,
+          branches: 75,
+          functions: 75,
+          lines: 75,
+        },
+        "functions/handlers/**/*.ts": {
+          statements: 70,
+          branches: 70,
+          functions: 70,
+          lines: 70,
+        },
+        "functions/lib/*.ts": {
+          statements: 60,
+          branches: 60,
+          functions: 60,
+          lines: 60,
+        },
       },
     },
     include: ["functions/**/*.{test,spec}.{ts,tsx}", "test/**/*.{test,spec}.{ts,tsx}"],

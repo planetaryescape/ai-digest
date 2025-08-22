@@ -16,7 +16,7 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
     this.analysisAgent = new AnalysisAgent(this.costTracker);
   }
 
-  async process(event: any, context: Context): Promise<any> {
+  async process(event: any, _context: Context): Promise<any> {
     const executionId = event.metadata?.executionId;
     const startTime = event.metadata?.startTime;
 
@@ -137,7 +137,7 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
       this.costTracker.getTotalCost();
 
     return {
-      executionId,  // Add at top level for Step Functions
+      executionId, // Add at top level for Step Functions
       analysisResult: analysisOutput,
       analysisStats: {
         articlesAnalyzed: articles.length,

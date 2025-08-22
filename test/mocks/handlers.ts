@@ -69,7 +69,7 @@ export const handlers = [
 
   // AWS DynamoDB handlers
   http.post("https://dynamodb.us-east-1.amazonaws.com/", async ({ request }) => {
-    const body = await request.json();
+    const _body = await request.json();
     const target = request.headers.get("X-Amz-Target");
 
     if (target?.includes("PutItem")) {

@@ -40,9 +40,6 @@ export class StorageFactory {
     if (process.env.AWS_REGION || process.env.DYNAMODB_TABLE_NAME) {
       return StorageFactory.createByType(StorageType.DynamoDB);
     }
-
-    // Fallback to DynamoDB
-    console.warn("No storage configuration detected, defaulting to DynamoDB");
     return StorageFactory.createByType(StorageType.DynamoDB);
   }
 
@@ -57,8 +54,6 @@ export class StorageFactory {
         `Unknown storage type: ${type}. Available types: ${Array.from(StorageFactory.storageProviders.keys()).join(", ")}`
       );
     }
-
-    console.log(`Creating storage client: ${type}`);
     return provider();
   }
 

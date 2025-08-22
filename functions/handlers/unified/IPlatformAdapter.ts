@@ -1,5 +1,5 @@
 import type { DigestResult } from "../../core/digest-processor";
-import type { UnifiedContext, UnifiedRequest, UnifiedResponse } from "./types";
+import type { UnifiedContext, UnifiedRequest } from "./types";
 
 /**
  * Platform adapter interface for abstracting cloud provider differences

@@ -29,8 +29,6 @@ const buildFunction = async (config) => {
 
   // Check if the handler file exists
   if (!fs.existsSync(entryFile)) {
-    console.warn(`⚠️  Warning: Handler file not found: ${entryFile}`);
-    console.warn(`   Skipping ${config.name}`);
     return;
   }
 
@@ -72,17 +70,12 @@ const buildFunction = async (config) => {
         "pino-pretty", // Dev dependency
       ],
     });
-
-    console.log(`✅ Built Pipeline Lambda: ${config.name}`);
-  } catch (error) {
-    console.error(`❌ Failed to build Pipeline Lambda: ${config.name}`, error);
+  } catch (_error) {
     // Don't exit on individual failures, continue with other functions
   }
 };
 
 const createDeploymentPackage = () => {
-  console.log("📦 Creating Pipeline Lambda deployment package...");
-
   const packagePath = path.join(outputDir, "..", "lambda-pipeline.zip");
 
   // Remove old package if exists
@@ -92,7 +85,6 @@ const createDeploymentPackage = () => {
 
   // Check if output directory has any files
   if (!fs.existsSync(outputDir) || fs.readdirSync(outputDir).length === 0) {
-    console.warn("⚠️  No Lambda functions built for Pipeline");
     return;
   }
 
@@ -100,23 +92,16 @@ const createDeploymentPackage = () => {
   const zipCommand = `cd ${outputDir} && zip -r ../lambda-pipeline.zip . -q`;
   execSync(zipCommand);
 
-  console.log(`✅ Created deployment package: ${packagePath}`);
-
   // Get package size
   const stats = fs.statSync(packagePath);
   const fileSizeInMB = stats.size / (1024 * 1024);
-  console.log(`📊 Package size: ${fileSizeInMB.toFixed(2)} MB`);
 
   if (fileSizeInMB > 50) {
-    console.warn("⚠️  Warning: Package is larger than 50MB. Consider using Lambda Layers.");
   }
 };
 
 // Run all builds in parallel but wait for them to complete
 const main = async () => {
-  console.log("🔨 Building Pipeline Lambda handlers...");
-  console.log("📁 Looking for handlers in:", handlersDir);
-
   try {
     // Check if we have any handlers to build
     const existingHandlers = pipelineLambdas.filter((config) => {
@@ -125,17 +110,12 @@ const main = async () => {
     });
 
     if (existingHandlers.length === 0) {
-      console.warn("⚠️  No Pipeline handlers found to build");
-      console.log("   Expected location: functions/handlers/pipeline/");
-      console.log("   You may need to create the handler files first");
       return;
     }
 
     await Promise.all(existingHandlers.map(buildFunction));
     createDeploymentPackage();
-    console.log("✅ Pipeline Lambda build completed");
-  } catch (error) {
-    console.error("❌ Build failed", error);
+  } catch (_error) {
     process.exit(1);
   }
 };

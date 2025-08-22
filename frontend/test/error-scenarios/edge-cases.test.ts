@@ -1,13 +1,13 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { QueryClient, type QueryClientProvider } from '@tanstack/react-query';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { DigestTrigger } from '@/components/dashboard/DigestTrigger';
-import { ExecutionHistory } from '@/components/dashboard/ExecutionHistory';
+import { delay, HttpResponse, http } from 'msw';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import type { DigestTrigger } from '@/components/dashboard/DigestTrigger';
+import type { ExecutionHistory } from '@/components/dashboard/ExecutionHistory';
 import { server } from '@/test/mocks/server';
-import { http, HttpResponse, delay } from 'msw';
 
-const createWrapper = () => {
+const _createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -211,7 +211,7 @@ describe('Error Scenarios and Edge Cases', () => {
   describe('Race Conditions', () => {
     it('handles rapid state changes during polling', async () => {
       const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-      let statusSequence = ['RUNNING', 'SUCCEEDED', 'FAILED', 'RUNNING'];
+      const statusSequence = ['RUNNING', 'SUCCEEDED', 'FAILED', 'RUNNING'];
       let index = 0;
       
       server.use(
@@ -325,7 +325,7 @@ describe('Error Scenarios and Edge Cases', () => {
     });
     
     it('handles extremely long execution names', async () => {
-      const longName = 'execution-' + 'x'.repeat(1000);
+      const longName = `execution-${'x'.repeat(1000)}`;
       
       server.use(
         http.get('/api/stepfunctions/executions', () => {

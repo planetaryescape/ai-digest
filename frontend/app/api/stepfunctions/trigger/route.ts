@@ -1,10 +1,10 @@
 import { StartExecutionCommand } from "@aws-sdk/client-sfn";
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { sanitizeError } from "@/lib/utils/error-handling";
 import { getSFNClient } from "@/lib/aws/clients";
-import { checkRateLimit } from "@/lib/rate-limiter";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
+import { checkRateLimit } from "@/lib/rate-limiter";
+import { sanitizeError } from "@/lib/utils/error-handling";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
     if (!rateLimitResult.allowed) {
       return NextResponse.json(
         { error: "Too many requests. Please try again later." },
-        { 
+        {
           status: 429,
           headers: {
             "Retry-After": rateLimitResult.retryAfter?.toString() || "3600",
@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const { cleanup = false, dateRange, useStepFunctions = true } = body;
 
     const stateMachineArn = process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN;
-    
+
     if (!stateMachineArn) {
       return NextResponse.json(
         { error: "Step Functions state machine ARN not configured" },
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     });
 
     const sfnClient = getSFNClient();
-    
+
     const response = await sfnCircuitBreaker.execute(async () => {
       return await sfnClient.send(command);
     });
@@ -75,12 +75,11 @@ export async function POST(request: Request) {
       startDate: response.startDate,
     });
   } catch (error) {
-    console.error("Error starting Step Functions execution:", error);
     return NextResponse.json(
-      { 
+      {
         error: "Failed to start Step Functions pipeline",
-        details: sanitizeError(error)
-      }, 
+        details: sanitizeError(error),
+      },
       { status: 500 }
     );
   }

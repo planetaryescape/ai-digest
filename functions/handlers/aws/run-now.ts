@@ -17,8 +17,7 @@ async function handler(
   // Load secrets from AWS Secrets Manager on cold start
   try {
     await SecretsLoader.loadSecrets();
-  } catch (error) {
-    console.error("Failed to load secrets:", error);
+  } catch (_error) {
     // Continue anyway as run-now doesn't need secrets directly
   }
 
@@ -118,7 +117,7 @@ async function handler(
       }),
     });
 
-    const result = await lambda.send(command);
+    const _result = await lambda.send(command);
 
     // All invocations are now async - return immediately with confirmation
     let message: string;

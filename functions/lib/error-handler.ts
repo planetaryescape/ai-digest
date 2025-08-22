@@ -40,18 +40,20 @@ export class ErrorHandler {
       if (logger) {
         logger.error(`Error in ${context}:`, errorMessage, error);
       } else {
-        console.error(`Error in ${context}:`, errorMessage, error);
       }
 
       // Send notification if requested
       if (notify) {
         try {
-          await sendErrorNotification(error instanceof Error ? error : new Error(errorMessage));
+          await sendErrorNotification(
+            process.env.ADMIN_EMAIL || "admin@example.com",
+            error instanceof Error ? error : new Error(errorMessage),
+            context
+          );
         } catch (notifyError) {
           if (logger) {
             logger.error("Failed to send error notification:", notifyError);
           } else {
-            console.error("Failed to send error notification:", notifyError);
           }
         }
       }
@@ -115,11 +117,11 @@ export class ErrorHandler {
       stopOnError?: boolean;
       logger?: ILogger;
     } = {}
-  ): Promise<Array<ErrorResult<T>>> {
+  ): Promise<ErrorResult<T>[]> {
     const { stopOnError = false, logger } = options;
 
     if (stopOnError) {
-      const results: Array<ErrorResult<T>> = [];
+      const results: ErrorResult<T>[] = [];
       for (const operation of operations) {
         const result = await ErrorHandler.wrap(operation, { critical: false, logger });
         results.push(result);
