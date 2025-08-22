@@ -85,7 +85,9 @@ export class DigestProcessor {
     this.researcher = new ResearchAgent(this.costTracker);
     this.analyst = new AnalysisAgent(this.costTracker);
     this.critic = new CriticAgent(this.costTracker);
-    // Note: batchOperations is initialized by EmailFetcherAgent internally
+    
+    // Initialize batchOperations from EmailFetcherAgent
+    this.batchOperations = this.emailFetcher.getBatchOperations();
 
     // Initialize circuit breakers
     this.gmailBreaker = EnhancedCircuitBreaker.getBreaker("gmail");
