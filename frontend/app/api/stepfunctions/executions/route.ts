@@ -37,21 +37,23 @@ export async function GET(request: Request) {
       // Return demo data when AWS credentials are not configured
       const demoExecutions = [
         {
-          executionArn: "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-1",
+          executionArn:
+            "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-1",
           name: "demo-execution-1",
           status: "SUCCEEDED",
           startDate: new Date(Date.now() - 3600000).toISOString(),
           stopDate: new Date(Date.now() - 3000000).toISOString(),
         },
         {
-          executionArn: "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-2",
+          executionArn:
+            "arn:aws:states:us-east-1:123456789012:execution:ai-digest-pipeline:demo-execution-2",
           name: "demo-execution-2",
           status: "RUNNING",
           startDate: new Date(Date.now() - 600000).toISOString(),
           stopDate: null,
         },
       ];
-      
+
       return NextResponse.json({
         executions: demoExecutions,
         nextToken: null,
