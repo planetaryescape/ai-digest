@@ -14,6 +14,7 @@ export interface Summary {
   headline?: string;
   whatHappened?: string;
   takeaways?: string;
+  generatedAt?: string;
 }
 
 export interface EmailMessage {
@@ -48,6 +49,8 @@ export interface EmailItem {
   extractedUrls?: string[];
   articleContent?: string;
   research?: any;
+  articles?: Article[];
+  gmailLink?: string;
 }
 
 export interface ProcessedEmail {
@@ -62,18 +65,25 @@ export interface Article {
   content: string;
   publishedAt?: string;
   author?: string;
+  snippet?: string;
+  aiSummary?: string;
+  desc?: string;
 }
 
 export interface App {
   name: string;
   version: string;
   environment: string;
+  keywords?: string[];
+  url?: string;
+  desc?: string;
 }
 
 export interface ProductContext {
   product: string;
   stage: string;
   version: string;
+  apps?: App[];
 }
 
 export interface DigestResult {
@@ -90,4 +100,9 @@ export interface DigestResult {
   shortMessage?: string;
   whatHappened?: string;
   takeaways?: string;
+  summary?: string;
+  productPlays?: any[];
+  keyThemes?: string[];
+  competitiveIntel?: any[];
+  tools?: any[];
 }

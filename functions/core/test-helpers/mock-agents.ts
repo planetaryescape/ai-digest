@@ -7,6 +7,7 @@ import type { CostTracker } from "../../lib/cost-tracker";
 export class MockEmailFetcherAgent {
   private gmail: any;
   private batchOps: any;
+  private costTracker: CostTracker;
 
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
@@ -91,6 +92,8 @@ export class MockEmailFetcherAgent {
 
 // Mock ClassifierAgent
 export class MockClassifierAgent {
+  private costTracker: CostTracker;
+
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -120,6 +123,8 @@ export class MockClassifierAgent {
 
 // Mock ContentExtractorAgent
 export class MockContentExtractorAgent {
+  private costTracker: CostTracker;
+
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -133,6 +138,8 @@ export class MockContentExtractorAgent {
 
 // Mock ResearchAgent
 export class MockResearchAgent {
+  private costTracker: CostTracker;
+
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -146,6 +153,8 @@ export class MockResearchAgent {
 
 // Mock AnalysisAgent
 export class MockAnalysisAgent {
+  private costTracker: CostTracker;
+
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }
@@ -166,6 +175,8 @@ export class MockAnalysisAgent {
 
 // Mock CriticAgent
 export class MockCriticAgent {
+  private costTracker: CostTracker;
+
   constructor(costTracker: CostTracker) {
     this.costTracker = costTracker;
   }

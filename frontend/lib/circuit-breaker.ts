@@ -14,10 +14,7 @@ export class CircuitBreakerWrapper {
 
   private static breakers = new Map<string, CircuitBreakerWrapper>();
 
-  constructor(
-    service: string,
-    options: CircuitBreakerOptions = {}
-  ) {
+  constructor(service: string, options: CircuitBreakerOptions = {}) {
     this.service = service;
 
     const opossumOptions: OpossumCircuitBreaker.Options = {
@@ -57,13 +54,10 @@ export class CircuitBreakerWrapper {
 
     CircuitBreakerWrapper.breakers.set(service, this);
 
-    console.log(
-      `Circuit breaker initialized for ${service}`,
-      {
-        failureThreshold: options.failureThreshold ?? 5,
-        resetTimeout: options.resetTimeout ?? 60000,
-      }
-    );
+    console.log(`Circuit breaker initialized for ${service}`, {
+      failureThreshold: options.failureThreshold ?? 5,
+      resetTimeout: options.resetTimeout ?? 60000,
+    });
   }
 
   static getBreaker(service: string, options?: CircuitBreakerOptions): CircuitBreakerWrapper {
@@ -87,11 +81,7 @@ export class CircuitBreakerWrapper {
 
   getStats() {
     const stats = this.breaker.stats;
-    const state = this.breaker.opened 
-      ? "OPEN" 
-      : this.breaker.halfOpen 
-        ? "HALF_OPEN" 
-        : "CLOSED";
+    const state = this.breaker.opened ? "OPEN" : this.breaker.halfOpen ? "HALF_OPEN" : "CLOSED";
 
     return {
       state: state as CircuitState,
