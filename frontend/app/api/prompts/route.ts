@@ -120,16 +120,17 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get("promptId");
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || 
+        process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key_id') {
       // Return demo data when AWS credentials are not configured
       if (promptId) {
         const prompt = defaultPrompts.find((p) => p.promptId === promptId);
         if (!prompt) {
           return NextResponse.json({ error: "Prompt not found" }, { status: 404, headers });
         }
-        return NextResponse.json(prompt, { headers });
+        return NextResponse.json({ ...prompt, _demoMode: true }, { headers });
       }
-      return NextResponse.json(defaultPrompts, { headers });
+      return NextResponse.json({ prompts: defaultPrompts, _demoMode: true }, { headers });
     }
 
     const docClient = getDocClient();
@@ -206,7 +207,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {
+    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY ||
+        process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key_id') {
       // Return mock success response when AWS credentials are not configured
       const newPrompt: DigestPrompt = {
         promptId,
@@ -225,7 +227,8 @@ export async function POST(request: NextRequest) {
         {
           success: true,
           prompt: newPrompt,
-          demo: true,
+          _demoMode: true,
+          message: "Demo mode: Changes are not persisted. Configure AWS credentials to save prompts."
         },
         { headers }
       );
