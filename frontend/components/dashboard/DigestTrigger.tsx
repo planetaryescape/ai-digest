@@ -372,7 +372,7 @@ export function DigestTrigger() {
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>
-              Digest generation has been triggered successfully. You'll receive an email once it's
+              Digest generation has been triggered successfully. You&apos;ll receive an email once it&apos;s
               complete.
             </AlertDescription>
           </Alert>

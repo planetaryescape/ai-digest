@@ -22,7 +22,7 @@ import {
   Search,
   Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -107,13 +107,13 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
     },
   });
 
-  const handleDeleteSender = (email: string) => {
+  const handleDeleteSender = useCallback((email: string) => {
     deleteMutation.mutate([email]);
-  };
+  }, [deleteMutation]);
 
-  const handleDeleteSelected = (emails: string[]) => {
+  const handleDeleteSelected = useCallback((emails: string[]) => {
     deleteMutation.mutate(emails);
-  };
+  }, [deleteMutation]);
 
   const columns = useMemo<ColumnDef<ExtendedSender>[]>(
     () => [
@@ -248,7 +248,7 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
         },
       },
     ],
-    []
+    [handleDeleteSender]
   );
 
   const table = useReactTable({
