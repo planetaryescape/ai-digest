@@ -1,6 +1,6 @@
-import { Bench } from "tinybench";
-import { writeFileSync, readFileSync, existsSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
+import { Bench } from "tinybench";
 
 export interface BenchmarkResult {
   name: string;

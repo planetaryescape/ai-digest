@@ -41,9 +41,9 @@ export class ResearchHandler extends BaseStepFunctionHandler {
     log.info({ emailCount: emails.length }, "Starting research enrichment");
 
     // Perform research on emails
-    const researchStartTime = Date.now();
+    const researchStartTime = performance.now();
     const researchData = await this.researcher.enrichWithResearch(emails);
-    const researchTime = Date.now() - researchStartTime;
+    const researchTime = performance.now() - researchStartTime;
 
     log.info(
       {
@@ -59,7 +59,7 @@ export class ResearchHandler extends BaseStepFunctionHandler {
       log.info("Research data too large, storing in S3");
       researchOutput = await this.storeInS3(
         researchData,
-        `${executionId}/research-${Date.now()}.json`
+        `${executionId}/research-${performance.now()}.json`
       );
     }
 

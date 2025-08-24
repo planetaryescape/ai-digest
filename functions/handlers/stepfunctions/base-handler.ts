@@ -38,13 +38,13 @@ export abstract class BaseStepFunctionHandler {
       }
     }
 
-    const startTime = Date.now();
+    const startTime = performance.now();
     log.info({ event, context }, "Handler invoked");
 
     try {
       const result = await this.process(event, context);
 
-      const executionTime = Date.now() - startTime;
+      const executionTime = performance.now() - startTime;
       log.info({ executionTime, cost: this.costTracker.getTotalCost() }, "Handler completed");
 
       return result;

@@ -1,5 +1,6 @@
 import { InvokeCommand, Lambda } from "@aws-sdk/client-lambda";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import { formatISO, parseISO } from "date-fns";
 import { SecretsLoader } from "../../lib/aws/secrets-loader";
 import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
 
@@ -35,7 +36,7 @@ async function handler(
       body: JSON.stringify({
         success: false,
         error: "Weekly digest Lambda function name not configured",
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
         invocationId: context.awsRequestId,
       }),
     };
@@ -76,8 +77,8 @@ async function handler(
 
       // Basic date validation
       try {
-        const start = new Date(startDate);
-        const end = new Date(endDate);
+        const start = parseISO(startDate);
+        const end = parseISO(endDate);
         if (start >= end) {
           throw new Error("startDate must be before endDate");
         }
@@ -146,7 +147,7 @@ async function handler(
         mode,
         dateRange: mode === "historical" ? { start: startDate, end: endDate } : undefined,
         invocationId: context.awsRequestId,
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
         note: "Processing started. Check CloudWatch logs for completion status.",
       }),
     };
@@ -166,7 +167,7 @@ async function handler(
         success: false,
         error: errorMessage,
         invocationId: context.awsRequestId,
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
       }),
     };
   }

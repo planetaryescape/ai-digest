@@ -136,25 +136,32 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                   </Heading>
                 </div>
                 <div className="bg-card rounded-xl border border-border p-6">
-                  {Array.isArray(digest.whatHappened) && digest.whatHappened.map((item, i) => (
-                    <div
-                      key={i}
-                      className={`${
-                        i < digest.whatHappened.length - 1 ? "mb-4 pb-4 border-b border-border" : ""
-                      }`}
-                    >
-                      <Text className="font-semibold text-brand text-base mb-1">{item.title}</Text>
-                      <Text className="text-sm text-primary mb-2">
-                        {item.source}
-                        {item.category && (
-                          <span className="ml-2 text-xs bg-primary/10 px-2 py-0.5 rounded">
-                            {item.category}
-                          </span>
-                        )}
-                      </Text>
-                      <Text className="text-muted text-sm leading-relaxed">{item.description}</Text>
-                    </div>
-                  ))}
+                  {Array.isArray(digest.whatHappened) &&
+                    digest.whatHappened.map((item, i) => (
+                      <div
+                        key={i}
+                        className={`${
+                          i < digest.whatHappened.length - 1
+                            ? "mb-4 pb-4 border-b border-border"
+                            : ""
+                        }`}
+                      >
+                        <Text className="font-semibold text-brand text-base mb-1">
+                          {item.title}
+                        </Text>
+                        <Text className="text-sm text-primary mb-2">
+                          {item.source}
+                          {item.category && (
+                            <span className="ml-2 text-xs bg-primary/10 px-2 py-0.5 rounded">
+                              {item.category}
+                            </span>
+                          )}
+                        </Text>
+                        <Text className="text-muted text-sm leading-relaxed">
+                          {item.description}
+                        </Text>
+                      </div>
+                    ))}
                 </div>
               </Section>
             )}
@@ -171,54 +178,55 @@ export const WeeklyDigestEmail = ({ summary }: WeeklyDigestEmailProps) => {
                   </Heading>
                 </div>
                 <Row>
-                  {Array.isArray(digest.takeaways) && digest.takeaways.map((takeaway, i) => {
-                    const colors = {
-                      technical: {
-                        bg: "bg-primary/10",
-                        text: "text-primary",
-                        icon: "⚙️",
-                      },
-                      business: {
-                        bg: "bg-success/10",
-                        text: "text-success",
-                        icon: "💼",
-                      },
-                      risk: {
-                        bg: "bg-danger/10",
-                        text: "text-danger",
-                        icon: "⚠️",
-                      },
-                    };
-                    const style = colors[takeaway.category];
+                  {Array.isArray(digest.takeaways) &&
+                    digest.takeaways.map((takeaway, i) => {
+                      const colors = {
+                        technical: {
+                          bg: "bg-primary/10",
+                          text: "text-primary",
+                          icon: "⚙️",
+                        },
+                        business: {
+                          bg: "bg-success/10",
+                          text: "text-success",
+                          icon: "💼",
+                        },
+                        risk: {
+                          bg: "bg-danger/10",
+                          text: "text-danger",
+                          icon: "⚠️",
+                        },
+                      };
+                      const style = colors[takeaway.category];
 
-                    return (
-                      <Column key={i} className="w-full mb-4">
-                        <div className={`${style.bg} rounded-xl p-4`}>
-                          <div className="flex items-start">
-                            <Text className="text-xl mr-3 mt-1">{style.icon}</Text>
-                            <div className="flex-1">
-                              <Text
-                                className={`${style.text} font-semibold text-sm uppercase tracking-wide mb-1`}
-                              >
-                                {takeaway.category}
-                              </Text>
-                              <Text className="font-semibold text-brand mb-2">
-                                {takeaway.title}
-                              </Text>
-                              <Text className="text-muted text-sm leading-relaxed">
-                                {takeaway.description}
-                              </Text>
-                              {takeaway.actionable && (
-                                <span className="inline-block mt-2 bg-white px-2 py-1 rounded text-xs font-medium text-success">
-                                  Action Required
-                                </span>
-                              )}
+                      return (
+                        <Column key={i} className="w-full mb-4">
+                          <div className={`${style.bg} rounded-xl p-4`}>
+                            <div className="flex items-start">
+                              <Text className="text-xl mr-3 mt-1">{style.icon}</Text>
+                              <div className="flex-1">
+                                <Text
+                                  className={`${style.text} font-semibold text-sm uppercase tracking-wide mb-1`}
+                                >
+                                  {takeaway.category}
+                                </Text>
+                                <Text className="font-semibold text-brand mb-2">
+                                  {takeaway.title}
+                                </Text>
+                                <Text className="text-muted text-sm leading-relaxed">
+                                  {takeaway.description}
+                                </Text>
+                                {takeaway.actionable && (
+                                  <span className="inline-block mt-2 bg-white px-2 py-1 rounded text-xs font-medium text-success">
+                                    Action Required
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </Column>
-                    );
-                  })}
+                        </Column>
+                      );
+                    })}
                 </Row>
               </Section>
             )}

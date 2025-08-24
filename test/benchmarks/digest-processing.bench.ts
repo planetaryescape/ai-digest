@@ -1,8 +1,8 @@
-import { BenchmarkRunner } from "./benchmark-runner";
 import { DigestProcessor } from "../../functions/core/digest-processor";
 import { CostTracker } from "../../functions/lib/cost-tracker";
 import type { ILogger } from "../../functions/lib/interfaces/logger";
 import type { IStorageClient } from "../../functions/lib/interfaces/storage";
+import { BenchmarkRunner } from "./benchmark-runner";
 
 // Mock implementations for benchmarking
 class MockLogger implements ILogger {

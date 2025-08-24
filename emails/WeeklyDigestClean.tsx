@@ -99,47 +99,48 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
                 >
                   What Happened
                 </Heading>
-                {Array.isArray(digest.whatHappened) && digest.whatHappened.map((item, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      marginBottom: "16px",
-                      paddingBottom: "16px",
-                      borderBottom:
-                        i < digest.whatHappened.length - 1 ? "1px solid #e5e5e5" : "none",
-                    }}
-                  >
-                    <Text
+                {Array.isArray(digest.whatHappened) &&
+                  digest.whatHappened.map((item, i) => (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: "16px",
-                        fontWeight: "600",
-                        color: "#000",
-                        margin: "0 0 4px 0",
+                        marginBottom: "16px",
+                        paddingBottom: "16px",
+                        borderBottom:
+                          i < digest.whatHappened.length - 1 ? "1px solid #e5e5e5" : "none",
                       }}
                     >
-                      {item.title}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: "12px",
-                        color: "#666",
-                        margin: "0 0 8px 0",
-                      }}
-                    >
-                      {item.source} {item.category && `• ${item.category}`}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: "14px",
-                        color: "#333",
-                        margin: "0",
-                        lineHeight: "1.5",
-                      }}
-                    >
-                      {item.description}
-                    </Text>
-                  </div>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "600",
+                          color: "#000",
+                          margin: "0 0 4px 0",
+                        }}
+                      >
+                        {item.title}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: "12px",
+                          color: "#666",
+                          margin: "0 0 8px 0",
+                        }}
+                      >
+                        {item.source} {item.category && `• ${item.category}`}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: "14px",
+                          color: "#333",
+                          margin: "0",
+                          lineHeight: "1.5",
+                        }}
+                      >
+                        {item.description}
+                      </Text>
+                    </div>
+                  ))}
               </Section>
             )}
 
@@ -159,61 +160,62 @@ export const WeeklyDigestEmail = ({ summary, platform }: WeeklyDigestEmailProps)
                 >
                   Do This
                 </Heading>
-                {Array.isArray(digest.takeaways) && digest.takeaways.map((takeaway, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      marginBottom: "12px",
-                      padding: "12px",
-                      backgroundColor: takeaway.actionable ? "#fff3cd" : "#f8f9fa",
-                      borderLeft: `3px solid ${
-                        takeaway.category === "technical"
-                          ? "#0066cc"
-                          : takeaway.category === "business"
-                            ? "#28a745"
-                            : "#dc3545"
-                      }`,
-                    }}
-                  >
-                    <Text
+                {Array.isArray(digest.takeaways) &&
+                  digest.takeaways.map((takeaway, i) => (
+                    <div
+                      key={i}
                       style={{
-                        fontSize: "11px",
-                        fontWeight: "600",
-                        color:
+                        marginBottom: "12px",
+                        padding: "12px",
+                        backgroundColor: takeaway.actionable ? "#fff3cd" : "#f8f9fa",
+                        borderLeft: `3px solid ${
                           takeaway.category === "technical"
                             ? "#0066cc"
                             : takeaway.category === "business"
                               ? "#28a745"
-                              : "#dc3545",
-                        margin: "0 0 4px 0",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.5px",
+                              : "#dc3545"
+                        }`,
                       }}
                     >
-                      {takeaway.category}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: "15px",
-                        fontWeight: "600",
-                        color: "#000",
-                        margin: "0 0 4px 0",
-                      }}
-                    >
-                      {takeaway.title}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: "14px",
-                        color: "#333",
-                        margin: "0",
-                        lineHeight: "1.4",
-                      }}
-                    >
-                      {takeaway.description}
-                    </Text>
-                  </div>
-                ))}
+                      <Text
+                        style={{
+                          fontSize: "11px",
+                          fontWeight: "600",
+                          color:
+                            takeaway.category === "technical"
+                              ? "#0066cc"
+                              : takeaway.category === "business"
+                                ? "#28a745"
+                                : "#dc3545",
+                          margin: "0 0 4px 0",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.5px",
+                        }}
+                      >
+                        {takeaway.category}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: "15px",
+                          fontWeight: "600",
+                          color: "#000",
+                          margin: "0 0 4px 0",
+                        }}
+                      >
+                        {takeaway.title}
+                      </Text>
+                      <Text
+                        style={{
+                          fontSize: "14px",
+                          color: "#333",
+                          margin: "0",
+                          lineHeight: "1.4",
+                        }}
+                      >
+                        {takeaway.description}
+                      </Text>
+                    </div>
+                  ))}
               </Section>
             )}
 

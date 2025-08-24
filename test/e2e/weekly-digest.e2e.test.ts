@@ -1,6 +1,6 @@
-import { test, expect } from "@playwright/test";
-import { TestHelpers } from "./utils/test-helpers";
+import { expect, test } from "@playwright/test";
 import { testConfig } from "./fixtures/test-data";
+import { TestHelpers } from "./utils/test-helpers";
 
 test.describe("Weekly Digest Flow", () => {
   let helpers: TestHelpers;

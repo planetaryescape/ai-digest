@@ -105,9 +105,9 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
     );
 
     // Perform analysis using the correct method name
-    const analysisStartTime = Date.now();
+    const analysisStartTime = performance.now();
     const analysisResult = await this.analysisAgent.analyzeContent(enrichedEmails); // Fixed: using analyzeContent instead of analyzeEmails
-    const analysisTime = Date.now() - analysisStartTime;
+    const analysisTime = performance.now() - analysisStartTime;
 
     log.info(
       {
@@ -125,7 +125,7 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
       log.info("Analysis result too large, storing in S3");
       analysisOutput = await this.storeInS3(
         analysisResult,
-        `${executionId}/analysis-${Date.now()}.json`
+        `${executionId}/analysis-${performance.now()}.json`
       );
     } else {
       analysisOutput = analysisResult;
@@ -148,7 +148,7 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
       metadata: {
         executionId,
         mode: event.metadata?.mode,
-        totalPipelineTime: Date.now() - startTime,
+        totalPipelineTime: performance.now() - startTime,
       },
       costSoFar,
     };

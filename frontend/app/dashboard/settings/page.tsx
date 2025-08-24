@@ -32,7 +32,11 @@ export default function SettingsPage() {
   const [showVariables, setShowVariables] = useState(true);
   const queryClient = useQueryClient();
 
-  const { data: promptsData, isLoading, error } = useQuery({
+  const {
+    data: promptsData,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["prompts"],
     queryFn: async () => {
       const res = await fetch("/api/prompts");
@@ -44,10 +48,12 @@ export default function SettingsPage() {
       return data;
     },
   });
-  
-  const prompts: DigestPrompt[] = promptsData?._demoMode 
-    ? promptsData.prompts 
-    : (Array.isArray(promptsData) ? promptsData : promptsData?.prompts || []);
+
+  const prompts: DigestPrompt[] = promptsData?._demoMode
+    ? promptsData.prompts
+    : Array.isArray(promptsData)
+      ? promptsData
+      : promptsData?.prompts || [];
   const isDemoMode = promptsData?._demoMode || false;
 
   const savePromptMutation = useMutation({
@@ -78,7 +84,9 @@ export default function SettingsPage() {
     if (!selectedPrompt) return;
 
     if (isDemoMode) {
-      toast.info("Demo Mode: Changes won't be persisted. Configure AWS credentials to save prompts.");
+      toast.info(
+        "Demo Mode: Changes won't be persisted. Configure AWS credentials to save prompts."
+      );
       return;
     }
 
@@ -139,7 +147,6 @@ export default function SettingsPage() {
     );
   }
 
-
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -178,48 +185,48 @@ export default function SettingsPage() {
                 </div>
               ) : (
                 prompts.map((prompt) => (
-                <button
-                  key={prompt.promptId}
-                  onClick={() => handleSelectPrompt(prompt)}
-                  className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-colors",
-                    selectedPrompt?.promptId === prompt.promptId
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:bg-gray-50"
-                  )}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="font-medium text-gray-900">{prompt.name}</div>
-                      {prompt.description && (
-                        <div className="text-sm text-gray-500 mt-1">{prompt.description}</div>
-                      )}
-                    </div>
-                    <span
-                      className={cn(
-                        "px-2 py-1 text-xs font-medium rounded-full",
-                        categoryColors[prompt.category]
-                      )}
-                    >
-                      {prompt.category}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-2 mt-2">
-                    {prompt.isActive ? (
-                      <div className="flex items-center text-green-600">
-                        <Check className="h-3 w-3 mr-1" />
-                        <span className="text-xs">Active</span>
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-gray-400">
-                        <AlertCircle className="h-3 w-3 mr-1" />
-                        <span className="text-xs">Inactive</span>
-                      </div>
+                  <button
+                    key={prompt.promptId}
+                    onClick={() => handleSelectPrompt(prompt)}
+                    className={cn(
+                      "w-full text-left p-3 rounded-lg border transition-colors",
+                      selectedPrompt?.promptId === prompt.promptId
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:bg-gray-50"
                     )}
-                    <span className="text-xs text-gray-400">v{prompt.version}</span>
-                  </div>
-                </button>
-              ))
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">{prompt.name}</div>
+                        {prompt.description && (
+                          <div className="text-sm text-gray-500 mt-1">{prompt.description}</div>
+                        )}
+                      </div>
+                      <span
+                        className={cn(
+                          "px-2 py-1 text-xs font-medium rounded-full",
+                          categoryColors[prompt.category]
+                        )}
+                      >
+                        {prompt.category}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2 mt-2">
+                      {prompt.isActive ? (
+                        <div className="flex items-center text-green-600">
+                          <Check className="h-3 w-3 mr-1" />
+                          <span className="text-xs">Active</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-gray-400">
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          <span className="text-xs">Inactive</span>
+                        </div>
+                      )}
+                      <span className="text-xs text-gray-400">v{prompt.version}</span>
+                    </div>
+                  </button>
+                ))
               )}
             </div>
           </div>

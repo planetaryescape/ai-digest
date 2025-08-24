@@ -24,8 +24,9 @@ async function refreshGmailToken() {
 
   try {
     // Check if we have existing credentials
-    const hasExistingConfig = config.gmail.clientId && config.gmail.clientSecret && config.gmail.refreshToken;
-    
+    const hasExistingConfig =
+      config.gmail.clientId && config.gmail.clientSecret && config.gmail.refreshToken;
+
     if (hasExistingConfig) {
       console.log("📝 Found existing Gmail configuration");
       console.log("\nWhat would you like to do?");
@@ -66,7 +67,7 @@ async function refreshGmailToken() {
 
 async function testCurrentToken() {
   console.log("\n🔍 Testing current token...");
-  
+
   try {
     const tokenManager = new GmailTokenManager({
       clientId: config.gmail.clientId,
@@ -75,19 +76,23 @@ async function testCurrentToken() {
     });
 
     const result = await tokenManager.validateToken();
-    
+
     if (result.isOk()) {
       const status = tokenManager.getTokenStatus();
       console.log("\n✅ Token is valid!");
-      console.log(`⏰ Expires in: ${status.expiresIn ? Math.floor(status.expiresIn / 1000 / 60) : 0} minutes`);
+      console.log(
+        `⏰ Expires in: ${status.expiresIn ? Math.floor(status.expiresIn / 1000 / 60) : 0} minutes`
+      );
       console.log(`🔄 Refresh attempts: ${status.refreshAttempts}`);
-      
+
       if (status.lastRefreshAttempt) {
         console.log(`📅 Last refresh: ${status.lastRefreshAttempt.toISOString()}`);
       }
     } else {
       console.log("\n❌ Token validation failed:", result.error.message);
-      console.log("\n💡 Recommendation: Try option 2 (Force refresh) or option 3 (Generate new token)");
+      console.log(
+        "\n💡 Recommendation: Try option 2 (Force refresh) or option 3 (Generate new token)"
+      );
     }
   } catch (error) {
     console.error("\n❌ Failed to test token:", error);
@@ -96,7 +101,7 @@ async function testCurrentToken() {
 
 async function forceRefreshToken() {
   console.log("\n🔄 Attempting to refresh token...");
-  
+
   try {
     const tokenManager = new GmailTokenManager({
       clientId: config.gmail.clientId,
@@ -105,13 +110,15 @@ async function forceRefreshToken() {
     });
 
     const result = await tokenManager.refreshAccessToken();
-    
+
     if (result.isOk()) {
       console.log("\n✅ Token refreshed successfully!");
-      
+
       const status = tokenManager.getTokenStatus();
-      console.log(`⏰ New token expires in: ${status.expiresIn ? Math.floor(status.expiresIn / 1000 / 60) : 0} minutes`);
-      
+      console.log(
+        `⏰ New token expires in: ${status.expiresIn ? Math.floor(status.expiresIn / 1000 / 60) : 0} minutes`
+      );
+
       // Validate the new token
       const validationResult = await tokenManager.validateToken();
       if (validationResult.isOk()) {
@@ -146,7 +153,7 @@ async function generateNewToken() {
   } else {
     console.log("Using existing OAuth credentials from configuration");
     const useExisting = await question("Continue with existing credentials? (y/n): ");
-    
+
     if (useExisting.toLowerCase() !== "y") {
       clientId = await question("Enter new OAuth Client ID: ");
       clientSecret = await question("Enter new OAuth Client Secret: ");
@@ -179,7 +186,7 @@ async function generateNewToken() {
   console.log("4. Copy the authorization code from the page\n");
 
   const code = await question("Enter the authorization code: ");
-  
+
   try {
     const { tokens } = await oauth2Client.getToken(code.trim());
 
@@ -192,17 +199,19 @@ async function generateNewToken() {
     console.log("\n✅ Successfully generated tokens!");
     console.log("\n📝 Your new refresh token:");
     console.log(tokens.refresh_token);
-    
+
     console.log("\n🔧 Update your environment variables:");
     console.log(`GMAIL_CLIENT_ID=${clientId.trim()}`);
     console.log(`GMAIL_CLIENT_SECRET=${clientSecret.trim()}`);
     console.log(`GMAIL_REFRESH_TOKEN=${tokens.refresh_token}`);
-    
+
     if (process.env.AWS_REGION) {
       console.log("\n☁️  Update AWS Secrets Manager:");
-      console.log(`aws secretsmanager update-secret --secret-id ai-digest-secrets --secret-string '{"GMAIL_REFRESH_TOKEN":"${tokens.refresh_token}"}'`);
+      console.log(
+        `aws secretsmanager update-secret --secret-id ai-digest-secrets --secret-string '{"GMAIL_REFRESH_TOKEN":"${tokens.refresh_token}"}'`
+      );
     }
-    
+
     // Test the new token
     console.log("\n🔍 Testing new token...");
     const tokenManager = new GmailTokenManager({
@@ -210,20 +219,24 @@ async function generateNewToken() {
       clientSecret: clientSecret.trim(),
       refreshToken: tokens.refresh_token,
     });
-    
+
     const validationResult = await tokenManager.validateToken();
     if (validationResult.isOk()) {
       console.log("✅ New token validated successfully!");
     } else {
-      console.log("⚠️  Warning: Token generated but validation failed:", validationResult.error.message);
+      console.log(
+        "⚠️  Warning: Token generated but validation failed:",
+        validationResult.error.message
+      );
     }
-    
   } catch (error) {
     console.error("\n❌ Failed to generate token:", error instanceof Error ? error.message : error);
     console.log("\n💡 Common issues:");
     console.log("- Make sure the OAuth client type is 'Desktop app'");
     console.log("- Ensure Gmail API is enabled in your Google Cloud project");
-    console.log("- Check that the authorization code hasn't expired (they're only valid for a few minutes)");
+    console.log(
+      "- Check that the authorization code hasn't expired (they're only valid for a few minutes)"
+    );
   }
 }
 

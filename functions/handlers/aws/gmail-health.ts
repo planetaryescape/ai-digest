@@ -1,4 +1,5 @@
 import type { APIGatewayProxyHandler } from "aws-lambda";
+import { formatISO } from "date-fns";
 import { GmailClient } from "../../lib/gmail";
 import { createLogger } from "../../lib/logger";
 
@@ -13,24 +14,26 @@ export const handler: APIGatewayProxyHandler = async (event) => {
 
   try {
     const client = new GmailClient();
-    
+
     // Get current token status
     const tokenStatus = client.getTokenStatus();
-    
+
     // Attempt to validate access
     const validationResult = await client.validateAccess();
-    
+
     const response = {
       status: validationResult.isOk() ? "healthy" : "unhealthy",
-      timestamp: new Date().toISOString(),
+      timestamp: formatISO(new Date()),
       token: {
         valid: tokenStatus.hasValidToken,
         expiresIn: tokenStatus.expiresIn ? Math.floor(tokenStatus.expiresIn / 1000) : null,
-        expiresInHuman: tokenStatus.expiresIn 
+        expiresInHuman: tokenStatus.expiresIn
           ? `${Math.floor(tokenStatus.expiresIn / 1000 / 60)} minutes`
           : null,
         refreshAttempts: tokenStatus.refreshAttempts,
-        lastRefreshAttempt: tokenStatus.lastRefreshAttempt?.toISOString() || null,
+        lastRefreshAttempt: tokenStatus.lastRefreshAttempt
+          ? formatISO(tokenStatus.lastRefreshAttempt)
+          : null,
       },
       validation: {
         success: validationResult.isOk(),
@@ -51,18 +54,22 @@ export const handler: APIGatewayProxyHandler = async (event) => {
     };
   } catch (error) {
     log.error({ error }, "Health check failed");
-    
+
     return {
       statusCode: 500,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        status: "error",
-        timestamp: new Date().toISOString(),
-        error: error instanceof Error ? error.message : "Unknown error",
-        recommendation: "Check logs for details. May need to regenerate refresh token.",
-      }, null, 2),
+      body: JSON.stringify(
+        {
+          status: "error",
+          timestamp: formatISO(new Date()),
+          error: error instanceof Error ? error.message : "Unknown error",
+          recommendation: "Check logs for details. May need to regenerate refresh token.",
+        },
+        null,
+        2
+      ),
     };
   }
 };
@@ -74,10 +81,11 @@ function getRecommendation(isValid: boolean, tokenStatus: any): string {
     }
     return "Gmail access is unhealthy. Token may need to be refreshed or regenerated.";
   }
-  
-  if (tokenStatus.expiresIn && tokenStatus.expiresIn < 600000) { // Less than 10 minutes
+
+  if (tokenStatus.expiresIn && tokenStatus.expiresIn < 600000) {
+    // Less than 10 minutes
     return "Token expiring soon. Will be automatically refreshed on next use.";
   }
-  
+
   return "Gmail access is healthy and token is valid.";
 }

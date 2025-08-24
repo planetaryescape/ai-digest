@@ -1,3 +1,4 @@
+import { formatISO } from "date-fns";
 import { AnalysisAgent } from "../lib/agents/AnalysisAgent";
 import { ClassifierAgent } from "../lib/agents/ClassifierAgent";
 import { ContentExtractorAgent } from "../lib/agents/ContentExtractorAgent";
@@ -109,7 +110,7 @@ export class DigestProcessor {
       { maxEmails }
     );
 
-    const startTime = Date.now();
+    const startTime = performance.now();
     const timings = {
       fetchTime: 0,
       classificationTime: 0,
@@ -123,7 +124,7 @@ export class DigestProcessor {
     try {
       // Step 1: Fetch emails with metadata-first approach
       this.logger.info("Step 1: Fetching emails");
-      const fetchStart = Date.now();
+      const fetchStart = performance.now();
       const emailBatch = await this.gmailBreaker.execute(() =>
         this.emailFetcher.fetchEmails({
           mode: dateRange ? "historical" : "weekly",
@@ -132,7 +133,7 @@ export class DigestProcessor {
           ...(maxEmails && { maxResults: maxEmails }),
         })
       );
-      timings.fetchTime = Date.now() - fetchStart;
+      timings.fetchTime = performance.now() - fetchStart;
 
       this.logger.info(
         `Fetched ${emailBatch.metadata.length} emails, ${emailBatch.stats.totalFetched} need processing`
@@ -152,11 +153,11 @@ export class DigestProcessor {
 
       // Step 2: Classify unknown senders
       this.logger.info("Step 2: Classifying unknown senders");
-      const classifyStart = Date.now();
+      const classifyStart = performance.now();
       const classifications = await this.openaiBreaker.execute(() =>
         this.classifier.classifyEmails(emailBatch)
       );
-      timings.classificationTime = Date.now() - classifyStart;
+      timings.classificationTime = performance.now() - classifyStart;
 
       // Filter to only AI emails
       const aiEmails = emailBatch.fullEmails.filter((email) => {
@@ -183,19 +184,19 @@ export class DigestProcessor {
 
       // Step 3: Extract content with Firecrawl
       this.logger.info("Step 3: Extracting article content");
-      const extractStart = Date.now();
+      const extractStart = performance.now();
       const enrichedEmails = await this.firecrawlBreaker.execute(() =>
         this.contentExtractor.extractArticles(aiEmails)
       );
-      timings.extractionTime = Date.now() - extractStart;
+      timings.extractionTime = performance.now() - extractStart;
 
       // Step 4: Research additional context
       this.logger.info("Step 4: Researching additional context");
-      const researchStart = Date.now();
+      const researchStart = performance.now();
       const researchedEmails = await this.braveBreaker.execute(() =>
         this.researcher.enrichWithResearch(enrichedEmails)
       );
-      timings.researchTime = Date.now() - researchStart;
+      timings.researchTime = performance.now() - researchStart;
 
       // Check cost again
       if (this.costTracker.shouldStop()) {
@@ -205,19 +206,19 @@ export class DigestProcessor {
 
       // Step 5: Deep analysis
       this.logger.info("Step 5: Performing deep analysis");
-      const analysisStart = Date.now();
+      const analysisStart = performance.now();
       const analysisResult = await this.openaiBreaker.execute(() =>
         this.analyst.analyzeContent(researchedEmails)
       );
-      timings.analysisTime = Date.now() - analysisStart;
+      timings.analysisTime = performance.now() - analysisStart;
 
       // Step 6: Generate commentary
       this.logger.info("Step 6: Generating opinionated commentary");
-      const commentaryStart = Date.now();
+      const commentaryStart = performance.now();
       const criticResult = await this.openaiBreaker.execute(() =>
         this.critic.generateCommentary(analysisResult)
       );
-      timings.commentaryTime = Date.now() - commentaryStart;
+      timings.commentaryTime = performance.now() - commentaryStart;
 
       // Step 7: Build and send digest
       this.logger.info("Step 7: Building and sending digest");
@@ -266,7 +267,7 @@ export class DigestProcessor {
         aiEmails.map((e) => ({ id: e.id, subject: e.subject }))
       );
 
-      timings.totalTime = Date.now() - startTime;
+      timings.totalTime = performance.now() - startTime;
 
       // Generate cost report
       const costReport = this.costTracker.generateReport();
@@ -383,11 +384,11 @@ export class DigestProcessor {
 
       // Reset cost tracker for this run
       this.costTracker.reset();
-      const timings: any = { startTime: Date.now() };
+      const timings: any = { startTime: performance.now() };
 
       // Step 1: Fetch emails from the date range
       this.logger.info("Step 1: Fetching historical emails");
-      const fetchStart = Date.now();
+      const fetchStart = performance.now();
       const emailBatch = await this.gmailBreaker.execute(() =>
         this.emailFetcher.fetchEmails({
           mode: "historical",
@@ -396,7 +397,7 @@ export class DigestProcessor {
           batchSize: batchSize || 500,
         })
       );
-      timings.fetchTime = Date.now() - fetchStart;
+      timings.fetchTime = performance.now() - fetchStart;
 
       const emails = emailBatch.fullEmails;
       this.logger.info(`Found ${emails.length} emails in historical date range`);
@@ -423,11 +424,11 @@ export class DigestProcessor {
 
       // Step 2: Classify unknown senders
       this.logger.info("Step 2: Classifying senders");
-      const classifyStart = Date.now();
+      const classifyStart = performance.now();
       const classificationResults = await this.openaiBreaker.execute(() =>
         this.classifier.classifyEmails(emailBatch, false)
       );
-      timings.classificationTime = Date.now() - classifyStart;
+      timings.classificationTime = performance.now() - classifyStart;
 
       // Filter for AI emails based on classification
       const aiEmails = emails.filter((email) => {
@@ -449,35 +450,35 @@ export class DigestProcessor {
       // Continue with the standard pipeline for AI emails
       // Step 3: Extract content
       this.logger.info("Step 3: Extracting article content");
-      const extractStart = Date.now();
+      const extractStart = performance.now();
       const enrichedEmails = await this.firecrawlBreaker.execute(() =>
         this.contentExtractor.extractArticles(aiEmails)
       );
-      timings.extractionTime = Date.now() - extractStart;
+      timings.extractionTime = performance.now() - extractStart;
 
       // Step 4: Research
       this.logger.info("Step 4: Researching additional context");
-      const researchStart = Date.now();
+      const researchStart = performance.now();
       const researchedEmails = await this.braveBreaker.execute(() =>
         this.researcher.enrichWithResearch(enrichedEmails)
       );
-      timings.researchTime = Date.now() - researchStart;
+      timings.researchTime = performance.now() - researchStart;
 
       // Step 5: Analysis
       this.logger.info("Step 5: Performing deep analysis");
-      const analysisStart = Date.now();
+      const analysisStart = performance.now();
       const analysisResult = await this.openaiBreaker.execute(() =>
         this.analyst.analyzeContent(researchedEmails)
       );
-      timings.analysisTime = Date.now() - analysisStart;
+      timings.analysisTime = performance.now() - analysisStart;
 
       // Step 6: Commentary
       this.logger.info("Step 6: Generating commentary");
-      const commentaryStart = Date.now();
+      const commentaryStart = performance.now();
       const criticResult = await this.openaiBreaker.execute(() =>
         this.critic.generateCommentary(analysisResult)
       );
-      timings.commentaryTime = Date.now() - commentaryStart;
+      timings.commentaryTime = performance.now() - commentaryStart;
 
       // Step 7: Build and send digest
       this.logger.info("Step 7: Building and sending historical digest");
@@ -492,7 +493,7 @@ export class DigestProcessor {
       // Don't archive historical emails - they might already be archived
       this.logger.info("Skipping email archival for historical digest");
 
-      const totalTime = Date.now() - timings.startTime;
+      const totalTime = performance.now() - timings.startTime;
       this.logger.info(`Historical digest completed in ${totalTime}ms`);
 
       return {
@@ -663,7 +664,7 @@ export class DigestProcessor {
       digest: digestOutput,
       message: digestOutput.shortMessage,
       items: [],
-      generatedAt: new Date().toISOString(),
+      generatedAt: formatISO(new Date()),
     };
   }
 
@@ -697,7 +698,7 @@ export class DigestProcessor {
       digest: digestOutput,
       message: digestOutput.shortMessage,
       items: [],
-      generatedAt: new Date().toISOString(),
+      generatedAt: formatISO(new Date()),
     };
   }
 
@@ -710,7 +711,7 @@ export class DigestProcessor {
 Digest Processing Failed
 
 Error: ${error instanceof Error ? error.message : "Unknown error"}
-Time: ${new Date().toISOString()}
+Time: ${formatISO(new Date())}
 Platform: ${this.platform}
 
 Cost Report:

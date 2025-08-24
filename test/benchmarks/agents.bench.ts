@@ -1,5 +1,5 @@
-import { BenchmarkRunner } from "./benchmark-runner";
 import { CostTracker } from "../../functions/lib/cost-tracker";
+import { BenchmarkRunner } from "./benchmark-runner";
 
 // Mock agent implementations for benchmarking
 class MockAgent {

@@ -70,7 +70,7 @@ export abstract class BaseHandler {
     });
 
     // Track metrics
-    const timer = Date.now();
+    const timer = performance.now();
 
     try {
       let result: DigestResult;
@@ -131,7 +131,7 @@ export abstract class BaseHandler {
 
         metricsCollector.gauge("digest.emails_found", result.emailsFound);
         metricsCollector.gauge("digest.emails_processed", result.emailsProcessed);
-        metricsCollector.gauge("digest.duration_ms", Date.now() - timer);
+        metricsCollector.gauge("digest.duration_ms", performance.now() - timer);
       } catch (metricsError) {
         // Log but don't throw - metrics shouldn't break the main flow
         context.logger.warn("Failed to record metrics", metricsError);

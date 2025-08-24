@@ -41,9 +41,9 @@ export class ContentExtractorHandler extends BaseStepFunctionHandler {
     log.info({ emailCount: emails.length }, "Starting content extraction");
 
     // Extract content from email links
-    const extractionStartTime = Date.now();
+    const extractionStartTime = performance.now();
     const articles = await this.extractor.extractArticles(emails);
-    const extractionTime = Date.now() - extractionStartTime;
+    const extractionTime = performance.now() - extractionStartTime;
 
     const successfulExtractions = articles.filter((a: any) => a.extractedSuccessfully).length;
 
@@ -61,7 +61,10 @@ export class ContentExtractorHandler extends BaseStepFunctionHandler {
     let articlesOutput: any = articles;
     if (this.shouldUseS3(articles)) {
       log.info("Articles too large, storing in S3");
-      articlesOutput = await this.storeInS3(articles, `${executionId}/articles-${Date.now()}.json`);
+      articlesOutput = await this.storeInS3(
+        articles,
+        `${executionId}/articles-${performance.now()}.json`
+      );
     }
 
     const costSoFar = (event.costSoFar || 0) + this.costTracker.getTotalCost();

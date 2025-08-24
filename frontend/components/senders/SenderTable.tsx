@@ -24,10 +24,16 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -36,12 +42,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { KnownSender } from "@/types/sender";
 
@@ -107,13 +107,19 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
     },
   });
 
-  const handleDeleteSender = useCallback((email: string) => {
-    deleteMutation.mutate([email]);
-  }, [deleteMutation]);
+  const handleDeleteSender = useCallback(
+    (email: string) => {
+      deleteMutation.mutate([email]);
+    },
+    [deleteMutation]
+  );
 
-  const handleDeleteSelected = useCallback((emails: string[]) => {
-    deleteMutation.mutate(emails);
-  }, [deleteMutation]);
+  const handleDeleteSelected = useCallback(
+    (emails: string[]) => {
+      deleteMutation.mutate(emails);
+    },
+    [deleteMutation]
+  );
 
   const columns = useMemo<ColumnDef<ExtendedSender>[]>(
     () => [
@@ -375,8 +381,8 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
       {/* Pagination */}
       <div className="flex items-center justify-between p-4">
         <div className="text-sm text-muted-foreground">
-          Showing{" "}
-          {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
+          Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1}{" "}
+          to{" "}
           {Math.min(
             (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
             table.getFilteredRowModel().rows.length

@@ -346,7 +346,7 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
       critique: analysisResult.critique,
       metadata: {
         emailCount: emails.length,
-        executionTime: Date.now() - new Date(startTime).getTime(),
+        executionTime: performance.now() - new Date(startTime).getTime(),
         totalCost: event.costSoFar || 0,
       },
     };
@@ -412,12 +412,12 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
       pipelineStats: {
         totalEmails: emails.length,
         totalCost: event.costSoFar || 0,
-        executionTime: Date.now() - new Date(startTime).getTime(),
+        executionTime: performance.now() - new Date(startTime).getTime(),
       },
       metadata: {
         executionId,
         mode,
-        completedAt: new Date().toISOString(),
+        completedAt: formatISO(new Date()),
       },
     };
   }

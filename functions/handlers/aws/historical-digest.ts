@@ -1,5 +1,6 @@
 import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult } from "aws-lambda";
+import { differenceInDays, formatISO, isFuture, parseISO } from "date-fns";
 import { SecretsLoader } from "../../lib/aws/secrets-loader";
 
 const sfnClient = new SFNClient();
@@ -34,9 +35,8 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
 
     // Validate date range
     try {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
-      const now = new Date();
+      const start = parseISO(startDate);
+      const end = parseISO(endDate);
 
       if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
         throw new Error("Invalid date format. Use YYYY-MM-DD");
@@ -46,11 +46,11 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
         throw new Error("startDate must be before or equal to endDate");
       }
 
-      if (end > now) {
+      if (isFuture(end)) {
         throw new Error("endDate cannot be in the future");
       }
 
-      const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+      const daysDiff = differenceInDays(end, start);
       if (daysDiff > 90) {
         throw new Error("Date range cannot exceed 90 days for cost control");
       }
@@ -84,9 +84,9 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
     const result = await sfnClient.send(command);
 
     // Calculate date range in days
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+    const start = parseISO(startDate);
+    const end = parseISO(endDate);
+    const days = differenceInDays(end, start) + 1;
 
     return {
       statusCode: 202,
@@ -106,7 +106,7 @@ export async function handler(event: APIGatewayProxyEvent): Promise<APIGatewayPr
           days: days,
         },
         mode: "historical",
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
       }),
     };
   } catch (error) {

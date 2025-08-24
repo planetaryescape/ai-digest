@@ -4,6 +4,7 @@ import type {
   Context,
   ScheduledEvent,
 } from "aws-lambda";
+import { formatISO } from "date-fns";
 import { SecretsLoader } from "../../lib/aws/secrets-loader";
 import { ConfigValidator } from "../../lib/config-validator";
 import { compose, withCorrelationId, withLambdaLogging } from "../../lib/middleware";
@@ -32,7 +33,7 @@ async function handler(event: any, context: Context): Promise<APIGatewayProxyRes
         body: JSON.stringify({
           success: false,
           error: `Failed to initialize: ${errorMessage}`,
-          timestamp: new Date().toISOString(),
+          timestamp: formatISO(new Date()),
         }),
       };
     }
@@ -53,7 +54,7 @@ async function handler(event: any, context: Context): Promise<APIGatewayProxyRes
         body: JSON.stringify({
           success: false,
           error: errorMessage,
-          timestamp: new Date().toISOString(),
+          timestamp: formatISO(new Date()),
         }),
       };
     }

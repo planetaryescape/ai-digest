@@ -46,7 +46,7 @@ export class ClassifierHandler extends BaseStepFunctionHandler {
         id: email.id,
         subject: email.subject,
         sender: email.sender,
-        date: email.date || new Date().toISOString(),
+        date: email.date || formatISO(new Date()),
       })),
       aiEmailIds: [],
       unknownEmailIds: [],
@@ -141,7 +141,7 @@ export class ClassifierHandler extends BaseStepFunctionHandler {
       log.info("Classified emails too large, storing in S3");
       classifiedOutput = await this.storeInS3(
         { emails: aiEmails },
-        `${executionId}/classified-${Date.now()}.json`
+        `${executionId}/classified-${performance.now()}.json`
       );
     }
 
