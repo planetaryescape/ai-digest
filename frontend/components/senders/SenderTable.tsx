@@ -18,11 +18,30 @@ import {
   ChevronRight,
   ChevronUp,
   Edit,
+  MoreHorizontal,
   Search,
   Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { KnownSender } from "@/types/sender";
 
@@ -88,35 +107,57 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
     },
   });
 
+  const handleDeleteSender = useCallback((email: string) => {
+    deleteMutation.mutate([email]);
+  }, [deleteMutation]);
+
+  const handleDeleteSelected = useCallback((emails: string[]) => {
+    deleteMutation.mutate(emails);
+  }, [deleteMutation]);
+
   const columns = useMemo<ColumnDef<ExtendedSender>[]>(
     () => [
       {
         id: "select",
         header: ({ table }) => (
-          <input
-            type="checkbox"
+          <Checkbox
             checked={table.getIsAllPageRowsSelected()}
-            onChange={(e) => table.toggleAllPageRowsSelected(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
           />
         ),
         cell: ({ row }) => (
-          <input
-            type="checkbox"
+          <Checkbox
             checked={row.getIsSelected()}
-            onChange={(e) => row.toggleSelected(e.target.checked)}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded"
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
           />
         ),
+        enableSorting: false,
+        enableHiding: false,
       },
       {
         accessorKey: "senderEmail",
-        header: "Email",
+        header: ({ column }) => {
+          return (
+            <Button
+              variant="ghost"
+              onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+              Email
+              {column.getIsSorted() === "asc" ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : column.getIsSorted() === "desc" ? (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              ) : null}
+            </Button>
+          );
+        },
         cell: ({ row }) => (
           <div>
             <div className="font-medium">{row.original.senderEmail}</div>
             {row.original.senderName && (
-              <div className="text-sm text-gray-500">{row.original.senderName}</div>
+              <div className="text-sm text-muted-foreground">{row.original.senderName}</div>
             )}
           </div>
         ),
@@ -134,14 +175,9 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
           if (!classification) return "-";
 
           return (
-            <span
-              className={cn(
-                "px-2 py-1 text-xs font-medium rounded-full",
-                classification === "ai" ? "bg-blue-100 text-blue-800" : "bg-gray-100 text-gray-800"
-              )}
-            >
+            <Badge variant={classification === "ai" ? "default" : "secondary"}>
               {classification === "ai" ? "AI" : "Non-AI"}
-            </span>
+            </Badge>
           );
         },
       },
@@ -152,7 +188,7 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
           const confidence = getValue() as number;
           return (
             <div className="flex items-center">
-              <div className="w-20 bg-gray-200 rounded-full h-2">
+              <div className="w-20 bg-secondary rounded-full h-2">
                 <div
                   className={cn(
                     "h-2 rounded-full",
@@ -184,22 +220,35 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
       },
       {
         id: "actions",
-        cell: ({ row }) => (
-          <div className="flex space-x-2">
-            <button onClick={() => {}} className="p-1 text-gray-600 hover:text-gray-900">
-              <Edit className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => deleteMutation.mutate([row.original.senderEmail])}
-              className="p-1 text-red-600 hover:text-red-900"
-            >
-              <Trash2 className="h-4 w-4" />
-            </button>
-          </div>
-        ),
+        enableHiding: false,
+        cell: ({ row }) => {
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => {}}>
+                  <Edit className="mr-2 h-4 w-4" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDeleteSender(row.original.senderEmail)}
+                  className="text-destructive"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
       },
     ],
-    [deleteMutation]
+    [handleDeleteSender]
   );
 
   const table = useReactTable({
@@ -224,22 +273,30 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
   const selectedRows = table.getFilteredSelectedRowModel().rows;
 
   if (isLoading) {
-    return <div className="p-8 text-center">Loading senders...</div>;
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="text-muted-foreground">Loading senders...</div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
     return (
-      <div className="p-8 text-center">
-        <div className="text-red-600 font-semibold">Error loading senders</div>
-        <div className="text-sm text-gray-600 mt-2">
-          {error instanceof Error ? error.message : "Unknown error occurred"}
+      <div className="flex items-center justify-center p-8">
+        <div className="text-center space-y-4">
+          <div className="text-destructive font-semibold">Error loading senders</div>
+          <div className="text-sm text-muted-foreground">
+            {error instanceof Error ? error.message : "Unknown error occurred"}
+          </div>
+          <Button
+            onClick={() => queryClient.invalidateQueries({ queryKey: ["senders"] })}
+            variant="outline"
+          >
+            Retry
+          </Button>
         </div>
-        <button
-          onClick={() => queryClient.invalidateQueries({ queryKey: ["senders"] })}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-        >
-          Retry
-        </button>
       </div>
     );
   }
@@ -247,115 +304,104 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
   return (
     <div>
       {/* Table Controls */}
-      <div className="p-4 border-b">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <input
-                type="text"
-                value={globalFilter}
-                onChange={(e) => setGlobalFilter(e.target.value)}
-                placeholder="Search senders..."
-                className="pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            {selectedRows.length > 0 && (
-              <button
-                onClick={() => {
-                  const emails = selectedRows.map((row) => row.original.senderEmail);
-                  deleteMutation.mutate(emails);
-                }}
-                className="flex items-center px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-              >
-                <Trash2 className="h-4 w-4 mr-2" />
-                Delete {selectedRows.length} selected
-              </button>
-            )}
+      <div className="flex items-center justify-between p-4 border-b">
+        <div className="flex items-center space-x-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              value={globalFilter}
+              onChange={(e) => setGlobalFilter(e.target.value)}
+              placeholder="Search senders..."
+              className="pl-10 max-w-sm"
+            />
           </div>
+          {selectedRows.length > 0 && (
+            <Button
+              onClick={() => {
+                const emails = selectedRows.map((row) => row.original.senderEmail);
+                handleDeleteSelected(emails);
+              }}
+              variant="destructive"
+              size="sm"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete {selectedRows.length} selected
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <tr key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <th
-                    key={header.id}
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    {header.isPlaceholder ? null : (
-                      <div
-                        className={cn(
-                          "flex items-center space-x-1",
-                          header.column.getCanSort() && "cursor-pointer select-none"
-                        )}
-                        onClick={header.column.getToggleSortingHandler()}
-                      >
-                        <span>
-                          {flexRender(header.column.columnDef.header, header.getContext())}
-                        </span>
-                        {header.column.getIsSorted() && (
-                          <span>
-                            {header.column.getIsSorted() === "desc" ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronUp className="h-4 w-4" />
-                            )}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </th>
-                ))}
-              </tr>
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => {
+                  return (
+                    <TableHead key={header.id}>
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  );
+                })}
+              </TableRow>
             ))}
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {table.getRowModel().rows.map((row) => (
-              <tr key={row.id} className="hover:bg-gray-50">
-                {row.getVisibleCells().map((cell) => (
-                  <td key={cell.id} className="px-6 py-4 whitespace-nowrap text-sm">
-                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows?.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Pagination */}
-      <div className="px-4 py-3 border-t">
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Showing{" "}
-            {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
-            {Math.min(
-              (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
-              table.getFilteredRowModel().rows.length
-            )}{" "}
-            of {table.getFilteredRowModel().rows.length} results
-          </div>
-          <div className="flex space-x-2">
-            <button
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="px-3 py-1 border rounded-lg disabled:opacity-50"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="px-3 py-1 border rounded-lg disabled:opacity-50"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
+      <div className="flex items-center justify-between p-4">
+        <div className="text-sm text-muted-foreground">
+          Showing{" "}
+          {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
+          {Math.min(
+            (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
+            table.getFilteredRowModel().rows.length
+          )}{" "}
+          of {table.getFilteredRowModel().rows.length} results
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>

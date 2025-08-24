@@ -1,10 +1,16 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Activity, Calendar, Loader2, Play, Trash2, Zap } from "lucide-react";
+import { Activity, AlertTriangle, Calendar, CheckCircle2, Loader2, Play, Trash2, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 
 export function DigestTrigger() {
   const [cleanup, setCleanup] = useState(false);
@@ -16,7 +22,7 @@ export function DigestTrigger() {
   const [pollingEnabled, setPollingEnabled] = useState(false);
 
   // Poll execution status with exponential backoff
-  const { data: executionStatus } = useQuery({
+  const { data: executionStatus, error: statusError } = useQuery({
     queryKey: ["execution-status", executionArn],
     queryFn: async () => {
       if (!executionArn) {
@@ -26,7 +32,8 @@ export function DigestTrigger() {
         `/api/stepfunctions/status?executionArn=${encodeURIComponent(executionArn)}`
       );
       if (!res.ok) {
-        throw new Error("Failed to fetch execution status");
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || "Failed to fetch execution status");
       }
       return res.json();
     },
@@ -41,6 +48,8 @@ export function DigestTrigger() {
       const attemptCount = query.state.dataUpdateCount || 0;
       return Math.min(5000 * 1.5 ** attemptCount, 30000);
     },
+    retry: 3,
+    retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
   });
 
   useEffect(() => {
@@ -58,6 +67,30 @@ export function DigestTrigger() {
       setExecutionArn(null);
     }
   }, [executionStatus?.status]);
+
+  // Handle status polling errors
+  useEffect(() => {
+    if (statusError) {
+      console.error("Error polling execution status:", statusError);
+      toast.error("Unable to check execution status. The process may still be running.");
+      // Clear the execution ARN after multiple failed attempts
+      setPollingEnabled(false);
+      setExecutionArn(null);
+    }
+  }, [statusError]);
+
+  // Add a maximum timeout for the execution (5 minutes)
+  useEffect(() => {
+    if (executionArn && pollingEnabled) {
+      const timeout = setTimeout(() => {
+        toast.warning("Execution status check timed out. The process may still be running in the background.");
+        setPollingEnabled(false);
+        setExecutionArn(null);
+      }, 5 * 60 * 1000); // 5 minutes
+
+      return () => clearTimeout(timeout);
+    }
+  }, [executionArn, pollingEnabled]);
 
   const triggerMutation = useMutation({
     mutationFn: async (options: {
@@ -125,175 +158,226 @@ export function DigestTrigger() {
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center space-x-4">
-        <button
-          onClick={handleTrigger}
-          disabled={triggerMutation.isPending || !!executionArn}
-          className={cn(
-            "flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg",
-            "hover:bg-blue-700 transition-colors",
-            "disabled:opacity-50 disabled:cursor-not-allowed"
-          )}
-        >
-          {triggerMutation.isPending || executionArn ? (
-            <>
-              <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-              Processing...
-            </>
-          ) : (
-            <>
-              <Play className="h-5 w-5 mr-2" />
-              Generate Digest
-            </>
-          )}
-        </button>
-
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={cleanup}
-            onChange={(e) => {
-              setCleanup(e.target.checked);
-              if (e.target.checked) {
-                setHistoricalMode(false);
-                setStartDate("");
-                setEndDate("");
-              }
-            }}
-            disabled={triggerMutation.isPending || !!executionArn || historicalMode}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span className="text-sm font-medium text-gray-700">Cleanup Mode</span>
-          <Trash2 className="h-4 w-4 text-gray-500" />
-        </label>
-
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={useStepFunctions}
-            onChange={(e) => setUseStepFunctions(e.target.checked)}
+    <Card>
+      <CardHeader>
+        <CardTitle>Digest Generation</CardTitle>
+        <CardDescription>
+          Generate AI-powered digests from your email newsletters
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Main Controls */}
+        <div className="flex flex-wrap items-center gap-4">
+          <Button
+            onClick={handleTrigger}
             disabled={triggerMutation.isPending || !!executionArn}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span className="text-sm font-medium text-gray-700">Use Step Functions</span>
-          <Zap className="h-4 w-4 text-yellow-500" />
-        </label>
+            size="lg"
+          >
+            {triggerMutation.isPending || executionArn ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Play className="mr-2 h-4 w-4" />
+                Generate Digest
+              </>
+            )}
+          </Button>
 
-        <label className="flex items-center space-x-2 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={historicalMode}
-            onChange={(e) => {
-              setHistoricalMode(e.target.checked);
-              if (!e.target.checked) {
-                setStartDate("");
-                setEndDate("");
-              }
-            }}
-            disabled={triggerMutation.isPending || !!executionArn || cleanup}
-            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-          />
-          <span className="text-sm font-medium text-gray-700">Historical Mode</span>
-          <Calendar className="h-4 w-4 text-indigo-500" />
-        </label>
-      </div>
-
-      {/* Date Range Selectors for Historical Mode */}
-      {historicalMode && !cleanup && (
-        <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg space-y-3">
-          <p className="text-sm text-indigo-800 font-medium">
-            Select date range for historical digest:
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                max={new Date().toISOString().split("T")[0]}
-                disabled={triggerMutation.isPending || !!executionArn}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                min={startDate}
-                max={new Date().toISOString().split("T")[0]}
-                disabled={triggerMutation.isPending || !!executionArn}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-              />
-            </div>
-          </div>
-          {startDate && endDate && (
-            <p className="text-sm text-indigo-600">
-              Will process emails from {new Date(startDate).toLocaleDateString()} to{" "}
-              {new Date(endDate).toLocaleDateString()}
-            </p>
-          )}
-        </div>
-      )}
-
-      {cleanup && (
-        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <p className="text-sm text-yellow-800">
-            <strong>Warning:</strong> Cleanup mode will process ALL unarchived emails. This may take
-            significantly longer and will send multiple digest emails.
-          </p>
-        </div>
-      )}
-
-      {useStepFunctions && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <p className="text-sm text-blue-800">
-            <strong>Step Functions:</strong> Using the new orchestrated pipeline for better
-            observability and error handling.
-          </p>
-        </div>
-      )}
-
-      {executionArn && executionStatus && (
-        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-gray-700">Execution Status</span>
-            <span
-              className={cn(
-                "px-2 py-1 text-xs font-semibold rounded-full",
-                executionStatus.status === "RUNNING" && "bg-blue-100 text-blue-800",
-                executionStatus.status === "SUCCEEDED" && "bg-green-100 text-green-800",
-                executionStatus.status === "FAILED" && "bg-red-100 text-red-800"
-              )}
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="cleanup"
+              checked={cleanup}
+              onCheckedChange={(checked) => {
+                setCleanup(checked as boolean);
+                if (checked) {
+                  setHistoricalMode(false);
+                  setStartDate("");
+                  setEndDate("");
+                }
+              }}
+              disabled={triggerMutation.isPending || !!executionArn || historicalMode}
+            />
+            <Label
+              htmlFor="cleanup"
+              className="flex items-center space-x-2 cursor-pointer"
             >
-              {executionStatus.status}
-            </span>
+              <span>Cleanup Mode</span>
+              <Trash2 className="h-4 w-4 text-muted-foreground" />
+            </Label>
           </div>
-          {executionStatus.status === "RUNNING" && (
-            <div className="flex items-center space-x-2">
-              <Activity className="h-4 w-4 text-blue-500 animate-pulse" />
-              <span className="text-sm text-gray-600">
-                Processing emails through the pipeline...
-              </span>
-            </div>
-          )}
-          <div className="text-xs text-gray-500 font-mono truncate">
-            {executionArn.split(":").pop()}
-          </div>
-        </div>
-      )}
 
-      {triggerMutation.isSuccess && !executionArn && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-          <p className="text-sm text-green-800">
-            Digest generation has been triggered successfully. You&apos;ll receive an email once
-            it&apos;s complete.
-          </p>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="stepfunctions"
+              checked={useStepFunctions}
+              onCheckedChange={(checked) => setUseStepFunctions(checked as boolean)}
+              disabled={triggerMutation.isPending || !!executionArn}
+            />
+            <Label
+              htmlFor="stepfunctions"
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <span>Use Step Functions</span>
+              <Zap className="h-4 w-4 text-yellow-500" />
+            </Label>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="historical"
+              checked={historicalMode}
+              onCheckedChange={(checked) => {
+                setHistoricalMode(checked as boolean);
+                if (!checked) {
+                  setStartDate("");
+                  setEndDate("");
+                }
+              }}
+              disabled={triggerMutation.isPending || !!executionArn || cleanup}
+            />
+            <Label
+              htmlFor="historical"
+              className="flex items-center space-x-2 cursor-pointer"
+            >
+              <span>Historical Mode</span>
+              <Calendar className="h-4 w-4 text-indigo-500" />
+            </Label>
+          </div>
         </div>
-      )}
-    </div>
+
+        {/* Date Range Selectors for Historical Mode */}
+        {historicalMode && !cleanup && (
+          <Alert className="border-indigo-200 bg-indigo-50">
+            <Calendar className="h-4 w-4" />
+            <AlertTitle>Historical Date Range</AlertTitle>
+            <AlertDescription className="mt-3 space-y-3">
+              <p>Select date range for historical digest:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="start-date">Start Date</Label>
+                  <Input
+                    id="start-date"
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    max={new Date().toISOString().split("T")[0]}
+                    disabled={triggerMutation.isPending || !!executionArn}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="end-date">End Date</Label>
+                  <Input
+                    id="end-date"
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    min={startDate}
+                    max={new Date().toISOString().split("T")[0]}
+                    disabled={triggerMutation.isPending || !!executionArn}
+                  />
+                </div>
+              </div>
+              {startDate && endDate && (
+                <p className="text-sm text-indigo-600">
+                  Will process emails from {new Date(startDate).toLocaleDateString()} to{" "}
+                  {new Date(endDate).toLocaleDateString()}
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Cleanup Warning */}
+        {cleanup && (
+          <Alert className="border-yellow-200 bg-yellow-50">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertTitle>Warning</AlertTitle>
+            <AlertDescription>
+              Cleanup mode will process ALL unarchived emails. This may take significantly longer
+              and will send multiple digest emails.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Step Functions Info */}
+        {useStepFunctions && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <Zap className="h-4 w-4" />
+            <AlertTitle>Step Functions Enabled</AlertTitle>
+            <AlertDescription>
+              Using the new orchestrated pipeline for better observability and error handling.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Execution Status */}
+        {executionArn && (
+          <Alert>
+            <Activity className="h-4 w-4" />
+            <AlertTitle className="flex items-center justify-between">
+              <span>Execution Status</span>
+              <div className="flex items-center gap-2">
+                {executionStatus && (
+                  <Badge
+                    variant={
+                      executionStatus.status === "RUNNING"
+                        ? "default"
+                        : executionStatus.status === "SUCCEEDED"
+                        ? "secondary"
+                        : "destructive"
+                    }
+                  >
+                    {executionStatus.status}
+                  </Badge>
+                )}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setPollingEnabled(false);
+                    setExecutionArn(null);
+                    toast.info("Execution tracking cleared. The process may still be running in the background.");
+                  }}
+                >
+                  Clear
+                </Button>
+              </div>
+            </AlertTitle>
+            <AlertDescription className="mt-2 space-y-2">
+              {executionStatus?.status === "RUNNING" && (
+                <div className="flex items-center space-x-2">
+                  <Activity className="h-4 w-4 animate-pulse" />
+                  <span>Processing emails through the pipeline...</span>
+                </div>
+              )}
+              {!executionStatus && (
+                <div className="flex items-center space-x-2">
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>Checking execution status...</span>
+                </div>
+              )}
+              <div className="text-xs font-mono text-muted-foreground truncate">
+                {executionArn.split(":").pop()}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {/* Success Message */}
+        {triggerMutation.isSuccess && !executionArn && (
+          <Alert className="border-green-200 bg-green-50">
+            <CheckCircle2 className="h-4 w-4" />
+            <AlertTitle>Success</AlertTitle>
+            <AlertDescription>
+              Digest generation has been triggered successfully. You&apos;ll receive an email once it&apos;s
+              complete.
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
   );
 }
