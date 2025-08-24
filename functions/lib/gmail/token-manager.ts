@@ -1,5 +1,5 @@
-import { google } from "googleapis";
 import type { OAuth2Client } from "google-auth-library";
+import { google } from "googleapis";
 import { createLogger } from "../logger";
 import { Result } from "../types/Result";
 
@@ -52,7 +52,7 @@ export class GmailTokenManager {
 
       // Try to get current token info
       const currentToken = await this.oauth2Client.getAccessToken();
-      
+
       if (currentToken.token) {
         // Cache the token info
         this.tokenCache = {
@@ -102,9 +102,9 @@ export class GmailTokenManager {
 
     try {
       log.info("Refreshing Gmail access token");
-      
+
       const { credentials } = await this.oauth2Client.refreshAccessToken();
-      
+
       if (!credentials.access_token) {
         throw new Error("No access token received after refresh");
       }
@@ -117,7 +117,10 @@ export class GmailTokenManager {
       };
 
       // Update refresh token if a new one was provided
-      if (credentials.refresh_token && credentials.refresh_token !== this.tokenConfig.refreshToken) {
+      if (
+        credentials.refresh_token &&
+        credentials.refresh_token !== this.tokenConfig.refreshToken
+      ) {
         log.info("New refresh token received, updating configuration");
         this.tokenConfig.refreshToken = credentials.refresh_token;
         this.oauth2Client.setCredentials({
@@ -127,7 +130,7 @@ export class GmailTokenManager {
 
       // Reset attempt counter on success
       this.refreshAttemptCount = 0;
-      
+
       log.info("Successfully refreshed Gmail access token");
       return Result.ok(credentials.access_token);
     } catch (error) {
@@ -149,19 +152,19 @@ export class GmailTokenManager {
       // Make a simple API call to validate the token
       const gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
       await gmail.users.getProfile({ userId: "me" });
-      
+
       log.info("Token validation successful");
       return Result.ok(true);
     } catch (error: any) {
       log.error({ error }, "Token validation failed");
-      
+
       if (error.code === 401 || error.message?.includes("invalid_grant")) {
         return Result.fail({
           code: "INVALID_TOKEN",
           message: "Gmail refresh token is invalid or expired. Please regenerate it.",
         });
       }
-      
+
       return Result.fail({
         code: "VALIDATION_ERROR",
         message: error.message || "Token validation failed",
@@ -199,35 +202,37 @@ export class GmailTokenManager {
    */
   private handleTokenError(error: any): Result<string> {
     const errorMessage = error.message || "Unknown error";
-    
+
     if (errorMessage.includes("invalid_grant")) {
       return Result.fail({
         code: "INVALID_REFRESH_TOKEN",
-        message: "Gmail refresh token is invalid or expired. Please run 'bun run generate:oauth' to get a new token.",
+        message:
+          "Gmail refresh token is invalid or expired. Please run 'bun run generate:oauth' to get a new token.",
       });
     }
-    
+
     if (errorMessage.includes("invalid_client")) {
       return Result.fail({
         code: "INVALID_CLIENT_CREDENTIALS",
-        message: "Gmail OAuth client credentials are invalid. Please check GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET.",
+        message:
+          "Gmail OAuth client credentials are invalid. Please check GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET.",
       });
     }
-    
+
     if (error.code === 401) {
       return Result.fail({
         code: "UNAUTHORIZED",
         message: "Gmail API authentication failed. Token may be expired.",
       });
     }
-    
+
     if (error.code === 403) {
       return Result.fail({
         code: "FORBIDDEN",
         message: "Gmail API access forbidden. Check API permissions and quotas.",
       });
     }
-    
+
     return Result.fail({
       code: "TOKEN_ERROR",
       message: errorMessage,
@@ -238,7 +243,7 @@ export class GmailTokenManager {
    * Helper to delay execution
    */
   private delay(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   /**
@@ -251,17 +256,13 @@ export class GmailTokenManager {
     lastRefreshAttempt: Date | null;
   } {
     const hasValidToken = this.tokenCache ? this.isTokenValid(this.tokenCache) : false;
-    const expiresIn = this.tokenCache 
-      ? Math.max(0, this.tokenCache.expiryDate - Date.now()) 
-      : null;
-    
+    const expiresIn = this.tokenCache ? Math.max(0, this.tokenCache.expiryDate - Date.now()) : null;
+
     return {
       hasValidToken,
       expiresIn,
       refreshAttempts: this.refreshAttemptCount,
-      lastRefreshAttempt: this.lastRefreshAttempt 
-        ? new Date(this.lastRefreshAttempt) 
-        : null,
+      lastRefreshAttempt: this.lastRefreshAttempt ? new Date(this.lastRefreshAttempt) : null,
     };
   }
 }

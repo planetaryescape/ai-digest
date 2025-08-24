@@ -62,7 +62,7 @@ export class ErrorHandler extends BaseStepFunctionHandler {
                   <code style="font-size: 12px;">${stateMachineArn}</code>
                 </p>
                 <p style="font-size: 14px; color: #6b7280;">
-                  <strong>Timestamp:</strong> ${new Date().toISOString()}
+                  <strong>Timestamp:</strong> ${formatISO(new Date())}
                 </p>
               </div>
               
@@ -90,7 +90,7 @@ export class ErrorHandler extends BaseStepFunctionHandler {
       stateMachineArn,
       state,
       input,
-      timestamp: new Date().toISOString(),
+      timestamp: formatISO(new Date()),
       context: {
         requestId: context.awsRequestId,
         functionName: context.functionName,
@@ -98,7 +98,7 @@ export class ErrorHandler extends BaseStepFunctionHandler {
       },
     };
 
-    const errorKey = `errors/${executionArn.split(":").pop()}/error-${Date.now()}.json`;
+    const errorKey = `errors/${executionArn.split(":").pop()}/error-${performance.now()}.json`;
     await this.storeInS3(errorDetails, errorKey);
 
     log.info({ errorKey }, "Error details stored in S3");
@@ -107,7 +107,7 @@ export class ErrorHandler extends BaseStepFunctionHandler {
       handled: true,
       notificationSent: !!recipientEmail,
       errorStored: errorKey,
-      timestamp: new Date().toISOString(),
+      timestamp: formatISO(new Date()),
     };
   }
 }

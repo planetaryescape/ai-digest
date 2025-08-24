@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { GmailTokenManager } from "./token-manager";
 
 // Mock googleapis module
@@ -9,7 +9,7 @@ vi.mock("googleapis", () => {
     refreshAccessToken: vi.fn(),
     credentials: {},
   };
-  
+
   return {
     google: {
       auth: {
@@ -30,16 +30,16 @@ describe("GmailTokenManager", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockOAuth2Client = {
       setCredentials: vi.fn(),
       getAccessToken: vi.fn(),
       refreshAccessToken: vi.fn(),
       credentials: {},
     };
-    
+
     // OAuth2 mock is already set up in module mock
-    
+
     tokenManager = new GmailTokenManager({
       clientId: "test-client-id",
       clientSecret: "test-client-secret",
@@ -51,24 +51,24 @@ describe("GmailTokenManager", () => {
     it("should return cached token if valid", async () => {
       // Set up a valid cached token
       const validToken = "valid-access-token";
-      const futureExpiry = Date.now() + 3600000; // 1 hour from now
-      
+      const futureExpiry = performance.now() + 3600000; // 1 hour from now
+
       mockOAuth2Client.getAccessToken.mockResolvedValue({
         token: validToken,
       });
-      
+
       mockOAuth2Client.credentials = {
         access_token: validToken,
         expiry_date: futureExpiry,
       };
 
       const result = await tokenManager.getValidAccessToken();
-      
+
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toBe(validToken);
       }
-      
+
       // Second call should use cache
       const result2 = await tokenManager.getValidAccessToken();
       expect(result2.isOk()).toBe(true);
@@ -78,26 +78,26 @@ describe("GmailTokenManager", () => {
     it("should refresh token if expiring soon", async () => {
       const oldToken = "old-token";
       const newToken = "new-access-token";
-      const soonExpiry = Date.now() + 240000; // 4 minutes from now
-      
+      const soonExpiry = performance.now() + 240000; // 4 minutes from now
+
       mockOAuth2Client.getAccessToken.mockResolvedValue({
         token: oldToken,
       });
-      
+
       mockOAuth2Client.credentials = {
         access_token: oldToken,
         expiry_date: soonExpiry,
       };
-      
+
       mockOAuth2Client.refreshAccessToken.mockResolvedValue({
         credentials: {
           access_token: newToken,
-          expiry_date: Date.now() + 3600000,
+          expiry_date: performance.now() + 3600000,
         },
       });
 
       const result = await tokenManager.getValidAccessToken();
-      
+
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toBe(newToken);
@@ -111,7 +111,7 @@ describe("GmailTokenManager", () => {
       );
 
       const result = await tokenManager.getValidAccessToken();
-      
+
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.code).toBe("INVALID_REFRESH_TOKEN");
@@ -124,17 +124,17 @@ describe("GmailTokenManager", () => {
     it("should successfully refresh token", async () => {
       const newToken = "refreshed-token";
       const newRefreshToken = "new-refresh-token";
-      
+
       mockOAuth2Client.refreshAccessToken.mockResolvedValue({
         credentials: {
           access_token: newToken,
           refresh_token: newRefreshToken,
-          expiry_date: Date.now() + 3600000,
+          expiry_date: performance.now() + 3600000,
         },
       });
 
       const result = await tokenManager.refreshAccessToken();
-      
+
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toBe(newToken);
@@ -146,30 +146,28 @@ describe("GmailTokenManager", () => {
 
     it("should enforce cooldown between refresh attempts", async () => {
       const token = "test-token";
-      
+
       mockOAuth2Client.refreshAccessToken.mockResolvedValue({
         credentials: {
           access_token: token,
-          expiry_date: Date.now() + 3600000,
+          expiry_date: performance.now() + 3600000,
         },
       });
 
       // First refresh
       await tokenManager.refreshAccessToken();
-      
+
       // Second refresh immediately
-      const start = Date.now();
+      const start = performance.now();
       await tokenManager.refreshAccessToken();
-      const elapsed = Date.now() - start;
-      
+      const elapsed = performance.now() - start;
+
       // Should have waited for cooldown
       expect(elapsed).toBeGreaterThanOrEqual(50); // Allow some margin
     });
 
     it("should limit refresh attempts", async () => {
-      mockOAuth2Client.refreshAccessToken.mockRejectedValue(
-        new Error("Network error")
-      );
+      mockOAuth2Client.refreshAccessToken.mockRejectedValue(new Error("Network error"));
 
       // Exhaust refresh attempts
       for (let i = 0; i < 4; i++) {
@@ -183,9 +181,9 @@ describe("GmailTokenManager", () => {
             expect(result.error.code).toBe("TOKEN_REFRESH_LIMIT_EXCEEDED");
           }
         }
-        
+
         // Wait for cooldown
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
       }
     });
   });
@@ -193,27 +191,27 @@ describe("GmailTokenManager", () => {
   describe("validateToken", () => {
     it("should validate token successfully", async () => {
       const validToken = "valid-token";
-      
+
       mockOAuth2Client.getAccessToken.mockResolvedValue({
         token: validToken,
       });
-      
+
       mockOAuth2Client.credentials = {
         access_token: validToken,
-        expiry_date: Date.now() + 3600000,
+        expiry_date: performance.now() + 3600000,
       };
-      
+
       const mockGmail = {
         users: {
           getProfile: vi.fn().mockResolvedValue({ data: { emailAddress: "test@gmail.com" } }),
         },
       };
-      
+
       const { google } = await import("googleapis");
       vi.mocked(google.gmail).mockReturnValue(mockGmail as any);
 
       const result = await tokenManager.validateToken();
-      
+
       expect(result.isOk()).toBe(true);
       if (result.isOk()) {
         expect(result.value).toBe(true);
@@ -225,18 +223,18 @@ describe("GmailTokenManager", () => {
       mockOAuth2Client.getAccessToken.mockResolvedValue({
         token: "invalid-token",
       });
-      
+
       const mockGmail = {
         users: {
           getProfile: vi.fn().mockRejectedValue(new Error("Invalid Credentials")),
         },
       };
-      
+
       const { google } = await import("googleapis");
       vi.mocked(google.gmail).mockReturnValue(mockGmail as any);
 
       const result = await tokenManager.validateToken();
-      
+
       expect(result.isErr()).toBe(true);
       if (result.isErr()) {
         expect(result.error.code).toBe("VALIDATION_ERROR");
@@ -247,12 +245,12 @@ describe("GmailTokenManager", () => {
   describe("getTokenStatus", () => {
     it("should return current token status", async () => {
       const token = "test-token";
-      const expiry = Date.now() + 1800000; // 30 minutes
-      
+      const expiry = performance.now() + 1800000; // 30 minutes
+
       mockOAuth2Client.getAccessToken.mockResolvedValue({
         token,
       });
-      
+
       mockOAuth2Client.credentials = {
         access_token: token,
         expiry_date: expiry,
@@ -260,9 +258,9 @@ describe("GmailTokenManager", () => {
 
       // Get a token to populate cache
       await tokenManager.getValidAccessToken();
-      
+
       const status = tokenManager.getTokenStatus();
-      
+
       expect(status.hasValidToken).toBe(true);
       expect(status.expiresIn).toBeGreaterThan(0);
       expect(status.expiresIn).toBeLessThanOrEqual(1800000);

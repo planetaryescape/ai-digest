@@ -23,7 +23,7 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
     const batchSize = input.batchSize;
     const cleanup = input.cleanup;
     const executionId = event.executionId;
-    const startTime = event.startTime || new Date().toISOString();
+    const startTime = event.startTime || formatISO(new Date());
 
     // Add historical mode parameters
     const startDate = input.startDate;
@@ -66,7 +66,7 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
       log.info("Emails too large, storing in S3");
       _emailsOutput = await this.storeInS3(
         fetchResult.fullEmails,
-        `${executionId}/emails-${Date.now()}.json`
+        `${executionId}/emails-${performance.now()}.json`
       );
     }
 
@@ -83,7 +83,7 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
       log.info("Marked emails too large, storing in S3");
       markedEmailsOutput = await this.storeInS3(
         markedEmails,
-        `${executionId}/marked-emails-${Date.now()}.json`
+        `${executionId}/marked-emails-${performance.now()}.json`
       );
     }
 
@@ -94,7 +94,7 @@ export class EmailFetcherHandler extends BaseStepFunctionHandler {
         totalFetched: fetchResult.fullEmails.length,
         aiEmails: fetchResult.aiEmailIds.length,
         unknownSenders: fetchResult.unknownEmailIds.length,
-        fetchTime: Date.now() - new Date(startTime).getTime(),
+        fetchTime: performance.now() - new Date(startTime).getTime(),
       },
       metadata: {
         executionId,

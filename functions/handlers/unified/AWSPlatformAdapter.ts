@@ -103,7 +103,7 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
           digestSent: result.success && result.emailsProcessed > 0,
           error: result.error,
         },
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
       }),
     };
   }
@@ -131,7 +131,7 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
         success: false,
         error: error.message,
         severity: isCriticalError ? "critical" : "warning",
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
         invocationId: context.invocationId,
       }),
     };

@@ -1,4 +1,5 @@
 import type { HttpRequest, HttpResponseInit, InvocationContext } from "@azure/functions";
+import { formatISO } from "date-fns";
 
 /**
  * Azure Function handler for manual trigger
@@ -51,7 +52,7 @@ export default async function runNow(
       body: JSON.stringify({
         success: response.ok,
         weeklyDigestResponse: parsedResponse,
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
         invocationId: context.invocationId,
       }),
     };
@@ -69,7 +70,7 @@ export default async function runNow(
       body: JSON.stringify({
         success: false,
         error: errorMessage,
-        timestamp: new Date().toISOString(),
+        timestamp: formatISO(new Date()),
         invocationId: context.invocationId,
       }),
     };

@@ -165,7 +165,7 @@ describe("DigestProcessor", () => {
           from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
-          date: new Date().toISOString(),
+          date: formatISO(new Date()),
         },
       ];
 
@@ -258,7 +258,7 @@ describe("DigestProcessor", () => {
         from: `sender${i}@ai.com`,
         subject: `AI News ${i}`,
         snippet: `Content ${i}`,
-        date: new Date().toISOString(),
+        date: formatISO(new Date()),
       }));
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
@@ -310,7 +310,7 @@ describe("DigestProcessor", () => {
           from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
-          date: new Date().toISOString(),
+          date: formatISO(new Date()),
         },
       ];
 
@@ -368,7 +368,7 @@ describe("DigestProcessor", () => {
           from: "test@ai.com",
           subject: "AI News",
           snippet: "Latest in AI",
-          date: new Date().toISOString(),
+          date: formatISO(new Date()),
         },
       ];
 
@@ -392,7 +392,7 @@ describe("DigestProcessor", () => {
           from: "newsletter@openai.com",
           subject: "OpenAI Updates",
           snippet: "Latest from OpenAI",
-          date: new Date().toISOString(),
+          date: formatISO(new Date()),
         },
       ];
 

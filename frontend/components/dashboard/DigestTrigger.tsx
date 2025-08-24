@@ -1,16 +1,25 @@
 "use client";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Activity, AlertTriangle, Calendar, CheckCircle2, Loader2, Play, Trash2, Zap } from "lucide-react";
+import {
+  Activity,
+  AlertTriangle,
+  Calendar,
+  CheckCircle2,
+  Loader2,
+  Play,
+  Trash2,
+  Zap,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 
 export function DigestTrigger() {
   const [cleanup, setCleanup] = useState(false);
@@ -82,11 +91,16 @@ export function DigestTrigger() {
   // Add a maximum timeout for the execution (5 minutes)
   useEffect(() => {
     if (executionArn && pollingEnabled) {
-      const timeout = setTimeout(() => {
-        toast.warning("Execution status check timed out. The process may still be running in the background.");
-        setPollingEnabled(false);
-        setExecutionArn(null);
-      }, 5 * 60 * 1000); // 5 minutes
+      const timeout = setTimeout(
+        () => {
+          toast.warning(
+            "Execution status check timed out. The process may still be running in the background."
+          );
+          setPollingEnabled(false);
+          setExecutionArn(null);
+        },
+        5 * 60 * 1000
+      ); // 5 minutes
 
       return () => clearTimeout(timeout);
     }
@@ -161,9 +175,7 @@ export function DigestTrigger() {
     <Card>
       <CardHeader>
         <CardTitle>Digest Generation</CardTitle>
-        <CardDescription>
-          Generate AI-powered digests from your email newsletters
-        </CardDescription>
+        <CardDescription>Generate AI-powered digests from your email newsletters</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Main Controls */}
@@ -200,10 +212,7 @@ export function DigestTrigger() {
               }}
               disabled={triggerMutation.isPending || !!executionArn || historicalMode}
             />
-            <Label
-              htmlFor="cleanup"
-              className="flex items-center space-x-2 cursor-pointer"
-            >
+            <Label htmlFor="cleanup" className="flex items-center space-x-2 cursor-pointer">
               <span>Cleanup Mode</span>
               <Trash2 className="h-4 w-4 text-muted-foreground" />
             </Label>
@@ -216,10 +225,7 @@ export function DigestTrigger() {
               onCheckedChange={(checked) => setUseStepFunctions(checked as boolean)}
               disabled={triggerMutation.isPending || !!executionArn}
             />
-            <Label
-              htmlFor="stepfunctions"
-              className="flex items-center space-x-2 cursor-pointer"
-            >
+            <Label htmlFor="stepfunctions" className="flex items-center space-x-2 cursor-pointer">
               <span>Use Step Functions</span>
               <Zap className="h-4 w-4 text-yellow-500" />
             </Label>
@@ -238,10 +244,7 @@ export function DigestTrigger() {
               }}
               disabled={triggerMutation.isPending || !!executionArn || cleanup}
             />
-            <Label
-              htmlFor="historical"
-              className="flex items-center space-x-2 cursor-pointer"
-            >
+            <Label htmlFor="historical" className="flex items-center space-x-2 cursor-pointer">
               <span>Historical Mode</span>
               <Calendar className="h-4 w-4 text-indigo-500" />
             </Label>
@@ -326,8 +329,8 @@ export function DigestTrigger() {
                       executionStatus.status === "RUNNING"
                         ? "default"
                         : executionStatus.status === "SUCCEEDED"
-                        ? "secondary"
-                        : "destructive"
+                          ? "secondary"
+                          : "destructive"
                     }
                   >
                     {executionStatus.status}
@@ -339,7 +342,9 @@ export function DigestTrigger() {
                   onClick={() => {
                     setPollingEnabled(false);
                     setExecutionArn(null);
-                    toast.info("Execution tracking cleared. The process may still be running in the background.");
+                    toast.info(
+                      "Execution tracking cleared. The process may still be running in the background."
+                    );
                   }}
                 >
                   Clear
@@ -372,8 +377,8 @@ export function DigestTrigger() {
             <CheckCircle2 className="h-4 w-4" />
             <AlertTitle>Success</AlertTitle>
             <AlertDescription>
-              Digest generation has been triggered successfully. You&apos;ll receive an email once it&apos;s
-              complete.
+              Digest generation has been triggered successfully. You&apos;ll receive an email once
+              it&apos;s complete.
             </AlertDescription>
           </Alert>
         )}

@@ -54,7 +54,7 @@ export class MockEmailFetcherAgent {
             body: full.data.payload?.body?.data
               ? Buffer.from(full.data.payload.body.data, "base64").toString()
               : "",
-            date: dateHeader?.value || new Date().toISOString(),
+            date: dateHeader?.value || formatISO(new Date()),
             payload: full.data.payload,
           };
 

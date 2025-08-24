@@ -165,7 +165,7 @@ describe("DigestProcessor Integration Tests", () => {
       subject: "GPT-5 Announced: Revolutionary AI Breakthrough",
       snippet: "OpenAI announces GPT-5 with unprecedented capabilities...",
       body: "Full announcement about GPT-5 features and capabilities...",
-      date: new Date().toISOString(),
+      date: formatISO(new Date()),
       urls: ["https://openai.com/gpt-5"],
     },
     {
@@ -174,7 +174,7 @@ describe("DigestProcessor Integration Tests", () => {
       subject: "Claude 3 Performance Updates",
       snippet: "Latest improvements to Claude 3 model performance...",
       body: "Detailed update on Claude 3 improvements and benchmarks...",
-      date: new Date().toISOString(),
+      date: formatISO(new Date()),
       urls: ["https://anthropic.com/claude-3-updates"],
     },
     {
@@ -183,7 +183,7 @@ describe("DigestProcessor Integration Tests", () => {
       subject: "Weekend Deals on Electronics",
       snippet: "Great deals on TVs and laptops this weekend...",
       body: "Sale information for electronics...",
-      date: new Date().toISOString(),
+      date: formatISO(new Date()),
       urls: [],
     },
   ];
@@ -509,7 +509,7 @@ describe("DigestProcessor Integration Tests", () => {
         subject: `AI News Update ${i}`,
         snippet: `AI content snippet ${i}`,
         body: `Full AI content body ${i}`,
-        date: new Date(Date.now() - i * 86400000).toISOString(), // Each email 1 day older
+        date: new Date(performance.now() - i * 86400000).toISOString(), // Each email 1 day older
         urls: [`https://example.com/article-${i}`],
       }));
 
@@ -762,9 +762,9 @@ describe("DigestProcessor Integration Tests", () => {
       expect(gmailBreaker.getState()).toBe("OPEN");
 
       // Subsequent calls should fail fast
-      const start = Date.now();
+      const start = performance.now();
       const result = await processor.processWeeklyDigest();
-      const duration = Date.now() - start;
+      const duration = performance.now() - start;
 
       expect(result.success).toBe(false);
       expect(result.error).toMatch(/Circuit breaker .* is OPEN/);
@@ -885,7 +885,7 @@ describe("DigestProcessor Integration Tests", () => {
           headers: [
             { name: "From", value: "ai@newsletter.com" },
             { name: "Subject", value: "AI Weekly" },
-            { name: "Date", value: new Date().toISOString() },
+            { name: "Date", value: formatISO(new Date()) },
           ],
           snippet: "AI news snippet",
           body: { data: Buffer.from("AI content").toString("base64") },
@@ -927,7 +927,7 @@ describe("DigestProcessor Integration Tests", () => {
         subject: "Data Integrity Test",
         snippet: "Test snippet",
         body: "Test body content",
-        date: new Date().toISOString(),
+        date: formatISO(new Date()),
       };
 
       vi.mocked(gmailMock.users.messages.list).mockImplementation(() =>

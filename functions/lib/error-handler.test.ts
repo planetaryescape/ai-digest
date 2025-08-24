@@ -111,9 +111,9 @@ describe("ErrorHandler", () => {
         .mockRejectedValueOnce(new Error("Fail"))
         .mockResolvedValue("success");
 
-      const start = Date.now();
+      const start = performance.now();
       await ErrorHandler.retry(operation, 3, 100, 2, mockLogger);
-      const elapsed = Date.now() - start;
+      const elapsed = performance.now() - start;
 
       // Should wait at least 100ms (first retry delay)
       expect(elapsed).toBeGreaterThanOrEqual(100);

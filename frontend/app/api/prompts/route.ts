@@ -120,8 +120,11 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get("promptId");
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY || 
-        process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key_id') {
+    if (
+      !process.env.AWS_ACCESS_KEY_ID ||
+      !process.env.AWS_SECRET_ACCESS_KEY ||
+      process.env.AWS_ACCESS_KEY_ID === "your_aws_access_key_id"
+    ) {
       // Return demo data when AWS credentials are not configured
       if (promptId) {
         const prompt = defaultPrompts.find((p) => p.promptId === promptId);
@@ -207,8 +210,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY ||
-        process.env.AWS_ACCESS_KEY_ID === 'your_aws_access_key_id') {
+    if (
+      !process.env.AWS_ACCESS_KEY_ID ||
+      !process.env.AWS_SECRET_ACCESS_KEY ||
+      process.env.AWS_ACCESS_KEY_ID === "your_aws_access_key_id"
+    ) {
       // Return mock success response when AWS credentials are not configured
       const newPrompt: DigestPrompt = {
         promptId,
@@ -228,7 +234,8 @@ export async function POST(request: NextRequest) {
           success: true,
           prompt: newPrompt,
           _demoMode: true,
-          message: "Demo mode: Changes are not persisted. Configure AWS credentials to save prompts."
+          message:
+            "Demo mode: Changes are not persisted. Configure AWS credentials to save prompts.",
         },
         { headers }
       );

@@ -10,10 +10,10 @@ import {
   AIDetectionStrategyFactory,
   type CompositeAIDetectionStrategy,
 } from "./gmail/ai-detection-strategies";
+import { GmailTokenManager } from "./gmail/token-manager";
 import type { ISenderTracker } from "./interfaces/sender-tracker";
 import { createLogger, createTimer } from "./logger";
 import type { Article, EmailItem } from "./types";
-import { GmailTokenManager } from "./gmail/token-manager";
 import { Result } from "./types/Result";
 
 const log = createLogger("gmail");
@@ -59,16 +59,13 @@ export class GmailClient {
   /**
    * Execute Gmail API call with automatic token refresh on auth failure
    */
-  private async executeWithRetry<T>(
-    apiCall: () => Promise<T>,
-    operation: string
-  ): Promise<T> {
+  private async executeWithRetry<T>(apiCall: () => Promise<T>, operation: string): Promise<T> {
     try {
       return await apiCall();
     } catch (error: any) {
       const errorCode = error?.code;
       const errorMessage = error?.message || "";
-      
+
       // Check if error is auth-related
       if (
         errorCode === 401 ||
@@ -76,23 +73,23 @@ export class GmailClient {
         errorMessage.includes("Token has been expired or revoked")
       ) {
         log.warn(`Auth error during ${operation}, attempting token refresh`);
-        
+
         // Try to refresh the token
         const refreshResult = await this.tokenManager.refreshAccessToken();
-        
+
         if (refreshResult.isErr()) {
           log.error({ error: refreshResult.error }, `Failed to refresh token for ${operation}`);
           throw new Error(
             `Gmail authentication failed: ${refreshResult.error.message}. ` +
-            `Please run 'bun run generate:oauth' to get a new refresh token.`
+              `Please run 'bun run generate:oauth' to get a new refresh token.`
           );
         }
-        
+
         // Retry the API call with the new token
         log.info(`Retrying ${operation} after token refresh`);
         return await apiCall();
       }
-      
+
       // For non-auth errors, just throw
       throw error;
     }
@@ -180,12 +177,13 @@ export class GmailClient {
 
     while (messageIds.length < maxResults) {
       const response = await this.executeWithRetry(
-        () => this.gmail.users.messages.list({
-          userId: "me",
-          q: query,
-          maxResults: Math.min(500, maxResults - messageIds.length),
-          pageToken,
-        }),
+        () =>
+          this.gmail.users.messages.list({
+            userId: "me",
+            q: query,
+            maxResults: Math.min(500, maxResults - messageIds.length),
+            pageToken,
+          }),
         "listMessages"
       );
 
@@ -206,11 +204,12 @@ export class GmailClient {
    */
   async getMessage(messageId: string): Promise<gmail_v1.Schema$Message> {
     const response = await this.executeWithRetry(
-      () => this.gmail.users.messages.get({
-        userId: "me",
-        id: messageId,
-        format: "full",
-      }),
+      () =>
+        this.gmail.users.messages.get({
+          userId: "me",
+          id: messageId,
+          format: "full",
+        }),
       "getMessage"
     );
     return response.data;
@@ -221,12 +220,13 @@ export class GmailClient {
    */
   async getMessageMetadata(messageId: string): Promise<gmail_v1.Schema$Message> {
     const response = await this.executeWithRetry(
-      () => this.gmail.users.messages.get({
-        userId: "me",
-        id: messageId,
-        format: "metadata",
-        metadataHeaders: ["Subject", "From", "Date"],
-      }),
+      () =>
+        this.gmail.users.messages.get({
+          userId: "me",
+          id: messageId,
+          format: "metadata",
+          metadataHeaders: ["Subject", "From", "Date"],
+        }),
       "getMessageMetadata"
     );
     return response.data;
@@ -245,14 +245,15 @@ export class GmailClient {
     }
 
     await this.executeWithRetry(
-      () => this.gmail.users.messages.batchModify({
-        userId: "me",
-        requestBody: {
-          ids: messageIds,
-          addLabelIds,
-          removeLabelIds,
-        },
-      }),
+      () =>
+        this.gmail.users.messages.batchModify({
+          userId: "me",
+          requestBody: {
+            ids: messageIds,
+            addLabelIds,
+            removeLabelIds,
+          },
+        }),
       "batchModify"
     );
   }

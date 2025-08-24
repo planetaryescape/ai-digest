@@ -71,7 +71,7 @@ export class ClassifierAgent {
       if (index > 0) {
         await new Promise((resolve) => setTimeout(resolve, index * 200));
       }
-      
+
       try {
         const classifications = await this.classifyBatch(batch, isCleanupMode);
 
@@ -82,7 +82,7 @@ export class ClassifierAgent {
 
         // Skip DynamoDB saves for now - they're causing errors and slowdowns
         // await this.saveClassifications(batch, classifications);
-        
+
         return classifications;
       } catch (error) {
         this.stats.errors++;
@@ -90,7 +90,7 @@ export class ClassifierAgent {
         return new Map();
       }
     });
-    
+
     // Process up to 3 batches concurrently
     const concurrentLimit = 3;
     for (let i = 0; i < batchPromises.length; i += concurrentLimit) {
@@ -102,12 +102,12 @@ export class ClassifierAgent {
     const aiClassifications = Array.from(results.entries()).filter(
       ([_, c]) => c.classification === "AI"
     );
-    
+
     const aiSenders = aiClassifications.map(([emailId, c]) => {
-      const email = emailBatch.fullEmails.find(e => e.id === emailId);
+      const email = emailBatch.fullEmails.find((e) => e.id === emailId);
       return email?.sender || "Unknown";
     });
-    
+
     log.info(
       {
         classified: results.size,
@@ -116,14 +116,17 @@ export class ClassifierAgent {
       },
       "Classification complete"
     );
-    
+
     // Log all AI senders in batches for complete visibility
     if (aiSenders.length > 0) {
-      const senderCounts = aiSenders.reduce((acc, sender) => {
-        acc[sender] = (acc[sender] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
+      const senderCounts = aiSenders.reduce(
+        (acc, sender) => {
+          acc[sender] = (acc[sender] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
       log.info(
         {
           totalAISenders: aiSenders.length,
@@ -256,7 +259,7 @@ ${JSON.stringify(emailSummaries, null, 2)}`;
       log.debug("Skipping DynamoDB saves - using alternative storage");
       return;
     }
-    
+
     const aiSenders: any[] = [];
     const nonAiSenders: any[] = [];
 

@@ -45,7 +45,7 @@ export class CriticHandler extends BaseStepFunctionHandler {
         metadata: {
           executionId,
           mode,
-          totalPipelineTime: Date.now() - startTime,
+          totalPipelineTime: performance.now() - startTime,
         },
         costSoFar: event.costSoFar || 0,
       };
@@ -54,9 +54,9 @@ export class CriticHandler extends BaseStepFunctionHandler {
     log.info("Generating opinionated critique");
 
     // Generate critique
-    const criticStartTime = Date.now();
+    const criticStartTime = performance.now();
     const criticResult = await this.critic.generateCommentary(analysisResult.analysis);
-    const criticTime = Date.now() - criticStartTime;
+    const criticTime = performance.now() - criticStartTime;
 
     log.info(
       {
@@ -77,7 +77,7 @@ export class CriticHandler extends BaseStepFunctionHandler {
       log.info("Combined result too large, storing in S3");
       outputResult = await this.storeInS3(
         combinedResult,
-        `${executionId}/final-analysis-${Date.now()}.json`
+        `${executionId}/final-analysis-${performance.now()}.json`
       );
     }
 
@@ -94,7 +94,7 @@ export class CriticHandler extends BaseStepFunctionHandler {
       metadata: {
         executionId,
         mode,
-        totalPipelineTime: Date.now() - startTime,
+        totalPipelineTime: performance.now() - startTime,
       },
       costSoFar,
     };

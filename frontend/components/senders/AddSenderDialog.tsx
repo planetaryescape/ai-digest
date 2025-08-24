@@ -99,9 +99,7 @@ export function AddSenderDialog({ open, onClose }: AddSenderDialogProps) {
               />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="confidence">
-                Confidence Score ({formData.confidence}%)
-              </Label>
+              <Label htmlFor="confidence">Confidence Score ({formData.confidence}%)</Label>
               <Input
                 id="confidence"
                 type="range"
