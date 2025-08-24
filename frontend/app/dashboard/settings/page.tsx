@@ -45,7 +45,9 @@ export default function SettingsPage() {
     },
   });
   
-  const prompts = promptsData?._demoMode ? promptsData.prompts : (Array.isArray(promptsData) ? promptsData : promptsData?.prompts || []);
+  const prompts: DigestPrompt[] = promptsData?._demoMode 
+    ? promptsData.prompts 
+    : (Array.isArray(promptsData) ? promptsData : promptsData?.prompts || []);
   const isDemoMode = promptsData?._demoMode || false;
 
   const savePromptMutation = useMutation({
