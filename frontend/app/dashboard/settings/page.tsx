@@ -32,14 +32,21 @@ export default function SettingsPage() {
   const [showVariables, setShowVariables] = useState(true);
   const queryClient = useQueryClient();
 
-  const { data: prompts, isLoading } = useQuery({
+  const { data: promptsData, isLoading, error } = useQuery({
     queryKey: ["prompts"],
     queryFn: async () => {
       const res = await fetch("/api/prompts");
-      if (!res.ok) throw new Error("Failed to fetch prompts");
-      return res.json() as Promise<DigestPrompt[]>;
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to fetch prompts");
+      }
+      const data = await res.json();
+      return data;
     },
   });
+  
+  const prompts = promptsData?._demoMode ? promptsData.prompts : (Array.isArray(promptsData) ? promptsData : promptsData?.prompts || []);
+  const isDemoMode = promptsData?._demoMode || false;
 
   const savePromptMutation = useMutation({
     mutationFn: async (prompt: DigestPrompt) => {
@@ -67,6 +74,11 @@ export default function SettingsPage() {
 
   const handleSave = () => {
     if (!selectedPrompt) return;
+
+    if (isDemoMode) {
+      toast.info("Demo Mode: Changes won't be persisted. Configure AWS credentials to save prompts.");
+      return;
+    }
 
     const updatedPrompt = {
       ...selectedPrompt,
@@ -113,6 +125,19 @@ export default function SettingsPage() {
     );
   }
 
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
+          <p className="text-red-600 font-medium">Failed to load prompts</p>
+          <p className="text-gray-500 text-sm mt-2">{error.message}</p>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -129,7 +154,14 @@ export default function SettingsPage() {
               <Sparkles className="h-5 w-5 text-purple-600" />
               <h3 className="text-lg font-medium">AI Digest Prompts</h3>
             </div>
-            <div className="text-sm text-gray-500">{prompts?.length || 0} prompts configured</div>
+            <div className="flex items-center space-x-3">
+              <div className="text-sm text-gray-500">{prompts?.length || 0} prompts configured</div>
+              {isDemoMode && (
+                <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                  Demo Mode - Configure AWS credentials to save changes
+                </span>
+              )}
+            </div>
           </div>
         </div>
 
@@ -137,7 +169,13 @@ export default function SettingsPage() {
           {/* Prompt List */}
           <div className="col-span-1 p-4">
             <div className="space-y-2">
-              {prompts?.map((prompt) => (
+              {!prompts || prompts.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No prompts available</p>
+                  <p className="text-sm text-gray-400 mt-2">Prompts will be loaded from the API</p>
+                </div>
+              ) : (
+                prompts.map((prompt) => (
                 <button
                   key={prompt.promptId}
                   onClick={() => handleSelectPrompt(prompt)}
@@ -179,7 +217,8 @@ export default function SettingsPage() {
                     <span className="text-xs text-gray-400">v{prompt.version}</span>
                   </div>
                 </button>
-              ))}
+              ))
+              )}
             </div>
           </div>
 
