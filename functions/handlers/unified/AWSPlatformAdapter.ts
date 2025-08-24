@@ -37,6 +37,13 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
         ? Number.parseInt(body.batchSize, 10)
         : undefined;
 
+    // Extract maxEmails from query params or body
+    const maxEmails = query.maxEmails
+      ? Number.parseInt(query.maxEmails, 10)
+      : body?.maxEmails
+        ? Number.parseInt(body.maxEmails, 10)
+        : undefined;
+
     return {
       type: "http",
       method: apiEvent.httpMethod,
@@ -53,6 +60,7 @@ export class AWSPlatformAdapter implements IPlatformAdapter {
       startDate: body?.startDate,
       endDate: body?.endDate,
       includeArchived: body?.includeArchived,
+      maxEmails: maxEmails,
     };
   }
 

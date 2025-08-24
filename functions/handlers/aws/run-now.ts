@@ -47,6 +47,8 @@ async function handler(
 
     // Check for different modes
     const cleanup = event.queryStringParameters?.cleanup === "true" || body.cleanup === true;
+    const testMode = event.queryStringParameters?.test === "true" || body.test === true;
+    const maxEmails = testMode ? 20 : undefined; // Limit to 20 emails in test mode
 
     const mode = body.mode || (cleanup ? "cleanup" : "weekly");
 
@@ -109,6 +111,7 @@ async function handler(
         cleanup,
         startDate,
         endDate,
+        ...(maxEmails && { maxEmails }),
         httpMethod: "POST",
         path: "/",
         queryStringParameters: event.queryStringParameters,

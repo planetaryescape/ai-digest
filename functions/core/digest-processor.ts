@@ -98,11 +98,15 @@ export class DigestProcessor {
   /**
    * Process weekly digest with full agent pipeline
    */
-  async processWeeklyDigest(dateRange?: { start: string; end: string }): Promise<DigestResult> {
+  async processWeeklyDigest(
+    dateRange?: { start: string; end: string },
+    maxEmails?: number
+  ): Promise<DigestResult> {
     this.logger.info(
       dateRange
         ? `Starting historical digest processing from ${dateRange.start} to ${dateRange.end}`
-        : "Starting weekly digest processing"
+        : "Starting weekly digest processing",
+      { maxEmails }
     );
 
     const startTime = Date.now();
@@ -125,6 +129,7 @@ export class DigestProcessor {
           mode: dateRange ? "historical" : "weekly",
           startDate: dateRange?.start,
           endDate: dateRange?.end,
+          ...(maxEmails && { maxResults: maxEmails }),
         })
       );
       timings.fetchTime = Date.now() - fetchStart;

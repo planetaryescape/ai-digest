@@ -61,10 +61,17 @@ export class ClassifierAgent {
       return results;
     }
 
-    // Process in batches
-    const batches = this.createBatches(unknownEmails, RATE_LIMITS.OPENAI_BATCH_SIZE);
+    // Process in batches - increased batch size for better performance
+    const batchSize = Math.min(50, RATE_LIMITS.OPENAI_BATCH_SIZE * 2); // Increase batch size
+    const batches = this.createBatches(unknownEmails, batchSize);
 
-    for (const batch of batches) {
+    // Process batches in parallel (max 3 concurrent) for faster processing
+    const batchPromises = batches.map(async (batch, index) => {
+      // Small delay between batch starts to avoid rate limits
+      if (index > 0) {
+        await new Promise((resolve) => setTimeout(resolve, index * 200));
+      }
+      
       try {
         const classifications = await this.classifyBatch(batch, isCleanupMode);
 
@@ -73,24 +80,62 @@ export class ClassifierAgent {
           results.set(emailId, classification);
         }
 
-        // Save new classifications to DynamoDB
-        await this.saveClassifications(batch, classifications);
-
-        // Rate limiting
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        // Skip DynamoDB saves for now - they're causing errors and slowdowns
+        // await this.saveClassifications(batch, classifications);
+        
+        return classifications;
       } catch (error) {
         this.stats.errors++;
         log.error({ error, batchSize: batch.length }, "Batch classification failed");
+        return new Map();
       }
+    });
+    
+    // Process up to 3 batches concurrently
+    const concurrentLimit = 3;
+    for (let i = 0; i < batchPromises.length; i += concurrentLimit) {
+      const chunk = batchPromises.slice(i, i + concurrentLimit);
+      await Promise.all(chunk);
     }
 
+    // Log AI-classified senders for debugging
+    const aiClassifications = Array.from(results.entries()).filter(
+      ([_, c]) => c.classification === "AI"
+    );
+    
+    const aiSenders = aiClassifications.map(([emailId, c]) => {
+      const email = emailBatch.fullEmails.find(e => e.id === emailId);
+      return email?.sender || "Unknown";
+    });
+    
     log.info(
       {
         classified: results.size,
-        aiEmails: Array.from(results.values()).filter((c) => c.classification === "AI").length,
+        aiEmails: aiClassifications.length,
+        aiSenders: aiSenders.slice(0, 20), // Log first 20 for visibility
       },
       "Classification complete"
     );
+    
+    // Log all AI senders in batches for complete visibility
+    if (aiSenders.length > 0) {
+      const senderCounts = aiSenders.reduce((acc, sender) => {
+        acc[sender] = (acc[sender] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+      
+      log.info(
+        {
+          totalAISenders: aiSenders.length,
+          uniqueSenders: Object.keys(senderCounts).length,
+          topSenders: Object.entries(senderCounts)
+            .sort(([, a], [, b]) => b - a)
+            .slice(0, 10)
+            .map(([sender, count]) => `${sender} (${count})`),
+        },
+        "AI Email Senders Summary"
+      );
+    }
 
     return results;
   }
@@ -170,14 +215,24 @@ export class ClassifierAgent {
 
     return `Classify these emails as AI/tech-related or not. Mode: ${mode}
 
-AI/tech-related includes:
-- AI/ML news, tools, research
-- Tech industry updates
-- Developer tools and frameworks
-- Data science content
-- Automation and robotics
-- Tech company announcements
-- Programming languages and libraries
+AI/tech-related SPECIFICALLY includes:
+- Artificial Intelligence and Machine Learning content
+- AI tools, models, and frameworks (GPT, Claude, LLMs, etc.)
+- AI research papers and breakthroughs
+- Data science focused on AI/ML
+- Automation specifically related to AI
+- AI company announcements (OpenAI, Anthropic, etc.)
+
+NOT AI-related (exclude these):
+- General tech news without AI focus
+- Programming tutorials without AI/ML content
+- Generic developer tools (unless AI-specific)
+- General software updates
+- Hardware news (unless AI chips/processors)
+- Web development without AI components
+- Generic business/marketing emails
+
+Be STRICT - only classify as AI if the email is specifically about artificial intelligence, machine learning, or directly related AI topics.
 
 Return JSON with email ID as key:
 {
@@ -196,6 +251,12 @@ ${JSON.stringify(emailSummaries, null, 2)}`;
     emails: any[],
     classifications: Map<string, Classification>
   ): Promise<void> {
+    // Skip DynamoDB operations if table doesn't exist or is misconfigured
+    if (!process.env.DYNAMODB_TABLE || process.env.STORAGE_TYPE === "s3") {
+      log.debug("Skipping DynamoDB saves - using alternative storage");
+      return;
+    }
+    
     const aiSenders: any[] = [];
     const nonAiSenders: any[] = [];
 

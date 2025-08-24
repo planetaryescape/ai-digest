@@ -24,8 +24,11 @@ export class EnhancedCircuitBreaker {
     private name: string,
     options: CircuitBreakerOptions = {}
   ) {
+    // Get timeout from environment or use a reasonable default (3 minutes)
+    const timeout = Number(process.env.CIRCUIT_BREAKER_TIMEOUT) || 180000;
+    
     const opossumOptions: OpossumCircuitBreaker.Options = {
-      timeout: 30000,
+      timeout: timeout,
       errorThresholdPercentage: 50,
       resetTimeout: options.resetTimeout || 60000,
       rollingCountTimeout: options.monitoringPeriod || 120000,

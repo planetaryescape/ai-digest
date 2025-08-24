@@ -52,3 +52,16 @@ coverage/
 .cache/
 tmp/
 temp/terraform.tfvars
+
+# Test files
+test-response.json
+response.json
+test-output.json
+final-test-response.json
+terraform/aws/response.json
+terraform/aws/health-response.json
+
+# Files with potential secrets
+generate-token-automated.ts
+update-token-from-code.ts
+DEPLOYMENT_STATUS.md

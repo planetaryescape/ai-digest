@@ -20,6 +20,7 @@ export interface UnifiedRequest {
   startDate?: string; // ISO format date
   endDate?: string; // ISO format date
   includeArchived?: boolean;
+  maxEmails?: number; // Limit number of emails to process (for testing)
 }
 
 export interface UnifiedResponse {

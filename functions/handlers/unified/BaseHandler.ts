@@ -107,13 +107,16 @@ export abstract class BaseHandler {
           context.logger.info(
             `Processing weekly digest with date range from ${request.startDate} to ${request.endDate}`
           );
-          result = await processor.processWeeklyDigest({
-            start: request.startDate,
-            end: request.endDate,
-          });
+          result = await processor.processWeeklyDigest(
+            {
+              start: request.startDate,
+              end: request.endDate,
+            },
+            request.maxEmails
+          );
         } else {
           context.logger.info("Processing weekly digest");
-          result = await processor.processWeeklyDigest();
+          result = await processor.processWeeklyDigest(undefined, request.maxEmails);
         }
       }
 

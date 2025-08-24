@@ -276,6 +276,12 @@ export class EmailFetcherAgent {
   private async getKnownSenders(tableName: string): Promise<Set<string>> {
     const senders = new Set<string>();
 
+    // Skip DynamoDB operations when using mock storage or tables don't exist
+    if (process.env.STORAGE_TYPE === "s3" || process.env.STORAGE_TYPE === "mock") {
+      log.debug("Skipping DynamoDB sender lookup - using mock storage");
+      return senders;
+    }
+
     try {
       const response = await this.dynamodb.send(
         new QueryCommand({
