@@ -20,6 +20,8 @@
     "update:cors": "./scripts/update-cors.sh",
     "dev:email": "email dev",
     "generate:oauth": "bun run bin/generate-oauth-token.ts",
+    "refresh:gmail": "bun run bin/refresh-gmail-token.ts",
+    "health:gmail": "curl -s https://$(cd terraform/aws && terraform output -raw run_now_url | sed 's|/run-now||')/gmail-health | jq",
     "lint": "biome check --write .",
     "lint:check": "biome check .",
     "format": "biome format --write .",
