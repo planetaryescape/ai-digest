@@ -27,10 +27,11 @@ describe("ErrorHandler", () => {
 
       const result = await ErrorHandler.wrap(operation);
 
-      expect(result).toEqual({
-        success: true,
-        data: "test-data",
-      });
+      expect(result.isOk()).toBe(true);
+      expect(result.isErr()).toBe(false);
+      if (result.isOk()) {
+        expect(result.value).toBe("test-data");
+      }
     });
 
     it("should handle errors and return error result when not critical", async () => {
@@ -38,10 +39,11 @@ describe("ErrorHandler", () => {
 
       const result = await ErrorHandler.wrap(operation, { critical: false });
 
-      expect(result).toEqual({
-        success: false,
-        error: "Test error",
-      });
+      expect(result.isErr()).toBe(true);
+      expect(result.isOk()).toBe(false);
+      if (result.isErr()) {
+        expect(result.error.message).toBe("Test error");
+      }
     });
 
     it("should re-throw error when critical", async () => {
@@ -78,7 +80,11 @@ describe("ErrorHandler", () => {
         notify: true,
       });
 
-      expect(sendErrorNotification).toHaveBeenCalledWith(error);
+      expect(sendErrorNotification).toHaveBeenCalledWith(
+        expect.any(String),
+        error,
+        "operation"
+      );
     });
   });
 
@@ -130,11 +136,13 @@ describe("ErrorHandler", () => {
 
       const results = await ErrorHandler.parallel([op1, op2, op3]);
 
-      expect(results).toEqual([
-        { success: true, data: "data1" },
-        { success: true, data: "data2" },
-        { success: true, data: "data3" },
-      ]);
+      expect(results).toHaveLength(3);
+      expect(results[0].isOk()).toBe(true);
+      expect(results[1].isOk()).toBe(true);
+      expect(results[2].isOk()).toBe(true);
+      if (results[0].isOk()) expect(results[0].value).toBe("data1");
+      if (results[1].isOk()) expect(results[1].value).toBe("data2");
+      if (results[2].isOk()) expect(results[2].value).toBe("data3");
     });
 
     it("should handle mixed success and failure", async () => {
@@ -144,11 +152,13 @@ describe("ErrorHandler", () => {
 
       const results = await ErrorHandler.parallel([op1, op2, op3]);
 
-      expect(results).toEqual([
-        { success: true, data: "data1" },
-        { success: false, error: "Failed" },
-        { success: true, data: "data3" },
-      ]);
+      expect(results).toHaveLength(3);
+      expect(results[0].isOk()).toBe(true);
+      expect(results[1].isErr()).toBe(true);
+      expect(results[2].isOk()).toBe(true);
+      if (results[0].isOk()) expect(results[0].value).toBe("data1");
+      if (results[1].isErr()) expect(results[1].error.message).toBe("Failed");
+      if (results[2].isOk()) expect(results[2].value).toBe("data3");
     });
 
     it("should stop on error when requested", async () => {
@@ -158,10 +168,11 @@ describe("ErrorHandler", () => {
 
       const results = await ErrorHandler.parallel([op1, op2, op3], { stopOnError: true });
 
-      expect(results).toEqual([
-        { success: true, data: "data1" },
-        { success: false, error: "Stop here" },
-      ]);
+      expect(results).toHaveLength(2);
+      expect(results[0].isOk()).toBe(true);
+      expect(results[1].isErr()).toBe(true);
+      if (results[0].isOk()) expect(results[0].value).toBe("data1");
+      if (results[1].isErr()) expect(results[1].error.message).toBe("Stop here");
       expect(op3).not.toHaveBeenCalled();
     });
   });
