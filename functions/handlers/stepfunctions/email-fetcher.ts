@@ -1,4 +1,5 @@
 import type { Context } from "aws-lambda";
+import { formatISO } from "date-fns";
 import { EmailFetcherAgent } from "../../lib/agents/EmailFetcherAgent";
 import { createLogger } from "../../lib/logger";
 import { BaseStepFunctionHandler } from "./base-handler";

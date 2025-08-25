@@ -4,6 +4,7 @@ import type {
   Context,
   ScheduledEvent,
 } from "aws-lambda";
+import { formatISO } from "date-fns";
 import type { DigestResult } from "../../core/digest-processor";
 import type { IPlatformAdapter } from "./IPlatformAdapter";
 import type { UnifiedContext, UnifiedLogger, UnifiedRequest } from "./types";

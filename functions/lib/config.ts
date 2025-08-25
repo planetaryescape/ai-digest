@@ -151,7 +151,9 @@ export const config = {
 
     // Default context
     return {
-      owner: "Bhekani",
+      product: "AI Digest",
+      stage: "development",
+      version: "1.0.0",
       apps: config.apps,
     };
   },

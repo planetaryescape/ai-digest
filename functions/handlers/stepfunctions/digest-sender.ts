@@ -1,5 +1,6 @@
 import { render } from "@react-email/render";
 import type { Context } from "aws-lambda";
+import { formatISO } from "date-fns";
 import { type gmail_v1, google } from "googleapis";
 import { Resend } from "resend";
 import WeeklyDigestEmail from "../../../emails/WeeklyDigestClean";

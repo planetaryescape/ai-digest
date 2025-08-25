@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { renderAsync } from "@react-email/render";
 import React from "react";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { WeeklyDigestEmail } from "../emails/WeeklyDigestRedesigned";
 import type { DigestOutput } from "../functions/lib/schemas/digest";
 import type { Summary } from "../functions/lib/types";
@@ -38,7 +38,8 @@ const sampleDigest: DigestOutput = {
     {
       insight: "OpenAI's o1 model shows 90% accuracy on PhD-level physics problems",
       players: ["OpenAI", "Meta", "Google"],
-      implication: "Traditional model architectures are being disrupted by reasoning-focused approaches",
+      implication:
+        "Traditional model architectures are being disrupted by reasoning-focused approaches",
     },
     {
       insight: "Anthropic's Claude 3.5 Sonnet leads in coding benchmarks",
@@ -126,7 +127,10 @@ const sampleDigest: DigestOutput = {
         "New paradigm for AI applications",
       ],
       whyItMatters: "This breakthrough enables entirely new categories of AI applications",
-      actionItems: ["Test o1 on your hardest problems", "Explore reasoning chains in your products"],
+      actionItems: [
+        "Test o1 on your hardest problems",
+        "Explore reasoning chains in your products",
+      ],
       category: "AI Models",
       sender: "newsletter@openai.com",
       date: new Date().toISOString(),
@@ -140,7 +144,8 @@ const sampleDigest: DigestOutput = {
         "AI assistants becoming essential tools",
         "Rapid adoption across enterprises",
       ],
-      whyItMatters: "AI coding assistants are no longer optional - they're essential for competitive advantage",
+      whyItMatters:
+        "AI coding assistants are no longer optional - they're essential for competitive advantage",
       actionItems: ["Adopt Cursor or Windsurf", "Train team on AI pair programming"],
       category: "Developer Tools",
       sender: "digest@github.com",
@@ -155,7 +160,8 @@ const sampleDigest: DigestOutput = {
         "Sub-200ms latency achieved",
         "Voice cloning indistinguishable from real",
       ],
-      whyItMatters: "Voice interfaces are ready for production deployment in customer-facing applications",
+      whyItMatters:
+        "Voice interfaces are ready for production deployment in customer-facing applications",
       actionItems: ["Prototype voice features", "Evaluate voice AI providers"],
       category: "Voice Tech",
       sender: "updates@techcrunch.com",
@@ -193,7 +199,9 @@ const sampleSummary: Summary = {
 async function generateScreenshots() {
   console.log("🚀 Starting screenshot generation...");
 
-  const html = await renderAsync(React.createElement(WeeklyDigestEmail, { summary: sampleSummary }));
+  const html = await renderAsync(
+    React.createElement(WeeklyDigestEmail, { summary: sampleSummary })
+  );
 
   const browser = await chromium.launch({
     headless: true,
@@ -212,7 +220,14 @@ async function generateScreenshots() {
     console.log("📸 Generating desktop hero screenshot (1200x800)...");
     const desktopElement = await page.$("body");
     if (desktopElement) {
-      const desktopPath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email.png");
+      const desktopPath = path.join(
+        __dirname,
+        "..",
+        "frontend",
+        "public",
+        "images",
+        "hero-digest-email.png"
+      );
       await desktopElement.screenshot({
         path: desktopPath,
         clip: {
@@ -231,7 +246,14 @@ async function generateScreenshots() {
     console.log("📱 Generating mobile hero screenshot (600x400)...");
     const mobileElement = await page.$("body");
     if (mobileElement) {
-      const mobilePath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email-mobile.png");
+      const mobilePath = path.join(
+        __dirname,
+        "..",
+        "frontend",
+        "public",
+        "images",
+        "hero-digest-email-mobile.png"
+      );
       await mobileElement.screenshot({
         path: mobilePath,
         clip: {
@@ -245,9 +267,7 @@ async function generateScreenshots() {
     }
 
     console.log("🎉 All screenshots generated successfully!");
-    console.log(
-      "📁 Screenshots saved to: frontend/public/images/",
-    );
+    console.log("📁 Screenshots saved to: frontend/public/images/");
   } catch (error) {
     console.error("❌ Error generating screenshots:", error);
     process.exit(1);

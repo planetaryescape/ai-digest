@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
-import { chromium } from "playwright";
-import path from "path";
 import fs from "fs";
+import path from "path";
+import { chromium } from "playwright";
 
 async function generateOGImage() {
   console.log("🎨 Generating Open Graph image...");

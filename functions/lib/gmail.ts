@@ -99,7 +99,7 @@ export class GmailClient {
   /**
    * Validate Gmail access before processing
    */
-  async validateAccess(): Promise<Result<boolean>> {
+  async validateAccess(): Promise<Result<boolean, Error>> {
     return await this.tokenManager.validateToken();
   }
 
@@ -361,7 +361,8 @@ export class GmailClient {
     for (const email of emailsMetadata) {
       const senderEmail = this.extractEmailAddress(email.sender);
       // TODO: Implement sender tracking
-      if (false) { // if (senderEmail && (await this.senderTracker.isKnownAISender(senderEmail))) {
+      if (false) {
+        // if (senderEmail && (await this.senderTracker.isKnownAISender(senderEmail))) {
         knownSenders.add(email.id);
       } else {
         unknownEmails.push(email);
@@ -376,9 +377,9 @@ export class GmailClient {
     // TODO: Implement batch classification
     // Batch classify only unknown senders
     const classifications = new Map<string, boolean>(); // =
-      // unknownEmails.length > 0
-      //   ? await this.batchClassificationStrategy.classifyBatch(unknownEmails)
-      //   : new Map<string, boolean>();
+    // unknownEmails.length > 0
+    //   ? await this.batchClassificationStrategy.classifyBatch(unknownEmails)
+    //   : new Map<string, boolean>();
 
     // Process AI-related emails (both known and newly classified)
     const aiEmailIds = emailsMetadata

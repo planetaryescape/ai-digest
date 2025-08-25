@@ -19,7 +19,7 @@ export class PrometheusMetricsCollector implements MetricsCollector {
     this.counters = new Map();
     this.gauges = new Map();
     this.histograms = new Map();
-    
+
     this.register.setDefaultLabels({
       app: "ai-digest",
       environment: process.env.NODE_ENV || "development",
@@ -30,75 +30,105 @@ export class PrometheusMetricsCollector implements MetricsCollector {
   }
 
   private initializeMetrics(): void {
-    this.counters.set("emails_processed", new Counter({
-      name: `${this.namespace}_emails_processed_total`,
-      help: "Total number of emails processed",
-      labelNames: ["status", "count"],
-      registers: [this.register],
-    }));
+    this.counters.set(
+      "emails_processed",
+      new Counter({
+        name: `${this.namespace}_emails_processed_total`,
+        help: "Total number of emails processed",
+        labelNames: ["status", "count"],
+        registers: [this.register],
+      })
+    );
 
-    this.counters.set("digest_generated", new Counter({
-      name: `${this.namespace}_digest_generated_total`,
-      help: "Total number of digests generated",
-      registers: [this.register],
-    }));
+    this.counters.set(
+      "digest_generated",
+      new Counter({
+        name: `${this.namespace}_digest_generated_total`,
+        help: "Total number of digests generated",
+        registers: [this.register],
+      })
+    );
 
-    this.counters.set("errors", new Counter({
-      name: `${this.namespace}_errors_total`,
-      help: "Total number of errors",
-      labelNames: ["error", "type"],
-      registers: [this.register],
-    }));
+    this.counters.set(
+      "errors",
+      new Counter({
+        name: `${this.namespace}_errors_total`,
+        help: "Total number of errors",
+        labelNames: ["error", "type"],
+        registers: [this.register],
+      })
+    );
 
-    this.counters.set("lambda_invocations", new Counter({
-      name: `${this.namespace}_lambda_invocations_total`,
-      help: "Total number of Lambda invocations",
-      labelNames: ["function", "async"],
-      registers: [this.register],
-    }));
+    this.counters.set(
+      "lambda_invocations",
+      new Counter({
+        name: `${this.namespace}_lambda_invocations_total`,
+        help: "Total number of Lambda invocations",
+        labelNames: ["function", "async"],
+        registers: [this.register],
+      })
+    );
 
-    this.histograms.set("api_duration", new Histogram({
-      name: `${this.namespace}_api_duration_seconds`,
-      help: "API call duration in seconds",
-      labelNames: ["service", "operation", "status"],
-      buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
-      registers: [this.register],
-    }));
+    this.histograms.set(
+      "api_duration",
+      new Histogram({
+        name: `${this.namespace}_api_duration_seconds`,
+        help: "API call duration in seconds",
+        labelNames: ["service", "operation", "status"],
+        buckets: [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+        registers: [this.register],
+      })
+    );
 
-    this.histograms.set("digest_duration", new Histogram({
-      name: `${this.namespace}_digest_duration_milliseconds`,
-      help: "Digest generation duration in milliseconds",
-      buckets: [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000],
-      registers: [this.register],
-    }));
+    this.histograms.set(
+      "digest_duration",
+      new Histogram({
+        name: `${this.namespace}_digest_duration_milliseconds`,
+        help: "Digest generation duration in milliseconds",
+        buckets: [100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000],
+        registers: [this.register],
+      })
+    );
 
-    this.histograms.set("digest_email_count", new Histogram({
-      name: `${this.namespace}_digest_email_count`,
-      help: "Number of emails in each digest",
-      buckets: [1, 5, 10, 25, 50, 100, 250, 500],
-      registers: [this.register],
-    }));
+    this.histograms.set(
+      "digest_email_count",
+      new Histogram({
+        name: `${this.namespace}_digest_email_count`,
+        help: "Number of emails in each digest",
+        buckets: [1, 5, 10, 25, 50, 100, 250, 500],
+        registers: [this.register],
+      })
+    );
 
-    this.histograms.set("cleanup_batch_size", new Histogram({
-      name: `${this.namespace}_cleanup_batch_size`,
-      help: "Size of cleanup batches",
-      buckets: [1, 5, 10, 25, 50, 100, 250, 500],
-      registers: [this.register],
-    }));
+    this.histograms.set(
+      "cleanup_batch_size",
+      new Histogram({
+        name: `${this.namespace}_cleanup_batch_size`,
+        help: "Size of cleanup batches",
+        buckets: [1, 5, 10, 25, 50, 100, 250, 500],
+        registers: [this.register],
+      })
+    );
 
-    this.histograms.set("storage_duration", new Histogram({
-      name: `${this.namespace}_storage_duration_seconds`,
-      help: "Storage operation duration in seconds",
-      labelNames: ["operation"],
-      buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
-      registers: [this.register],
-    }));
+    this.histograms.set(
+      "storage_duration",
+      new Histogram({
+        name: `${this.namespace}_storage_duration_seconds`,
+        help: "Storage operation duration in seconds",
+        labelNames: ["operation"],
+        buckets: [0.001, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1],
+        registers: [this.register],
+      })
+    );
 
-    this.gauges.set("cleanup_batch_number", new Gauge({
-      name: `${this.namespace}_cleanup_batch_number`,
-      help: "Current cleanup batch number",
-      registers: [this.register],
-    }));
+    this.gauges.set(
+      "cleanup_batch_number",
+      new Gauge({
+        name: `${this.namespace}_cleanup_batch_number`,
+        help: "Current cleanup batch number",
+        registers: [this.register],
+      })
+    );
   }
 
   private getOrCreateCounter(name: string, tags?: Record<string, string>): Counter<string> {
@@ -149,11 +179,14 @@ export class PrometheusMetricsCollector implements MetricsCollector {
   increment(name: string, tags?: Record<string, string>): void {
     try {
       const metricName = name.replace(/\./g, "_");
-      
+
       if (name === "emails.processed" && tags?.count) {
         const counter = this.counters.get("emails_processed");
         if (counter) {
-          counter.inc({ status: tags.status || "success", count: tags.count }, Number.parseInt(tags.count));
+          counter.inc(
+            { status: tags.status || "success", count: tags.count },
+            Number.parseInt(tags.count)
+          );
         }
       } else if (name === "digest.generated") {
         const counter = this.counters.get("digest_generated");
@@ -182,7 +215,7 @@ export class PrometheusMetricsCollector implements MetricsCollector {
   gauge(name: string, value: number, tags?: Record<string, string>): void {
     try {
       const metricName = name.replace(/\./g, "_");
-      
+
       if (name === "cleanup.batch_number") {
         const gauge = this.gauges.get("cleanup_batch_number");
         if (gauge) {
@@ -200,7 +233,7 @@ export class PrometheusMetricsCollector implements MetricsCollector {
   histogram(name: string, value: number, tags?: Record<string, string>): void {
     try {
       const metricName = name.replace(/\./g, "_");
-      
+
       if (name === "digest.email_count") {
         const histogram = this.histograms.get("digest_email_count");
         if (histogram) {
@@ -260,7 +293,7 @@ export class PrometheusMetricsCollector implements MetricsCollector {
   async flush(): Promise<void> {
     try {
       const metrics = await this.register.metrics();
-      
+
       if (process.env.METRICS_ENDPOINT) {
         await this.sendToEndpoint(metrics);
       } else {
@@ -295,18 +328,22 @@ export class PrometheusMetricsCollector implements MetricsCollector {
 
       log.info("Metrics sent to endpoint successfully");
     } catch (error) {
-      log.error({ error, endpoint: process.env.METRICS_ENDPOINT }, "Failed to send metrics to endpoint");
+      log.error(
+        { error, endpoint: process.env.METRICS_ENDPOINT },
+        "Failed to send metrics to endpoint"
+      );
     }
   }
 
   private async sendToCloudWatch(): Promise<void> {
     try {
       const metrics = await this.register.getMetricsAsJSON();
-      
+
       const cloudWatchMetrics = metrics.map((metric) => {
-        const dimensions = metric.aggregator === "sum" || metric.aggregator === "average"
-          ? [{ Name: "MetricName", Value: metric.name }]
-          : [];
+        const dimensions =
+          metric.aggregator === "sum" || metric.aggregator === "average"
+            ? [{ Name: "MetricName", Value: metric.name }]
+            : [];
 
         return {
           MetricName: metric.name,
@@ -350,7 +387,7 @@ export class CloudWatchPrometheusCollector extends PrometheusMetricsCollector {
 
   async flush(): Promise<void> {
     await super.flush();
-    
+
     if (process.env.AWS_REGION && process.env.AWS_LAMBDA_FUNCTION_NAME) {
       log.info("CloudWatch metrics collection enabled for Lambda");
     }
