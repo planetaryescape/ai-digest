@@ -69,8 +69,9 @@ export function ExecutionHistory() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-8">
+      <div className="flex items-center justify-center py-8" role="status" aria-label="Loading executions">
         <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <span className="sr-only">Loading executions...</span>
       </div>
     );
   }

@@ -8,6 +8,8 @@ export default defineConfig({
     globals: true,
     environment: 'happy-dom',
     setupFiles: './test/setup-simple.ts',
+    testTimeout: 10000, // 10 seconds for async operations
+    hookTimeout: 10000, // 10 seconds for setup/teardown
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

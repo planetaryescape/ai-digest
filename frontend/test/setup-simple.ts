@@ -44,6 +44,8 @@ vi.mock("@clerk/nextjs/server", () => ({
 
 // Mock environment variables
 process.env.AWS_REGION = "us-east-1";
+process.env.AWS_ACCESS_KEY_ID = "test-access-key";
+process.env.AWS_SECRET_ACCESS_KEY = "test-secret-key";
 process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN =
   "arn:aws:states:us-east-1:123456789012:stateMachine:test-state-machine";
 process.env.LAMBDA_FUNCTION_ARN = "arn:aws:lambda:us-east-1:123456789012:function:test-function";
