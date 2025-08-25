@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { cleanup = false, dateRange, useStepFunctions = true } = body;
+    const { cleanup = false, dateRange } = body;
 
     const stateMachineArn = process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN;
 

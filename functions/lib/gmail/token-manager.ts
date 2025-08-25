@@ -1,6 +1,6 @@
 import type { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
-import { Result } from "neverthrow";
+import { Result, ok, err } from "neverthrow";
 import { createLogger } from "../logger";
 
 const log = createLogger("gmail-token-manager");
@@ -15,6 +15,11 @@ export interface TokenInfo {
   accessToken: string;
   expiryDate: number;
   refreshToken: string;
+}
+
+export interface TokenError {
+  code: string;
+  message: string;
 }
 
 export class GmailTokenManager {
@@ -42,12 +47,12 @@ export class GmailTokenManager {
   /**
    * Get a valid access token, refreshing if necessary
    */
-  async getValidAccessToken(): Promise<Result<string>> {
+  async getValidAccessToken(): Promise<Result<string, TokenError>> {
     try {
       // Check if we have a cached token that's still valid
       if (this.tokenCache && this.isTokenValid(this.tokenCache)) {
         log.debug("Using cached access token");
-        return Result.ok(this.tokenCache.accessToken);
+        return ok(this.tokenCache.accessToken);
       }
 
       // Try to get current token info
@@ -67,7 +72,7 @@ export class GmailTokenManager {
           return this.refreshAccessToken();
         }
 
-        return Result.ok(currentToken.token);
+        return ok(currentToken.token);
       }
 
       // No token available, try to refresh
@@ -81,7 +86,7 @@ export class GmailTokenManager {
   /**
    * Force refresh the access token
    */
-  async refreshAccessToken(): Promise<Result<string>> {
+  async refreshAccessToken(): Promise<Result<string, TokenError>> {
     // Check cooldown period
     const now = Date.now();
     if (now - this.lastRefreshAttempt < this.REFRESH_COOLDOWN_MS) {
@@ -94,7 +99,7 @@ export class GmailTokenManager {
     this.refreshAttemptCount++;
 
     if (this.refreshAttemptCount > this.MAX_REFRESH_ATTEMPTS) {
-      return Result.fail({
+      return err({
         code: "TOKEN_REFRESH_LIMIT_EXCEEDED",
         message: "Maximum token refresh attempts exceeded. Manual intervention required.",
       });
@@ -132,7 +137,7 @@ export class GmailTokenManager {
       this.refreshAttemptCount = 0;
 
       log.info("Successfully refreshed Gmail access token");
-      return Result.ok(credentials.access_token);
+      return ok(credentials.access_token);
     } catch (error) {
       log.error({ error }, "Failed to refresh access token");
       return this.handleTokenError(error);
@@ -142,11 +147,11 @@ export class GmailTokenManager {
   /**
    * Validate the current token by making a test API call
    */
-  async validateToken(): Promise<Result<boolean>> {
+  async validateToken(): Promise<Result<boolean, TokenError>> {
     try {
       const tokenResult = await this.getValidAccessToken();
       if (tokenResult.isErr()) {
-        return Result.fail(tokenResult.error);
+        return err(tokenResult.error);
       }
 
       // Make a simple API call to validate the token
@@ -154,18 +159,18 @@ export class GmailTokenManager {
       await gmail.users.getProfile({ userId: "me" });
 
       log.info("Token validation successful");
-      return Result.ok(true);
+      return ok(true);
     } catch (error: any) {
       log.error({ error }, "Token validation failed");
 
       if (error.code === 401 || error.message?.includes("invalid_grant")) {
-        return Result.fail({
+        return err({
           code: "INVALID_TOKEN",
           message: "Gmail refresh token is invalid or expired. Please regenerate it.",
         });
       }
 
-      return Result.fail({
+      return err({
         code: "VALIDATION_ERROR",
         message: error.message || "Token validation failed",
       });
@@ -204,7 +209,7 @@ export class GmailTokenManager {
     const errorMessage = error.message || "Unknown error";
 
     if (errorMessage.includes("invalid_grant")) {
-      return Result.fail({
+      return err({
         code: "INVALID_REFRESH_TOKEN",
         message:
           "Gmail refresh token is invalid or expired. Please run 'bun run generate:oauth' to get a new token.",
@@ -212,7 +217,7 @@ export class GmailTokenManager {
     }
 
     if (errorMessage.includes("invalid_client")) {
-      return Result.fail({
+      return err({
         code: "INVALID_CLIENT_CREDENTIALS",
         message:
           "Gmail OAuth client credentials are invalid. Please check GMAIL_CLIENT_ID and GMAIL_CLIENT_SECRET.",
@@ -220,20 +225,20 @@ export class GmailTokenManager {
     }
 
     if (error.code === 401) {
-      return Result.fail({
+      return err({
         code: "UNAUTHORIZED",
         message: "Gmail API authentication failed. Token may be expired.",
       });
     }
 
     if (error.code === 403) {
-      return Result.fail({
+      return err({
         code: "FORBIDDEN",
         message: "Gmail API access forbidden. Check API permissions and quotas.",
       });
     }
 
-    return Result.fail({
+    return err({
       code: "TOKEN_ERROR",
       message: errorMessage,
     });
