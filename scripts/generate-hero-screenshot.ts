@@ -3,9 +3,14 @@
 import { chromium } from "@playwright/test";
 import { renderAsync } from "@react-email/render";
 import React from "react";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { WeeklyDigestEmail } from "../emails/WeeklyDigestRedesigned";
 import type { DigestOutput } from "../functions/lib/schemas/digest";
 import type { Summary } from "../functions/lib/types";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const sampleDigest: DigestOutput = {
   headline: "AI Agents Revolution: Autonomous Systems Are Here",
@@ -207,8 +212,9 @@ async function generateScreenshots() {
     console.log("📸 Generating desktop hero screenshot (1200x800)...");
     const desktopElement = await page.$("body");
     if (desktopElement) {
+      const desktopPath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email.png");
       await desktopElement.screenshot({
-        path: "/Users/bhekanik/conductor/ai-digest/.conductor/london/frontend/public/images/hero-digest-email.png",
+        path: desktopPath,
         clip: {
           x: 0,
           y: 0,
@@ -225,8 +231,9 @@ async function generateScreenshots() {
     console.log("📱 Generating mobile hero screenshot (600x400)...");
     const mobileElement = await page.$("body");
     if (mobileElement) {
+      const mobilePath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email-mobile.png");
       await mobileElement.screenshot({
-        path: "/Users/bhekanik/conductor/ai-digest/.conductor/london/frontend/public/images/hero-digest-email-mobile.png",
+        path: mobilePath,
         clip: {
           x: 0,
           y: 0,
@@ -239,7 +246,7 @@ async function generateScreenshots() {
 
     console.log("🎉 All screenshots generated successfully!");
     console.log(
-      "📁 Screenshots saved to: frontend/public/images/hero-digest-email.png and hero-digest-email-mobile.png",
+      "📁 Screenshots saved to: frontend/public/images/",
     );
   } catch (error) {
     console.error("❌ Error generating screenshots:", error);
