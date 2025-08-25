@@ -1,4 +1,5 @@
 import { type gmail_v1, google } from "googleapis";
+import { Result } from "neverthrow";
 import { DynamoDBSenderTracker } from "./aws/dynamodb-sender-tracker";
 import { config } from "./config";
 import { enhancedExtractArticleData, extractUrlsFromEmail } from "./extract";
@@ -14,7 +15,6 @@ import { GmailTokenManager } from "./gmail/token-manager";
 import type { ISenderTracker } from "./interfaces/sender-tracker";
 import { createLogger, createTimer } from "./logger";
 import type { Article, EmailItem } from "./types";
-import { Result } from "./types/Result";
 
 const log = createLogger("gmail");
 

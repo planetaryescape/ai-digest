@@ -80,11 +80,7 @@ describe("ErrorHandler", () => {
         notify: true,
       });
 
-      expect(sendErrorNotification).toHaveBeenCalledWith(
-        expect.any(String),
-        error,
-        "operation"
-      );
+      expect(sendErrorNotification).toHaveBeenCalledWith(expect.any(String), error, "operation");
     });
   });
 

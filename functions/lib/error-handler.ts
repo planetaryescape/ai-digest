@@ -1,4 +1,4 @@
-import { Result, ok, err } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import { sendErrorNotification } from "./email";
 import type { ILogger } from "./interfaces/logger";
 

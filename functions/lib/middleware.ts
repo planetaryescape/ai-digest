@@ -40,7 +40,7 @@ export function withErrorHandling<T>(fn: (context: RequestContext, ...args: any[
     try {
       return await fn(context, ...args);
     } catch (error) {
-      context.logger.error({ error }, "Request failed");
+      context.logger.error("Request failed", { error });
       throw error;
     }
   };
@@ -51,10 +51,10 @@ export function withLogging<T>(fn: (context: RequestContext, ...args: any[]) => 
     const startTime = Date.now();
     try {
       const result = await fn(context, ...args);
-      context.logger.info({ duration: Date.now() - startTime }, "Request completed");
+      context.logger.info("Request completed", { duration: Date.now() - startTime });
       return result;
     } catch (error) {
-      context.logger.error({ error, duration: Date.now() - startTime }, "Request failed");
+      context.logger.error("Request failed", { error, duration: Date.now() - startTime });
       throw error;
     }
   };

@@ -1,6 +1,6 @@
+import { Result } from "neverthrow";
 import type { GmailClient } from "../gmail";
 import { createLogger } from "../logger";
-import { Result } from "../types/Result";
 
 const log = createLogger("gmail-error-handler");
 
