@@ -1,4 +1,5 @@
 import type { HttpRequest, InvocationContext, Timer } from "@azure/functions";
+import { formatISO } from "date-fns";
 import type { DigestResult } from "../../core/digest-processor";
 import type { IPlatformAdapter } from "./IPlatformAdapter";
 import type { UnifiedContext, UnifiedLogger, UnifiedRequest } from "./types";

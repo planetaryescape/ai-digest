@@ -10,6 +10,8 @@ export class ProductionConfig implements IConfigStrategy {
     return [
       {
         name: "LinkedIn",
+        version: "1.0.0",
+        environment: "production",
         icon: "https://content.linkedin.com/content/dam/me/business/en-us/amp/brand-site/v2/bg/LI-Bug.svg.original.svg",
       },
       {

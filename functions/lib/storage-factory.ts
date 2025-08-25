@@ -1,13 +1,31 @@
 // import { S3StorageClient } from "./aws/s3-storage";
 // import { DynamoDBStorageClient } from "./aws/storage";
 // import { AzureStorageClient } from "./azure/storage";
-import { MockStorageClient } from "./aws/mock-storage";
+// import { MockStorageClient } from "./aws/mock-storage";
 import type { IStorageClient } from "./interfaces/storage";
 
 export enum StorageType {
   S3 = "s3",
   DynamoDB = "dynamodb",
   Azure = "azure",
+}
+
+/**
+ * Simple mock storage implementation for compilation
+ */
+class MockStorageClient implements IStorageClient {
+  async store(key: string, data: any): Promise<boolean> {
+    console.log(`Mock storage: storing ${key}`, data);
+    return true;
+  }
+  async retrieve(key: string): Promise<any> {
+    console.log(`Mock storage: retrieving ${key}`);
+    return null;
+  }
+  async delete(key: string): Promise<boolean> {
+    console.log(`Mock storage: deleting ${key}`);
+    return true;
+  }
 }
 
 /**

@@ -9,10 +9,22 @@ export class DevelopmentConfig implements IConfigStrategy {
   getApps(): App[] {
     // Smaller list for dev testing
     return [
-      { name: "GitHub", icon: "https://github.githubassets.com/favicons/favicon.png" },
-      { name: "OpenAI", icon: "https://openai.com/favicon.ico" },
+      { 
+        name: "GitHub", 
+        version: "1.0.0", 
+        environment: "development", 
+        icon: "https://github.githubassets.com/favicons/favicon.png" 
+      },
+      { 
+        name: "OpenAI", 
+        version: "1.0.0", 
+        environment: "development", 
+        icon: "https://openai.com/favicon.ico" 
+      },
       {
         name: "TechCrunch",
+        version: "1.0.0", 
+        environment: "development",
         icon: "https://techcrunch.com/wp-content/uploads/2015/02/cropped-cropped-favicon-gradient.png",
       },
     ];
