@@ -12,6 +12,7 @@ import {
   Users,
   Zap,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Home() {
@@ -67,6 +68,28 @@ export default function Home() {
                 <Clock className="h-5 w-5 text-gray-400" />
                 <span>2-minute setup</span>
               </div>
+            </div>
+          </div>
+
+          {/* Hero Screenshot */}
+          <div className="mt-16 mx-auto max-w-5xl">
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-gray-200">
+              <Image
+                src="/images/hero-digest-email.png"
+                alt="AI Digest beautiful email showing organized AI insights"
+                width={1200}
+                height={800}
+                className="w-full h-auto hidden md:block"
+                priority
+              />
+              <Image
+                src="/images/hero-digest-email-mobile.png"
+                alt="AI Digest mobile view"
+                width={600}
+                height={400}
+                className="w-full h-auto md:hidden"
+                priority
+              />
             </div>
           </div>
         </div>

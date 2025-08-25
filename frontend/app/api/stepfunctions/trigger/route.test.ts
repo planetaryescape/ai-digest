@@ -38,8 +38,14 @@ describe("/api/stepfunctions/trigger", () => {
     vi.mocked(auth).mockResolvedValue({
       userId: null,
       sessionClaims: null,
+      sessionId: null,
+      sessionStatus: "unauthenticated",
+      actor: null,
+      tokenType: null,
+      redirectToSignIn: vi.fn(),
+      redirectToSignUp: vi.fn(),
       getToken: vi.fn(),
-    } as ReturnType<typeof auth>);
+    } as any);
 
     const request = new Request("http://localhost:3000/api/stepfunctions/trigger", {
       method: "POST",

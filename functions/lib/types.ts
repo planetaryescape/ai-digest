@@ -51,6 +51,11 @@ export interface EmailItem {
   research?: any;
   articles?: Article[];
   gmailLink?: string;
+  payload?: {
+    body?: string;
+    snippet?: string;
+    headers?: Array<{ name: string; value: string }>;
+  };
 }
 
 export interface ProcessedEmail {

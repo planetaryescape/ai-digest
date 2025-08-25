@@ -82,6 +82,7 @@ export function ExecutionHistory() {
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-medium">Recent Executions</h3>
         <button
+          type="button"
           onClick={() => refetch()}
           className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-900"
         >

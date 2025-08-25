@@ -132,7 +132,7 @@ export class ClassifierAgent {
           totalAISenders: aiSenders.length,
           uniqueSenders: Object.keys(senderCounts).length,
           topSenders: Object.entries(senderCounts)
-            .sort(([, a], [, b]) => b - a)
+            .sort(([, a], [, b]) => (b as number) - (a as number))
             .slice(0, 10)
             .map(([sender, count]) => `${sender} (${count})`),
         },

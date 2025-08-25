@@ -205,7 +205,7 @@ export class GmailTokenManager {
   /**
    * Handle token-related errors
    */
-  private handleTokenError(error: any): Result<string> {
+  private handleTokenError(error: any): Result<string, TokenError> {
     const errorMessage = error.message || "Unknown error";
 
     if (errorMessage.includes("invalid_grant")) {
