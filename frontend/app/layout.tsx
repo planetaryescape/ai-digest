@@ -23,10 +23,10 @@ export const metadata: Metadata = {
     type: "website",
     images: [
       {
-        url: "/og-image.png",
+        url: "https://ai-digest.app/og-image.png",
         width: 1200,
         height: 630,
-        alt: "AI Digest - Your AI Newsletter Summarizer",
+        alt: "AI Digest - Turn 50+ AI Newsletters Into One Weekly Summary",
       },
     ],
   },
@@ -35,7 +35,7 @@ export const metadata: Metadata = {
     title: "AI Digest - Turn 50+ AI Newsletters Into One Weekly Summary",
     description:
       "Save 3+ hours weekly with intelligent AI newsletter summaries. Role-specific insights included.",
-    images: ["/og-image.png"],
+    images: ["https://ai-digest.app/og-image.png"],
   },
   robots: {
     index: true,
