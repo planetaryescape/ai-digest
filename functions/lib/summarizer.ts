@@ -86,10 +86,13 @@ export async function summarize(items: EmailItem[]): Promise<Summary> {
       competitiveIntel: [],
     };
     return {
+      title: "No AI Updates This Week",
+      summary: "No AI-related emails detected this week.",
+      sender: "AI Digest",
+      date: new Date().toISOString(),
       digest: emptyDigest,
       message: "Quiet week on AI in my inbox.",
       items: [],
-      generatedAt: new Date().toISOString(),
     };
   }
 
@@ -192,10 +195,13 @@ YES:
     });
 
     return {
+      title: object.headline || "Weekly AI Digest",
+      summary: object.summary || "Weekly AI updates",
+      sender: "AI Digest",
+      date: new Date().toISOString(),
       digest: object,
       message: object.shortMessage || "Weekly AI digest generated",
       items,
-      generatedAt: new Date().toISOString(),
     };
   } catch (_error) {
     // Fallback to basic summary
@@ -235,9 +241,12 @@ function fallbackSummary(items: EmailItem[]): Summary {
   };
 
   return {
+    title: fallbackDigest.headline || "Weekly AI Digest",
+    summary: fallbackDigest.summary || "Weekly AI updates",
+    sender: "AI Digest",
+    date: new Date().toISOString(),
     digest: fallbackDigest,
     message: fallbackDigest.shortMessage || "Weekly AI digest generated",
     items,
-    generatedAt: new Date().toISOString(),
   };
 }

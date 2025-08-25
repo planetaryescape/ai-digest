@@ -63,6 +63,7 @@
     "cheerio": "^1.1.2",
     "date-fns": "^4.1.0",
     "googleapis": "^156.0.0",
+    "neverthrow": "^8.2.0",
     "openai": "^5.13.1",
     "opossum": "^9.0.0",
     "pino": "^9.9.0",

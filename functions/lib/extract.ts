@@ -284,12 +284,7 @@ Be concise and specific.`,
       // Enhance the article data with AI insights
       return {
         ...basicData,
-        aiSummary: {
-          mainPoint: insights.mainPoint,
-          relevanceToAI: insights.relevanceToAI,
-          keyInsight: insights.keyInsight,
-          actionableAdvice: insights.actionableAdvice,
-        },
+        aiSummary: `${insights.mainPoint} - ${insights.keyInsight} (${insights.actionableAdvice})`,
       };
     } catch (aiError) {
       log.debug({ url, error: aiError }, "AI enhancement failed, returning basic data");

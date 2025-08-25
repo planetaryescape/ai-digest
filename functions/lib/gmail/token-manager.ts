@@ -1,7 +1,7 @@
 import type { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
+import { Result } from "neverthrow";
 import { createLogger } from "../logger";
-import { Result } from "../types/Result";
 
 const log = createLogger("gmail-token-manager");
 

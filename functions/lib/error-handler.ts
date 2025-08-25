@@ -1,3 +1,4 @@
+import { err, ok, Result } from "neverthrow";
 import { sendErrorNotification } from "./email";
 import type { ILogger } from "./interfaces/logger";
 
@@ -8,11 +9,8 @@ export interface ErrorHandlerOptions {
   context?: string;
 }
 
-export interface ErrorResult<T> {
-  success: boolean;
-  data?: T;
-  error?: string;
-}
+// Re-export Result type for backward compatibility
+export type ErrorResult<T> = Result<T, Error>;
 
 /**
  * Centralized error handling utility
@@ -24,22 +22,19 @@ export class ErrorHandler {
   static async wrap<T>(
     operation: () => Promise<T>,
     options: ErrorHandlerOptions = {}
-  ): Promise<ErrorResult<T>> {
+  ): Promise<Result<T, Error>> {
     const { logger, notify = false, critical = true, context = "operation" } = options;
 
     try {
       const data = await operation();
-      return {
-        success: true,
-        data,
-      };
+      return ok(data);
     } catch (error) {
       const errorMessage = ErrorHandler.getErrorMessage(error);
+      const errorObject = error instanceof Error ? error : new Error(errorMessage);
 
       // Log the error
       if (logger) {
         logger.error(`Error in ${context}:`, errorMessage, error);
-      } else {
       }
 
       // Send notification if requested
@@ -47,13 +42,12 @@ export class ErrorHandler {
         try {
           await sendErrorNotification(
             process.env.ADMIN_EMAIL || "admin@example.com",
-            error instanceof Error ? error : new Error(errorMessage),
+            errorObject,
             context
           );
         } catch (notifyError) {
           if (logger) {
             logger.error("Failed to send error notification:", notifyError);
-          } else {
           }
         }
       }
@@ -63,10 +57,7 @@ export class ErrorHandler {
         throw error;
       }
 
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      return err(errorObject);
     }
   }
 
@@ -117,15 +108,15 @@ export class ErrorHandler {
       stopOnError?: boolean;
       logger?: ILogger;
     } = {}
-  ): Promise<ErrorResult<T>[]> {
+  ): Promise<Result<T, Error>[]> {
     const { stopOnError = false, logger } = options;
 
     if (stopOnError) {
-      const results: ErrorResult<T>[] = [];
+      const results: Result<T, Error>[] = [];
       for (const operation of operations) {
         const result = await ErrorHandler.wrap(operation, { critical: false, logger });
         results.push(result);
-        if (!result.success) {
+        if (result.isErr()) {
           break;
         }
       }
