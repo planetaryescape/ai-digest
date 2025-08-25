@@ -1,4 +1,5 @@
 import { err, ok, Result } from "neverthrow";
+import pRetry from "p-retry";
 import { sendErrorNotification } from "./email";
 import type { ILogger } from "./interfaces/logger";
 
@@ -71,32 +72,26 @@ export class ErrorHandler {
     backoffMultiplier: number = 2,
     logger?: ILogger
   ): Promise<T> {
-    let lastError: unknown;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        return await operation();
-      } catch (error) {
-        lastError = error;
-
+    return pRetry(operation, {
+      retries: maxAttempts - 1,
+      minTimeout: delayMs,
+      factor: backoffMultiplier,
+      onFailedAttempt: (error) => {
         if (logger) {
+          const attemptNumber = error.attemptNumber;
+          const retriesLeft = error.retriesLeft;
           logger.warn(
-            `Attempt ${attempt}/${maxAttempts} failed:`,
+            `Attempt ${attemptNumber}/${maxAttempts} failed:`,
             ErrorHandler.getErrorMessage(error)
           );
-        }
 
-        if (attempt < maxAttempts) {
-          const delay = delayMs * backoffMultiplier ** (attempt - 1);
-          if (logger) {
-            logger.info(`Retrying in ${delay}ms...`);
+          if (retriesLeft > 0) {
+            const nextDelay = delayMs * Math.pow(backoffMultiplier, attemptNumber - 1);
+            logger.info(`Retrying in ${nextDelay}ms...`);
           }
-          await new Promise((resolve) => setTimeout(resolve, delay));
         }
-      }
-    }
-
-    throw lastError;
+      },
+    });
   }
 
   /**
