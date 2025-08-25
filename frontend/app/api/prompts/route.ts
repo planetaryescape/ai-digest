@@ -365,10 +365,11 @@ export async function OPTIONS() {
 function extractVariables(template: string): string[] {
   const regex = /\{\{\s*(\w+)\s*\}\}/g;
   const variables = new Set<string>();
-  let match;
+  let match = regex.exec(template);
 
-  while ((match = regex.exec(template)) !== null) {
+  while (match !== null) {
     variables.add(match[1]);
+    match = regex.exec(template);
   }
 
   return Array.from(variables);

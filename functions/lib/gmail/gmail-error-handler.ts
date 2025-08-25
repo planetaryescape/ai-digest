@@ -1,8 +1,13 @@
-import { Result } from "neverthrow";
+import { Result, ok, err } from "neverthrow";
 import type { GmailClient } from "../gmail";
 import { createLogger } from "../logger";
 
 const log = createLogger("gmail-error-handler");
+
+export interface GmailError {
+  code: string;
+  message: string;
+}
 
 export interface GmailErrorContext {
   operation: string;
@@ -20,7 +25,7 @@ export class GmailErrorHandler {
   async executeWithRecovery<T>(
     operation: () => Promise<T>,
     context: { operation: string; client?: GmailClient }
-  ): Promise<Result<T>> {
+  ): Promise<Result<T, GmailError>> {
     let lastError: Error | undefined;
 
     for (let attempt = 0; attempt < this.MAX_RETRIES; attempt++) {
@@ -32,7 +37,7 @@ export class GmailErrorHandler {
           log.info({ operation: context.operation, attempt }, "Operation succeeded after retry");
         }
 
-        return Result.ok(result);
+        return ok(result);
       } catch (error: any) {
         lastError = error;
 
@@ -50,7 +55,7 @@ export class GmailErrorHandler {
             "Non-recoverable Gmail error"
           );
 
-          return Result.fail({
+          return err({
             code: recovery.errorCode,
             message: recovery.userMessage,
           });
@@ -73,7 +78,7 @@ export class GmailErrorHandler {
 
             if (refreshResult.isErr()) {
               log.error({ error: refreshResult.error }, "Token refresh failed");
-              return Result.fail({
+              return err({
                 code: "TOKEN_REFRESH_FAILED",
                 message: "Gmail authentication failed. Please run 'bun run refresh:gmail' to fix.",
               });
@@ -89,7 +94,7 @@ export class GmailErrorHandler {
       "All Gmail operation retries exhausted"
     );
 
-    return Result.fail({
+    return err({
       code: "MAX_RETRIES_EXCEEDED",
       message: `Gmail operation '${context.operation}' failed after ${this.MAX_RETRIES} attempts. ${lastError?.message || "Unknown error"}`,
     });
