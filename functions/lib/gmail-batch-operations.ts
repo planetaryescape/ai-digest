@@ -75,9 +75,9 @@ export class GmailBatchOperations {
 
   async archiveEmails(messageIds: string[]): Promise<void> {
     log.info({ count: messageIds.length }, "Archiving emails");
-    
+
     await this.batchModifyMessages(messageIds, {
-      removeLabelIds: ["INBOX"]
+      removeLabelIds: ["INBOX"],
     });
   }
 

@@ -14,17 +14,37 @@ export enum StorageType {
  * Simple mock storage implementation for compilation
  */
 class MockStorageClient implements IStorageClient {
-  async store(key: string, data: any): Promise<boolean> {
-    console.log(`Mock storage: storing ${key}`, data);
-    return true;
+  async markProcessed(emailId: string, subject: string): Promise<void> {
+    console.log(`Mock storage: marking processed ${emailId}`, subject);
   }
-  async retrieve(key: string): Promise<any> {
-    console.log(`Mock storage: retrieving ${key}`);
-    return null;
+
+  async markMultipleProcessed(emails: Array<{ id: string; subject: string }>): Promise<void> {
+    console.log(`Mock storage: marking multiple processed`, emails.length);
   }
-  async delete(key: string): Promise<boolean> {
-    console.log(`Mock storage: deleting ${key}`);
-    return true;
+
+  async getWeeklyProcessedIds(): Promise<string[]> {
+    console.log(`Mock storage: getting weekly processed IDs`);
+    return [];
+  }
+
+  async getAllProcessed(): Promise<import("../types").ProcessedEmail[]> {
+    console.log(`Mock storage: getting all processed`);
+    return [];
+  }
+
+  async getAllProcessedIds(): Promise<string[]> {
+    console.log(`Mock storage: getting all processed IDs`);
+    return [];
+  }
+
+  async isProcessed(emailId: string): Promise<boolean> {
+    console.log(`Mock storage: checking if processed ${emailId}`);
+    return false;
+  }
+
+  async cleanupOldRecords(daysToKeep: number): Promise<number> {
+    console.log(`Mock storage: cleanup old records ${daysToKeep} days`);
+    return 0;
   }
 }
 

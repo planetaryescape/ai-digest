@@ -1,4 +1,4 @@
-import { Result, ok, err } from "neverthrow";
+import { err, ok, Result } from "neverthrow";
 import type { GmailClient } from "../gmail";
 import { createLogger } from "../logger";
 
