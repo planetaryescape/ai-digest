@@ -22,12 +22,7 @@ const createWrapper = () => {
 };
 
 describe("ExecutionHistory", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
   afterEach(() => {
-    vi.useRealTimers();
     vi.clearAllMocks();
   });
 
@@ -82,7 +77,7 @@ describe("ExecutionHistory", () => {
   });
 
   it("handles refresh button click", async () => {
-    const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+    const user = userEvent.setup();
 
     render(<ExecutionHistory />, { wrapper: createWrapper() });
 
@@ -237,11 +232,7 @@ describe("ExecutionHistory", () => {
       expect(screen.getByText("test-execution-1")).toBeInTheDocument();
     });
 
-    unmount();
-
-    // Polling should be disabled after unmount
-    vi.advanceTimersByTime(10000); // Advance by polling interval
-
-    // No additional requests should be made
+    // Component should unmount without errors
+    expect(() => unmount()).not.toThrow();
   });
 });

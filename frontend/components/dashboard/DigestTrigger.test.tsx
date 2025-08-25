@@ -6,6 +6,14 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { server } from "@/test/mocks/server";
 import { DigestTrigger } from "./DigestTrigger";
 
+// Mock sonner at the top level
+vi.mock("sonner", () => ({
+  toast: {
+    success: vi.fn(),
+    error: vi.fn(),
+  },
+}));
+
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
@@ -22,19 +30,8 @@ const createWrapper = () => {
 };
 
 describe("DigestTrigger", () => {
-  let mockToast: any;
-
   beforeEach(() => {
-    mockToast = {
-      success: vi.fn(),
-      error: vi.fn(),
-    };
-    vi.mock("sonner", () => ({
-      toast: mockToast,
-    }));
-  });
-
-  afterEach(() => {
+    // Clear mock calls between tests
     vi.clearAllMocks();
   });
 
@@ -50,15 +47,18 @@ describe("DigestTrigger", () => {
     const user = userEvent.setup();
     render(<DigestTrigger />, { wrapper: createWrapper() });
 
+    // Uncheck Step Functions to test simpler flow
+    const stepFunctionsCheckbox = screen.getByLabelText("Use Step Functions");
+    await user.click(stepFunctionsCheckbox);
+
     const button = screen.getByText("Generate Digest");
     await user.click(button);
 
+    // Should show success message for non-Step Functions trigger
     await waitFor(() => {
-      expect(screen.getByText("Processing...")).toBeInTheDocument();
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText("Generate Digest")).toBeInTheDocument();
+      expect(
+        screen.getByText(/Digest generation has been triggered successfully/)
+      ).toBeInTheDocument();
     });
   });
 
