@@ -40,7 +40,7 @@ export const BeforeAfterComparison = ({ className = "" }: { className?: string }
             💡 TLDR AI
           </text>
           <text x="60" y="188" fontSize="12" fill="#6B7280">
-            Today's AI news, tools, research papers...
+            Today&apos;s AI news, tools, research papers...
           </text>
           <text x="520" y="170" fontSize="11" fill="#9CA3AF">
             3 hours ago
@@ -174,10 +174,10 @@ export const BeforeAfterComparison = ({ className = "" }: { className?: string }
         </text>
         <rect x="680" y="210" width="440" height="3" fill="#E5E7EB" rx="1.5" />
         <text x="680" y="230" fontSize="12" fill="#4B5563">
-          This week saw major advances in multimodal AI with Google's
+          This week saw major advances in multimodal AI with Google&apos;s
         </text>
         <text x="680" y="246" fontSize="12" fill="#4B5563">
-          Gemini 2.0 and OpenAI's new reasoning models...
+          Gemini 2.0 and OpenAI&apos;s new reasoning models...
         </text>
         
         {/* Key Insights */}
