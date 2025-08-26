@@ -17,23 +17,6 @@ const sampleDigest: DigestOutput = {
   summary:
     "This week brought groundbreaking developments in AI agent capabilities. OpenAI's new reasoning models show unprecedented problem-solving abilities, while practical applications in coding, research, and automation are transforming workflows across industries.",
   keyThemes: ["AI Reasoning", "Autonomous Agents", "Voice AI", "Developer Tools"],
-  keyInsights: [
-    {
-      insight: "GPT-5 level reasoning is becoming accessible through new techniques",
-      impact: "Enables complex multi-step problem solving previously impossible",
-      actionability: "Start experimenting with chain-of-thought prompting in your workflows",
-    },
-    {
-      insight: "AI coding assistants now handle entire features, not just snippets",
-      impact: "10x productivity gains for developers adopting these tools",
-      actionability: "Integrate Cursor or Windsurf into your development process",
-    },
-    {
-      insight: "Voice AI quality crossed the uncanny valley threshold",
-      impact: "Natural conversations with AI are now production-ready",
-      actionability: "Consider voice interfaces for your next user-facing feature",
-    },
-  ],
   competitiveIntel: [
     {
       insight: "OpenAI's o1 model shows 90% accuracy on PhD-level physics problems",
@@ -179,21 +162,11 @@ const sampleDigest: DigestOutput = {
 };
 
 const sampleSummary: Summary = {
-  id: "sample-digest",
-  userId: "demo",
-  dateRange: {
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-  },
-  processedCount: 47,
+  title: "Weekly AI & Tech Digest",
+  summary: "A curated digest of the most important AI developments this week",
+  sender: "AI Digest",
+  date: new Date().toISOString(),
   digest: sampleDigest,
-  senders: [
-    { email: "newsletter@openai.com", count: 3 },
-    { email: "digest@anthropic.com", count: 2 },
-    { email: "updates@github.com", count: 5 },
-  ],
-  processingTimeMs: 45000,
-  createdAt: new Date().toISOString(),
 };
 
 async function generateScreenshots() {
@@ -230,12 +203,6 @@ async function generateScreenshots() {
       );
       await desktopElement.screenshot({
         path: desktopPath,
-        clip: {
-          x: 0,
-          y: 0,
-          width: 1200,
-          height: 800,
-        },
       });
       console.log("✅ Desktop screenshot saved!");
     }
@@ -256,12 +223,6 @@ async function generateScreenshots() {
       );
       await mobileElement.screenshot({
         path: mobilePath,
-        clip: {
-          x: 0,
-          y: 0,
-          width: 600,
-          height: 400,
-        },
       });
       console.log("✅ Mobile screenshot saved!");
     }

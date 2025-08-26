@@ -1,5 +1,5 @@
 import { type gmail_v1, google } from "googleapis";
-import { Result } from "neverthrow";
+import { Result, err } from "neverthrow";
 // TODO: Implement these missing modules
 // import { DynamoDBSenderTracker } from "./aws/dynamodb-sender-tracker";
 import { config } from "./config";
@@ -100,7 +100,12 @@ export class GmailClient {
    * Validate Gmail access before processing
    */
   async validateAccess(): Promise<Result<boolean, Error>> {
-    return await this.tokenManager.validateToken();
+    const result = await this.tokenManager.validateToken();
+    if (result.isErr()) {
+      const tokenError = result.error;
+      return err(new Error(tokenError.message));
+    }
+    return result;
   }
 
   /**

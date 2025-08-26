@@ -1,7 +1,6 @@
-// import { S3StorageClient } from "./aws/s3-storage";
-// import { DynamoDBStorageClient } from "./aws/storage";
-// import { AzureStorageClient } from "./azure/storage";
-// import { MockStorageClient } from "./aws/mock-storage";
+import { S3StorageClient } from "./aws/s3-storage";
+import { DynamoDBStorageClient } from "./aws/storage";
+import { AzureStorageClient } from "./azure/storage";
 import type { IStorageClient } from "./interfaces/storage";
 
 export enum StorageType {
@@ -11,53 +10,14 @@ export enum StorageType {
 }
 
 /**
- * Simple mock storage implementation for compilation
- */
-class MockStorageClient implements IStorageClient {
-  async markProcessed(emailId: string, subject: string): Promise<void> {
-    console.log(`Mock storage: marking processed ${emailId}`, subject);
-  }
-
-  async markMultipleProcessed(emails: Array<{ id: string; subject: string }>): Promise<void> {
-    console.log(`Mock storage: marking multiple processed`, emails.length);
-  }
-
-  async getWeeklyProcessedIds(): Promise<string[]> {
-    console.log(`Mock storage: getting weekly processed IDs`);
-    return [];
-  }
-
-  async getAllProcessed(): Promise<import("../types").ProcessedEmail[]> {
-    console.log(`Mock storage: getting all processed`);
-    return [];
-  }
-
-  async getAllProcessedIds(): Promise<string[]> {
-    console.log(`Mock storage: getting all processed IDs`);
-    return [];
-  }
-
-  async isProcessed(emailId: string): Promise<boolean> {
-    console.log(`Mock storage: checking if processed ${emailId}`);
-    return false;
-  }
-
-  async cleanupOldRecords(daysToKeep: number): Promise<number> {
-    console.log(`Mock storage: cleanup old records ${daysToKeep} days`);
-    return 0;
-  }
-}
-
-/**
  * Factory for creating storage clients based on configuration
  * Implements the Strategy pattern for storage selection
  */
 export class StorageFactory {
   private static storageProviders = new Map<string, () => IStorageClient>([
-    // TODO: Implement real storage clients
-    [StorageType.S3, () => new MockStorageClient()],
-    [StorageType.DynamoDB, () => new MockStorageClient()],
-    [StorageType.Azure, () => new MockStorageClient()],
+    [StorageType.S3, () => new S3StorageClient()],
+    [StorageType.DynamoDB, () => new DynamoDBStorageClient()],
+    [StorageType.Azure, () => new AzureStorageClient()],
   ]);
 
   /**

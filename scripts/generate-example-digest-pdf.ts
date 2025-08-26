@@ -18,24 +18,6 @@ const exampleDigest: DigestOutput = {
   summary:
     "This week brought significant developments in AI capabilities. Major tech companies unveiled new reasoning models, while practical implementations in enterprise software show AI moving from experimental to essential. The focus shifts from raw performance to real-world utility.",
   keyThemes: ["Enterprise AI", "Model Efficiency", "Open Source AI", "AI Safety"],
-  keyInsights: [
-    {
-      insight:
-        "Small, specialized models now outperform large generalist models for specific tasks",
-      impact: "Reduces costs by 90% while improving accuracy for domain-specific applications",
-      actionability: "Consider fine-tuning smaller models instead of using GPT-4 for everything",
-    },
-    {
-      insight: "AI agents can now maintain context across 1M+ token conversations",
-      impact: "Enables truly persistent AI assistants that remember everything",
-      actionability: "Start building long-context applications for customer support",
-    },
-    {
-      insight: "Open source models reach 95% of GPT-4 performance at 10% of the cost",
-      impact: "Democratizes AI access for startups and reduces vendor lock-in",
-      actionability: "Evaluate Llama 3.2 or Mistral for your next project",
-    },
-  ],
   competitiveIntel: [
     {
       insight: "Meta's Llama 3.2 matches GPT-4 on most benchmarks while being fully open",
@@ -204,23 +186,11 @@ const exampleDigest: DigestOutput = {
 };
 
 const exampleSummary: Summary = {
-  id: "example-digest-2024",
-  userId: "demo-user",
-  dateRange: {
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-  },
-  processedCount: 89,
+  title: "Weekly AI & Tech Digest",
+  summary: "A comprehensive overview of the most important AI developments this week",
+  sender: "AI Digest",
+  date: new Date().toISOString(),
   digest: exampleDigest,
-  senders: [
-    { email: "newsletter@example-ai.com", count: 12 },
-    { email: "tech-digest@example.com", count: 8 },
-    { email: "innovations@voice-ai.com", count: 6 },
-    { email: "legal-updates@ai-news.com", count: 4 },
-    { email: "oss-weekly@example.org", count: 15 },
-  ],
-  processingTimeMs: 52000,
-  createdAt: new Date().toISOString(),
 };
 
 async function generateExampleDigestPDF() {
