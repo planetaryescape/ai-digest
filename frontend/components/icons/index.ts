@@ -4,3 +4,4 @@ export { ProductIdeasIcon } from "./ProductIdeasIcon";
 export { BeautifulEmailIcon } from "./BeautifulEmailIcon";
 export { CostControlIcon } from "./CostControlIcon";
 export { WeeklyScheduleIcon } from "./WeeklyScheduleIcon";
+export { BeforeAfterComparison } from "./BeforeAfterComparison";
