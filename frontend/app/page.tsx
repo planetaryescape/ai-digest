@@ -1,17 +1,20 @@
 import {
   ArrowRight,
-  Brain,
   CheckCircle2,
   ChevronRight,
   Clock,
-  Mail,
-  Shield,
   Star,
-  Target,
-  TrendingUp,
   Users,
   Zap,
 } from "lucide-react";
+import {
+  AiAnalysisIcon,
+  BeautifulEmailIcon,
+  CostControlIcon,
+  ProductIdeasIcon,
+  RoleBasedIcon,
+  WeeklyScheduleIcon,
+} from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -191,7 +194,7 @@ export default function Home() {
               {/* Feature 1 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Brain className="h-6 w-6 text-blue-600" />
+                  <AiAnalysisIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">AI-Powered Analysis</h3>
                 <p className="text-gray-600">
@@ -203,7 +206,7 @@ export default function Home() {
               {/* Feature 2 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Target className="h-6 w-6 text-blue-600" />
+                  <RoleBasedIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Role-Specific Insights</h3>
                 <p className="text-gray-600">
@@ -215,7 +218,7 @@ export default function Home() {
               {/* Feature 3 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <TrendingUp className="h-6 w-6 text-blue-600" />
+                  <ProductIdeasIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Product Opportunities</h3>
                 <p className="text-gray-600">
@@ -227,7 +230,7 @@ export default function Home() {
               {/* Feature 4 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Mail className="h-6 w-6 text-blue-600" />
+                  <BeautifulEmailIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">
                   Beautiful Email Digests
@@ -240,7 +243,7 @@ export default function Home() {
               {/* Feature 5 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Shield className="h-6 w-6 text-blue-600" />
+                  <CostControlIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Cost Control Built-In</h3>
                 <p className="text-gray-600">
@@ -252,7 +255,7 @@ export default function Home() {
               {/* Feature 6 */}
               <div className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                  <Clock className="h-6 w-6 text-blue-600" />
+                  <WeeklyScheduleIcon className="h-6 w-6 text-blue-600" />
                 </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-2">Weekly Schedule</h3>
                 <p className="text-gray-600">
