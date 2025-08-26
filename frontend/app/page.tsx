@@ -14,6 +14,7 @@ import {
   ProductIdeasIcon,
   RoleBasedIcon,
   WeeklyScheduleIcon,
+  BeforeAfterComparison,
 } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
@@ -101,15 +102,20 @@ export default function Home() {
       {/* Problem Agitation */}
       <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-3xl text-center">
+          <div className="mx-auto max-w-5xl text-center">
             <h2 className="mb-4 text-3xl font-bold text-gray-900">
               74% of Professionals Feel Overwhelmed by Newsletter Fatigue
             </h2>
-            <p className="text-lg text-gray-600">
+            <p className="text-lg text-gray-600 max-w-3xl mx-auto mb-12">
               You subscribe to stay informed about AI, but end up with 100+ unread newsletters.
               Important insights get buried. Opportunities slip by. Your inbox becomes a source of
               anxiety, not knowledge.
             </p>
+            
+            {/* Before/After Comparison Graphic */}
+            <div className="mt-12">
+              <BeforeAfterComparison className="w-full max-w-5xl mx-auto rounded-xl shadow-xl" />
+            </div>
           </div>
         </div>
       </section>
