@@ -1,7 +1,6 @@
-// import { S3StorageClient } from "./aws/s3-storage";
-// import { DynamoDBStorageClient } from "./aws/storage";
-// import { AzureStorageClient } from "./azure/storage";
-// import { MockStorageClient } from "./aws/mock-storage";
+import { S3StorageClient } from "./aws/s3-storage";
+import { DynamoDBStorageClient } from "./aws/storage";
+import { AzureStorageClient } from "./azure/storage";
 import type { IStorageClient } from "./interfaces/storage";
 
 export enum StorageType {
@@ -11,33 +10,14 @@ export enum StorageType {
 }
 
 /**
- * Simple mock storage implementation for compilation
- */
-class MockStorageClient implements IStorageClient {
-  async store(key: string, data: any): Promise<boolean> {
-    console.log(`Mock storage: storing ${key}`, data);
-    return true;
-  }
-  async retrieve(key: string): Promise<any> {
-    console.log(`Mock storage: retrieving ${key}`);
-    return null;
-  }
-  async delete(key: string): Promise<boolean> {
-    console.log(`Mock storage: deleting ${key}`);
-    return true;
-  }
-}
-
-/**
  * Factory for creating storage clients based on configuration
  * Implements the Strategy pattern for storage selection
  */
 export class StorageFactory {
   private static storageProviders = new Map<string, () => IStorageClient>([
-    // TODO: Implement real storage clients
-    [StorageType.S3, () => new MockStorageClient()],
-    [StorageType.DynamoDB, () => new MockStorageClient()],
-    [StorageType.Azure, () => new MockStorageClient()],
+    [StorageType.S3, () => new S3StorageClient()],
+    [StorageType.DynamoDB, () => new DynamoDBStorageClient()],
+    [StorageType.Azure, () => new AzureStorageClient()],
   ]);
 
   /**

@@ -1,10 +1,10 @@
 #!/usr/bin/env bun
 
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { chromium } from "@playwright/test";
 import { renderAsync } from "@react-email/render";
 import React from "react";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 import { WeeklyDigestEmail } from "../emails/WeeklyDigestRedesigned";
 import type { DigestOutput } from "../functions/lib/schemas/digest";
 import type { Summary } from "../functions/lib/types";
@@ -17,28 +17,12 @@ const sampleDigest: DigestOutput = {
   summary:
     "This week brought groundbreaking developments in AI agent capabilities. OpenAI's new reasoning models show unprecedented problem-solving abilities, while practical applications in coding, research, and automation are transforming workflows across industries.",
   keyThemes: ["AI Reasoning", "Autonomous Agents", "Voice AI", "Developer Tools"],
-  keyInsights: [
-    {
-      insight: "GPT-5 level reasoning is becoming accessible through new techniques",
-      impact: "Enables complex multi-step problem solving previously impossible",
-      actionability: "Start experimenting with chain-of-thought prompting in your workflows",
-    },
-    {
-      insight: "AI coding assistants now handle entire features, not just snippets",
-      impact: "10x productivity gains for developers adopting these tools",
-      actionability: "Integrate Cursor or Windsurf into your development process",
-    },
-    {
-      insight: "Voice AI quality crossed the uncanny valley threshold",
-      impact: "Natural conversations with AI are now production-ready",
-      actionability: "Consider voice interfaces for your next user-facing feature",
-    },
-  ],
   competitiveIntel: [
     {
       insight: "OpenAI's o1 model shows 90% accuracy on PhD-level physics problems",
       players: ["OpenAI", "Meta", "Google"],
-      implication: "Traditional model architectures are being disrupted by reasoning-focused approaches",
+      implication:
+        "Traditional model architectures are being disrupted by reasoning-focused approaches",
     },
     {
       insight: "Anthropic's Claude 3.5 Sonnet leads in coding benchmarks",
@@ -126,7 +110,10 @@ const sampleDigest: DigestOutput = {
         "New paradigm for AI applications",
       ],
       whyItMatters: "This breakthrough enables entirely new categories of AI applications",
-      actionItems: ["Test o1 on your hardest problems", "Explore reasoning chains in your products"],
+      actionItems: [
+        "Test o1 on your hardest problems",
+        "Explore reasoning chains in your products",
+      ],
       category: "AI Models",
       sender: "newsletter@openai.com",
       date: new Date().toISOString(),
@@ -140,7 +127,8 @@ const sampleDigest: DigestOutput = {
         "AI assistants becoming essential tools",
         "Rapid adoption across enterprises",
       ],
-      whyItMatters: "AI coding assistants are no longer optional - they're essential for competitive advantage",
+      whyItMatters:
+        "AI coding assistants are no longer optional - they're essential for competitive advantage",
       actionItems: ["Adopt Cursor or Windsurf", "Train team on AI pair programming"],
       category: "Developer Tools",
       sender: "digest@github.com",
@@ -155,7 +143,8 @@ const sampleDigest: DigestOutput = {
         "Sub-200ms latency achieved",
         "Voice cloning indistinguishable from real",
       ],
-      whyItMatters: "Voice interfaces are ready for production deployment in customer-facing applications",
+      whyItMatters:
+        "Voice interfaces are ready for production deployment in customer-facing applications",
       actionItems: ["Prototype voice features", "Evaluate voice AI providers"],
       category: "Voice Tech",
       sender: "updates@techcrunch.com",
@@ -173,27 +162,19 @@ const sampleDigest: DigestOutput = {
 };
 
 const sampleSummary: Summary = {
-  id: "sample-digest",
-  userId: "demo",
-  dateRange: {
-    start: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    end: new Date().toISOString(),
-  },
-  processedCount: 47,
+  title: "Weekly AI & Tech Digest",
+  summary: "A curated digest of the most important AI developments this week",
+  sender: "AI Digest",
+  date: new Date().toISOString(),
   digest: sampleDigest,
-  senders: [
-    { email: "newsletter@openai.com", count: 3 },
-    { email: "digest@anthropic.com", count: 2 },
-    { email: "updates@github.com", count: 5 },
-  ],
-  processingTimeMs: 45000,
-  createdAt: new Date().toISOString(),
 };
 
 async function generateScreenshots() {
   console.log("🚀 Starting screenshot generation...");
 
-  const html = await renderAsync(React.createElement(WeeklyDigestEmail, { summary: sampleSummary }));
+  const html = await renderAsync(
+    React.createElement(WeeklyDigestEmail, { summary: sampleSummary })
+  );
 
   const browser = await chromium.launch({
     headless: true,
@@ -212,15 +193,16 @@ async function generateScreenshots() {
     console.log("📸 Generating desktop hero screenshot (1200x800)...");
     const desktopElement = await page.$("body");
     if (desktopElement) {
-      const desktopPath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email.png");
+      const desktopPath = path.join(
+        __dirname,
+        "..",
+        "frontend",
+        "public",
+        "images",
+        "hero-digest-email.png"
+      );
       await desktopElement.screenshot({
         path: desktopPath,
-        clip: {
-          x: 0,
-          y: 0,
-          width: 1200,
-          height: 800,
-        },
       });
       console.log("✅ Desktop screenshot saved!");
     }
@@ -231,23 +213,22 @@ async function generateScreenshots() {
     console.log("📱 Generating mobile hero screenshot (600x400)...");
     const mobileElement = await page.$("body");
     if (mobileElement) {
-      const mobilePath = path.join(__dirname, "..", "frontend", "public", "images", "hero-digest-email-mobile.png");
+      const mobilePath = path.join(
+        __dirname,
+        "..",
+        "frontend",
+        "public",
+        "images",
+        "hero-digest-email-mobile.png"
+      );
       await mobileElement.screenshot({
         path: mobilePath,
-        clip: {
-          x: 0,
-          y: 0,
-          width: 600,
-          height: 400,
-        },
       });
       console.log("✅ Mobile screenshot saved!");
     }
 
     console.log("🎉 All screenshots generated successfully!");
-    console.log(
-      "📁 Screenshots saved to: frontend/public/images/",
-    );
+    console.log("📁 Screenshots saved to: frontend/public/images/");
   } catch (error) {
     console.error("❌ Error generating screenshots:", error);
     process.exit(1);

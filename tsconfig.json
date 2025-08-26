@@ -20,6 +20,12 @@
       "@/*": ["./frontend/*"]
     }
   },
-  "include": ["functions/**/*", "scripts/**/*", "emails/**/*", "bin/**/*", "frontend/**/*"],
+  "include": [
+    "functions/**/*",
+    "scripts/**/*",
+    "emails/**/*",
+    "bin/**/*",
+    "frontend/**/*"
+  ],
   "exclude": ["node_modules", "terraform", "dist"]
 }

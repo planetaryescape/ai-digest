@@ -17,7 +17,7 @@ describe("/api/digest/trigger", () => {
     process.env.AWS_ACCESS_KEY_ID = "test-access-key";
     process.env.AWS_SECRET_ACCESS_KEY = "test-secret-key";
     process.env.AWS_REGION = "us-east-1";
-    
+
     mockLambdaSend = vi.fn().mockResolvedValue({
       StatusCode: 200,
       Payload: new TextEncoder().encode(
