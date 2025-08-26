@@ -1,3 +1,5 @@
+"use client";
+
 import {
   ArrowRight,
   CheckCircle2,
@@ -18,10 +20,62 @@ import {
 } from "@/components/icons";
 import Image from "next/image";
 import Link from "next/link";
+import { analytics } from "@/lib/analytics";
 
 export default function Home() {
+  const faqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "How secure is my Gmail connection?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We use OAuth 2.0 for secure authentication. We can only read emails, not send or delete them. Your credentials are never stored, and you can revoke access anytime from your Google account."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Which newsletters do you process?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "We intelligently identify and process AI, tech, and innovation newsletters. This includes publications like The Neuron, TLDR, Benedict Evans, Stratechery, and 100+ others. Non-tech emails are ignored."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Can I customize the delivery schedule?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Currently, digests are sent every Sunday at 8 AM. Custom schedules (daily, bi-weekly) are coming soon based on user feedback."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "What if I'm not satisfied?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Try it free for a week. If you're not saving hours and feeling more informed, simply don't subscribe. No tricks, no hassle."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How is this different from Unroll.Me or SaneBox?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Those tools just organize emails. We actually read, analyze, and synthesize content using GPT-4. You get insights and recommendations, not just a list of links."
+        }
+      }
+    ]
+  };
+
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+      />
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-b from-slate-50 to-white">
         <div className="container mx-auto px-4 pt-20 pb-16 md:pt-28 md:pb-24">
@@ -45,10 +99,11 @@ export default function Home() {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4 sm:px-0">
               <Link
                 href="/sign-up"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-blue-700 transition-colors"
+                onClick={() => analytics.trackCTAClick('hero', 'Start Your Free Week')}
               >
                 Start Your Free Week
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -85,6 +140,8 @@ export default function Home() {
                 height={800}
                 className="w-full h-auto hidden md:block"
                 priority
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='800'%3E%3Crect width='1200' height='800' fill='%23f3f4f6'/%3E%3C/svg%3E"
               />
               <Image
                 src="/images/hero-digest-email-mobile.png"
@@ -93,6 +150,8 @@ export default function Home() {
                 height={400}
                 className="w-full h-auto md:hidden"
                 priority
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400'%3E%3Crect width='600' height='400' fill='%23f3f4f6'/%3E%3C/svg%3E"
               />
             </div>
           </div>
@@ -398,6 +457,7 @@ export default function Home() {
                 <Link
                   href="/sign-up"
                   className="inline-flex items-center justify-center w-full rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-blue-700 transition-colors"
+                  onClick={() => analytics.trackCTAClick('pricing', 'Start Your Free Week')}
                 >
                   Start Your Free Week
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -492,6 +552,7 @@ export default function Home() {
             <Link
               href="/sign-up"
               className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg hover:bg-gray-50 transition-colors"
+              onClick={() => analytics.trackCTAClick('final-cta', 'Start Your Free Week Now')}
             >
               Start Your Free Week Now
               <ArrowRight className="ml-2 h-5 w-5" />
