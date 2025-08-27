@@ -1,8 +1,9 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
 Allow: /
+Allow: /dashboard
 Disallow: /api/
-Disallow: /dashboard/
+Disallow: /dashboard/*
 
 # Sitemap
 Sitemap: https://ai-digest.app/sitemap.xml

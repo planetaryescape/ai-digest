@@ -121,7 +121,7 @@ export default function Home() {
             <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-6 text-sm text-gray-500">
               <div className="flex items-center gap-2">
                 <Users className="h-5 w-5 text-gray-400" />
-                <span>Join 500+ professionals saving time weekly</span>
+                <span>Join early adopters saving time weekly</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-gray-400" />
@@ -546,7 +546,7 @@ export default function Home() {
               Ready to Reclaim Your Sunday Mornings?
             </h2>
             <p className="text-xl text-blue-100 mb-8">
-              Join 500+ professionals who&apos;ve turned newsletter chaos into competitive
+              Join forward-thinking professionals turning newsletter chaos into competitive
               advantage.
             </p>
             <Link

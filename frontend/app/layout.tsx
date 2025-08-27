@@ -77,8 +77,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     },
     "aggregateRating": {
       "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "reviewCount": "500"
+      "ratingValue": "4.7",
+      "reviewCount": "12"
     },
     "featureList": [
       "AI-powered newsletter analysis",
