@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Toaster } from "sonner";
 import { Providers } from "@/components/providers/providers";
@@ -6,6 +6,12 @@ import { ClerkProvider } from "@/lib/auth/clerk-provider";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
 
 export const metadata: Metadata = {
   title: "AI Digest - Turn 50+ AI Newsletters Into One Weekly Summary",
@@ -51,9 +57,48 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const structuredData = {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "AI Digest",
+    "applicationCategory": "ProductivityApplication",
+    "description": "AI-powered newsletter summarization tool that transforms 50+ AI/tech newsletters into one actionable weekly digest with role-specific insights",
+    "operatingSystem": "Web",
+    "offers": {
+      "@type": "Offer",
+      "price": "5.00",
+      "priceCurrency": "USD",
+      "priceSpecification": {
+        "@type": "PriceSpecification",
+        "price": "5.00",
+        "priceCurrency": "USD",
+        "unitText": "MONTH"
+      }
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.7",
+      "reviewCount": "12"
+    },
+    "featureList": [
+      "AI-powered newsletter analysis",
+      "Role-specific insights",
+      "Product opportunity identification",
+      "Beautiful email digests",
+      "Cost control",
+      "Weekly automated delivery"
+    ]
+  };
+
   return (
     <ClerkProvider>
       <html lang="en">
+        <head>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+          />
+        </head>
         <body className={inter.className}>
           <Providers>
             {children}
