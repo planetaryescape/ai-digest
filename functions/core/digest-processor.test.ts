@@ -1,13 +1,28 @@
-import { formatISO } from "date-fns";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { ILogger } from "../lib/interfaces/logger";
 import type { IStorageClient } from "../lib/interfaces/storage";
-import { DigestProcessor } from "./digest-processor";
 
-// Mock all dependencies
+// Mock all dependencies - these need to be hoisted
 vi.mock("../lib/agents/EmailFetcherAgent", () => ({
   EmailFetcherAgent: vi.fn().mockImplementation(() => ({
-    execute: vi.fn().mockResolvedValue([]),
+    execute: vi.fn().mockResolvedValue({
+      fullEmails: [],
+      metadata: [],
+      aiEmailIds: [],
+      unknownEmailIds: [],
+      classifications: new Map(),
+      stats: {
+        totalFetched: 0,
+        knownAI: 0,
+        knownNonAI: 0,
+        unknown: 0,
+      },
+    }),
+    getBatchOperations: vi.fn().mockReturnValue({
+      archiveEmails: vi.fn().mockResolvedValue(undefined),
+      markAsRead: vi.fn().mockResolvedValue(undefined),
+      labelEmails: vi.fn().mockResolvedValue(undefined),
+    }),
   })),
 }));
 
@@ -87,6 +102,40 @@ vi.mock("../lib/logger", () => ({
   })),
 }));
 
+vi.mock("date-fns", () => ({
+  formatISO: vi.fn((date) => date instanceof Date ? date.toISOString() : "2024-01-01T00:00:00Z"),
+}));
+
+// Import after mocks are set up
+import { DigestProcessor } from "./digest-processor";
+import { formatISO } from "date-fns";
+
+// Helper function to create EmailFetcherAgent mock
+function createEmailFetcherMock(emailsToReturn: any[] = []) {
+  const emailBatch = {
+    fullEmails: emailsToReturn,
+    metadata: emailsToReturn.map(e => ({ id: e.id, from: e.from })),
+    aiEmailIds: [],
+    unknownEmailIds: emailsToReturn.map(e => e.id),
+    classifications: new Map(),
+    stats: {
+      totalFetched: emailsToReturn.length,
+      knownAI: 0,
+      knownNonAI: 0,
+      unknown: emailsToReturn.length,
+    },
+  };
+  
+  return {
+    execute: vi.fn().mockResolvedValue(emailBatch),
+    getBatchOperations: vi.fn().mockReturnValue({
+      archiveEmails: vi.fn().mockResolvedValue(undefined),
+      markAsRead: vi.fn().mockResolvedValue(undefined),
+      labelEmails: vi.fn().mockResolvedValue(undefined),
+    }),
+  };
+}
+
 vi.mock("../lib/metrics", () => ({
   getMetrics: vi.fn().mockImplementation(() => ({
     histogram: vi.fn(),
@@ -146,10 +195,7 @@ describe("DigestProcessor", () => {
     it("should handle no emails found scenario", async () => {
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue([]),
-          }) as any
+        () => createEmailFetcherMock([]) as any
       );
 
       const result = await processor.processWeeklyDigest();
@@ -178,10 +224,7 @@ describe("DigestProcessor", () => {
       const { CriticAgent } = await import("../lib/agents/CriticAgent");
 
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue(mockEmails),
-          }) as any
+        () => createEmailFetcherMock(mockEmails) as any
       );
 
       vi.mocked(ClassifierAgent).mockImplementation(
@@ -264,10 +307,7 @@ describe("DigestProcessor", () => {
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue(mockEmails),
-          }) as any
+        () => createEmailFetcherMock(mockEmails) as any
       );
 
       const result = await processor.processCleanupDigest();
@@ -317,10 +357,7 @@ describe("DigestProcessor", () => {
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue(mockEmails),
-          }) as any
+        () => createEmailFetcherMock(mockEmails) as any
       );
 
       const result = await processor.processWeeklyDigest();
@@ -375,10 +412,7 @@ describe("DigestProcessor", () => {
 
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue(mockEmails),
-          }) as any
+        () => createEmailFetcherMock(mockEmails) as any
       );
 
       await processor.processWeeklyDigest();
@@ -401,10 +435,7 @@ describe("DigestProcessor", () => {
       const { ClassifierAgent } = await import("../lib/agents/ClassifierAgent");
 
       vi.mocked(EmailFetcherAgent).mockImplementation(
-        () =>
-          ({
-            execute: vi.fn().mockResolvedValue(mockEmails),
-          }) as any
+        () => createEmailFetcherMock(mockEmails) as any
       );
 
       vi.mocked(ClassifierAgent).mockImplementation(
