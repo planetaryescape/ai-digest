@@ -4,7 +4,14 @@ import type { Summary } from "./types";
 
 const log = createLogger("EmailService");
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+let resend: Resend | null = null;
+
+function getResendClient(): Resend {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
 
 export async function sendDigest(
   recipientEmail: string,
@@ -17,7 +24,7 @@ export async function sendDigest(
     // In production, this would use the React Email template
     const htmlContent = generateDigestHtml(summaries, mode);
 
-    const { data, error } = await resend.emails.send({
+    const { data, error } = await getResendClient().emails.send({
       from: "AI Digest <digest@aiweeklydigest.com>",
       to: recipientEmail,
       subject: `Your ${mode === "weekly" ? "Weekly" : mode} AI Digest`,
@@ -43,7 +50,7 @@ export async function sendErrorNotification(
   log.info({ adminEmail, context }, "Sending error notification");
 
   try {
-    const { data } = await resend.emails.send({
+    const { data } = await getResendClient().emails.send({
       from: "AI Digest Alerts <alerts@aiweeklydigest.com>",
       to: adminEmail,
       subject: `[ALERT] AI Digest Error: ${context}`,
