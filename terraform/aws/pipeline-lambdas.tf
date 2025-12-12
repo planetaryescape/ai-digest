@@ -83,6 +83,7 @@ resource "aws_lambda_function" "email_fetcher" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # Gmail OAuth Configuration
       GMAIL_CLIENT_ID     = var.GMAIL_CLIENT_ID
@@ -118,6 +119,7 @@ resource "aws_lambda_function" "classifier" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # OpenAI Configuration
       OPENAI_API_KEY    = var.OPENAI_API_KEY
@@ -155,6 +157,7 @@ resource "aws_lambda_function" "content_extractor" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # Firecrawl Configuration (optional)
       FIRECRAWL_API_KEY = var.FIRECRAWL_API_KEY
@@ -189,6 +192,7 @@ resource "aws_lambda_function" "research" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # Brave Search Configuration (optional)
       BRAVE_API_KEY    = var.BRAVE_API_KEY
@@ -223,6 +227,7 @@ resource "aws_lambda_function" "analysis" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # OpenAI Configuration
       OPENAI_API_KEY    = var.OPENAI_API_KEY
@@ -257,6 +262,7 @@ resource "aws_lambda_function" "critic" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # OpenAI Configuration
       OPENAI_API_KEY    = var.OPENAI_API_KEY
@@ -291,6 +297,7 @@ resource "aws_lambda_function" "digest_sender" {
       PIPELINE_DATA_BUCKET = aws_s3_bucket.pipeline_data.id
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # Email Configuration
       RESEND_API_KEY   = var.RESEND_API_KEY
@@ -326,6 +333,7 @@ resource "aws_lambda_function" "orchestrator" {
       PIPELINE_STATE_TABLE = aws_dynamodb_table.pipeline_state.name
       PROJECT_NAME         = var.PROJECT_NAME
       AWS_ACCOUNT_ID       = data.aws_caller_identity.current.account_id
+      SECRET_ARN           = aws_secretsmanager_secret.ai_digest_secrets.arn
       
       # Lambda function names
       EMAIL_FETCHER_FUNCTION_NAME = aws_lambda_function.email_fetcher.function_name
