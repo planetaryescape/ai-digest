@@ -3,5 +3,11 @@
  * This file exists for cleaner import paths
  */
 
-export type { BatchOperationResult } from "../gmail-batch-operations";
 export { GmailBatchOperations as BatchOperations } from "../gmail-batch-operations";
+
+// Type alias for batch operation results
+export interface BatchOperationResult {
+  success: boolean;
+  messageIds: string[];
+  errors?: string[];
+}

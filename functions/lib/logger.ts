@@ -119,4 +119,11 @@ export function createTimer(logger: pino.Logger, operation: string) {
   };
 }
 
+/**
+ * Helper function to log errors consistently
+ */
+export function logError(logger: pino.Logger, error: Error, message: string): void {
+  logger.error({ err: error }, message);
+}
+
 export default baseLogger;

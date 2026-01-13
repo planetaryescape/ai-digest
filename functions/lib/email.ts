@@ -14,10 +14,21 @@ function getResendClient(): Resend {
 }
 
 export async function sendDigest(
-  recipientEmail: string,
-  summaries: Summary[],
+  summaryOrEmail: Summary | string,
+  platformOrSummaries?: string | Summary[],
   mode: string = "weekly"
 ): Promise<void> {
+  // Handle both signatures:
+  // sendDigest(summary, platform) - from digest-processor
+  // sendDigest(email, summaries[], mode) - traditional
+  const isNewStyle = typeof summaryOrEmail === "object";
+  const summaries: Summary[] = isNewStyle
+    ? [summaryOrEmail as Summary]
+    : (platformOrSummaries as Summary[]) || [];
+  const recipientEmail = isNewStyle
+    ? process.env.RECIPIENT_EMAIL || "digest@example.com"
+    : (summaryOrEmail as string);
+
   log.info({ recipientEmail, summaryCount: summaries.length, mode }, "Sending digest");
 
   try {
@@ -43,22 +54,32 @@ export async function sendDigest(
 }
 
 export async function sendErrorNotification(
-  adminEmail: string,
-  error: any,
-  context: string
+  errorOrEmail: Error | string,
+  error?: any,
+  context?: string
 ): Promise<void> {
-  log.info({ adminEmail, context }, "Sending error notification");
+  // Handle both signatures:
+  // sendErrorNotification(error) - simple
+  // sendErrorNotification(adminEmail, error, context) - full
+  const isSimple = errorOrEmail instanceof Error;
+  const adminEmail = isSimple
+    ? process.env.ADMIN_EMAIL || "admin@example.com"
+    : (errorOrEmail as string);
+  const actualError = isSimple ? errorOrEmail : error;
+  const actualContext = isSimple ? "Digest Processing" : context || "Unknown";
+
+  log.info({ adminEmail, context: actualContext }, "Sending error notification");
 
   try {
     const { data } = await getResendClient().emails.send({
       from: "AI Digest Alerts <alerts@aiweeklydigest.com>",
       to: adminEmail,
-      subject: `[ALERT] AI Digest Error: ${context}`,
+      subject: `[ALERT] AI Digest Error: ${actualContext}`,
       html: `
         <h2>Error in AI Digest Processing</h2>
-        <p><strong>Context:</strong> ${context}</p>
-        <p><strong>Error:</strong> ${error.message || error}</p>
-        <pre>${JSON.stringify(error, null, 2)}</pre>
+        <p><strong>Context:</strong> ${actualContext}</p>
+        <p><strong>Error:</strong> ${actualError?.message || actualError}</p>
+        <pre>${JSON.stringify(actualError, null, 2)}</pre>
       `,
     });
 

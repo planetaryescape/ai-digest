@@ -106,15 +106,15 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
 
     // Perform analysis using the correct method name
     const analysisStartTime = performance.now();
-    const analysisResult = await this.analysisAgent.analyzeContent(enrichedEmails); // Fixed: using analyzeContent instead of analyzeEmails
+    const analysisResult: any = await this.analysisAgent.analyzeContent(enrichedEmails); // Fixed: using analyzeContent instead of analyzeEmails
     const analysisTime = performance.now() - analysisStartTime;
 
     log.info(
       {
-        keyDevelopments: analysisResult.analysis.keyDevelopments.length,
-        patterns: analysisResult.analysis.patterns.length,
+        keyDevelopments: analysisResult.analysis?.keyDevelopments?.length ?? analysisResult.length,
+        patterns: analysisResult.analysis?.patterns?.length ?? 0,
         analysisTime,
-        model: analysisResult.metadata.modelUsed,
+        model: analysisResult.metadata?.modelUsed ?? "gpt-4o-mini",
       },
       "Analysis complete"
     );
@@ -143,7 +143,7 @@ export class AnalysisHandler extends BaseStepFunctionHandler {
         articlesAnalyzed: articles.length,
         researchDataUsed: researchData.length,
         analysisTime,
-        modelUsed: analysisResult.metadata.modelUsed,
+        modelUsed: analysisResult.metadata?.modelUsed ?? "gpt-4o-mini",
       },
       metadata: {
         executionId,

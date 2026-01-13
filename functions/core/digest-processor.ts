@@ -30,18 +30,21 @@ export interface DigestResult {
   emailsProcessed: number;
   message: string;
   error?: string;
-  digest?: Summary;
-  costReport?: string;
+  digest?: Summary | null;
+  costReport?: string | Record<string, any>;
   invocationId?: string;
   batches?: number;
   processingStats?: {
-    fetchTime: number;
-    classificationTime: number;
-    extractionTime: number;
-    researchTime: number;
-    analysisTime: number;
-    commentaryTime: number;
-    totalTime: number;
+    fetchTime?: number;
+    classificationTime?: number;
+    extractionTime?: number;
+    researchTime?: number;
+    analysisTime?: number;
+    commentaryTime?: number;
+    totalTime?: number;
+    startTime?: number;
+    emailsAnalyzed?: number;
+    dateRange?: { start: string; end: string };
   };
 }
 

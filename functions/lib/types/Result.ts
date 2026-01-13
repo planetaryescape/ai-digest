@@ -51,9 +51,9 @@ export class ResultUtils {
    */
   static map<T, U, E = Error>(result: Result<T, E>, fn: (value: T) => U): Result<U, E> {
     if (result.ok) {
-      return ResultUtils.ok(fn(result.value));
+      return { ok: true, value: fn(result.value) };
     }
-    return result as Result<U, E>;
+    return { ok: false, error: (result as { ok: false; error: E }).error };
   }
 
   /**
@@ -61,9 +61,9 @@ export class ResultUtils {
    */
   static mapError<T, E, F>(result: Result<T, E>, fn: (error: E) => F): Result<T, F> {
     if (!result.ok) {
-      return ResultUtils.err(fn(result.error));
+      return { ok: false, error: fn((result as { ok: false; error: E }).error) };
     }
-    return result as Result<T, F>;
+    return { ok: true, value: result.value };
   }
 
   /**
@@ -73,7 +73,7 @@ export class ResultUtils {
     if (result.ok) {
       return result.value;
     }
-    throw result.error;
+    throw (result as { ok: false; error: E }).error;
   }
 
   /**
@@ -107,11 +107,11 @@ export class ResultUtils {
 
     for (const result of results) {
       if (!result.ok) {
-        return result as Result<T[], E>;
+        return { ok: false, error: (result as { ok: false; error: E }).error };
       }
       values.push(result.value);
     }
 
-    return ResultUtils.ok(values);
+    return { ok: true, value: values };
   }
 }

@@ -8,7 +8,7 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: "device-width",
   initialScale: 1,
   maximumScale: 5,
 };
@@ -60,34 +60,35 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   const structuredData = {
     "@context": "https://schema.org",
     "@type": "SoftwareApplication",
-    "name": "AI Digest",
-    "applicationCategory": "ProductivityApplication",
-    "description": "AI-powered newsletter summarization tool that transforms 50+ AI/tech newsletters into one actionable weekly digest with role-specific insights",
-    "operatingSystem": "Web",
-    "offers": {
+    name: "AI Digest",
+    applicationCategory: "ProductivityApplication",
+    description:
+      "AI-powered newsletter summarization tool that transforms 50+ AI/tech newsletters into one actionable weekly digest with role-specific insights",
+    operatingSystem: "Web",
+    offers: {
       "@type": "Offer",
-      "price": "5.00",
-      "priceCurrency": "USD",
-      "priceSpecification": {
+      price: "5.00",
+      priceCurrency: "USD",
+      priceSpecification: {
         "@type": "PriceSpecification",
-        "price": "5.00",
-        "priceCurrency": "USD",
-        "unitText": "MONTH"
-      }
+        price: "5.00",
+        priceCurrency: "USD",
+        unitText: "MONTH",
+      },
     },
-    "aggregateRating": {
+    aggregateRating: {
       "@type": "AggregateRating",
-      "ratingValue": "4.7",
-      "reviewCount": "12"
+      ratingValue: "4.7",
+      reviewCount: "12",
     },
-    "featureList": [
+    featureList: [
       "AI-powered newsletter analysis",
       "Role-specific insights",
       "Product opportunity identification",
       "Beautiful email digests",
       "Cost control",
-      "Weekly automated delivery"
-    ]
+      "Weekly automated delivery",
+    ],
   };
 
   return (

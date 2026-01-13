@@ -1,4 +1,4 @@
-import { err, ok, Result } from "neverthrow";
+import { err, ok, type Result } from "neverthrow";
 import pRetry from "p-retry";
 import { sendErrorNotification } from "./email";
 import type { ILogger } from "./interfaces/logger";
@@ -86,7 +86,7 @@ export class ErrorHandler {
           );
 
           if (retriesLeft > 0) {
-            const nextDelay = delayMs * Math.pow(backoffMultiplier, attemptNumber - 1);
+            const nextDelay = delayMs * backoffMultiplier ** (attemptNumber - 1);
             logger.info(`Retrying in ${nextDelay}ms...`);
           }
         }

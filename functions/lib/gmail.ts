@@ -1,5 +1,5 @@
 import { type gmail_v1, google } from "googleapis";
-import { Result, err } from "neverthrow";
+import { err, type Result } from "neverthrow";
 // TODO: Implement these missing modules
 // import { DynamoDBSenderTracker } from "./aws/dynamodb-sender-tracker";
 import { config } from "./config";
@@ -105,7 +105,8 @@ export class GmailClient {
       const tokenError = result.error;
       return err(new Error(tokenError.message));
     }
-    return result;
+    // result is Ok<boolean, TokenError>, convert to Ok<boolean, Error>
+    return result as unknown as Result<boolean, Error>;
   }
 
   /**

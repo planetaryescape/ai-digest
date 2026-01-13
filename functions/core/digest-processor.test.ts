@@ -103,20 +103,20 @@ vi.mock("../lib/logger", () => ({
 }));
 
 vi.mock("date-fns", () => ({
-  formatISO: vi.fn((date) => date instanceof Date ? date.toISOString() : "2024-01-01T00:00:00Z"),
+  formatISO: vi.fn((date) => (date instanceof Date ? date.toISOString() : "2024-01-01T00:00:00Z")),
 }));
 
+import { formatISO } from "date-fns";
 // Import after mocks are set up
 import { DigestProcessor } from "./digest-processor";
-import { formatISO } from "date-fns";
 
 // Helper function to create EmailFetcherAgent mock
 function createEmailFetcherMock(emailsToReturn: any[] = []) {
   const emailBatch = {
     fullEmails: emailsToReturn,
-    metadata: emailsToReturn.map(e => ({ id: e.id, from: e.from })),
+    metadata: emailsToReturn.map((e) => ({ id: e.id, from: e.from })),
     aiEmailIds: [],
-    unknownEmailIds: emailsToReturn.map(e => e.id),
+    unknownEmailIds: emailsToReturn.map((e) => e.id),
     classifications: new Map(),
     stats: {
       totalFetched: emailsToReturn.length,
@@ -125,7 +125,7 @@ function createEmailFetcherMock(emailsToReturn: any[] = []) {
       unknown: emailsToReturn.length,
     },
   };
-  
+
   return {
     execute: vi.fn().mockResolvedValue(emailBatch),
     getBatchOperations: vi.fn().mockReturnValue({
@@ -194,9 +194,7 @@ describe("DigestProcessor", () => {
   describe("processWeeklyDigest", () => {
     it("should handle no emails found scenario", async () => {
       const { EmailFetcherAgent } = await import("../lib/agents/EmailFetcherAgent");
-      vi.mocked(EmailFetcherAgent).mockImplementation(
-        () => createEmailFetcherMock([]) as any
-      );
+      vi.mocked(EmailFetcherAgent).mockImplementation(() => createEmailFetcherMock([]) as any);
 
       const result = await processor.processWeeklyDigest();
 

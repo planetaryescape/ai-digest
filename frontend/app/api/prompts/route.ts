@@ -152,22 +152,21 @@ export async function GET(request: NextRequest) {
       }
 
       return NextResponse.json(response.Item as DigestPrompt, { headers });
-    } else {
-      // Get all prompts
-      const command = new ScanCommand({
-        TableName: tableName,
-      });
-
-      const response = await docClient.send(command);
-      const prompts = response.Items as DigestPrompt[];
-
-      // If no prompts exist, return defaults
-      if (!prompts || prompts.length === 0) {
-        return NextResponse.json(defaultPrompts, { headers });
-      }
-
-      return NextResponse.json(prompts, { headers });
     }
+    // Get all prompts
+    const command = new ScanCommand({
+      TableName: tableName,
+    });
+
+    const response = await docClient.send(command);
+    const prompts = response.Items as DigestPrompt[];
+
+    // If no prompts exist, return defaults
+    if (!prompts || prompts.length === 0) {
+      return NextResponse.json(defaultPrompts, { headers });
+    }
+
+    return NextResponse.json(prompts, { headers });
   } catch (error) {
     if (error instanceof Error) {
       if (error.message.includes("ResourceNotFoundException")) {

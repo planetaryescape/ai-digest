@@ -96,11 +96,12 @@ export class EmailPipeline {
       });
 
       if (!stageResult.ok) {
-        log.error({ error: stageResult.error }, `Stage ${stage.name} failed`);
+        const errorResult = stageResult as { ok: false; error: Error };
+        log.error({ error: errorResult.error }, `Stage ${stage.name} failed`);
         this.stats.errors++;
         return {
           ok: false,
-          error: stageResult.error,
+          error: errorResult.error,
         };
       }
 
@@ -118,9 +119,10 @@ export class EmailPipeline {
     this.stats.filteredEmails = this.stats.totalEmails - this.stats.processedEmails;
 
     if (!currentResult.ok) {
+      const errorResult = currentResult as { ok: false; error: Error };
       return {
         ok: false,
-        error: currentResult.error,
+        error: errorResult.error,
       };
     }
 

@@ -236,7 +236,7 @@ async function generateExampleDigestPDF() {
     });
 
     console.log("✅ PDF generated successfully!");
-    console.log(`📁 PDF saved to: frontend/public/downloads/example-digest.pdf`);
+    console.log("📁 PDF saved to: frontend/public/downloads/example-digest.pdf");
 
     const stats = fs.statSync(pdfPath);
     const fileSizeInMB = (stats.size / (1024 * 1024)).toFixed(2);

@@ -79,7 +79,7 @@ export abstract class PipelineLambdaHandler<TInput = any, TOutput = any> {
 
       // Send to next stage if processing succeeded
       if (processedMessage) {
-        await this.queueClient.sendToNextStage(processedMessage);
+        await this.queueClient.sendToNextStage(processedMessage as any);
       }
 
       // Clean up S3 payload if it was used
