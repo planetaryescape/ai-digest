@@ -1,73 +1,65 @@
 "use client";
 
-import {
-  ArrowRight,
-  CheckCircle2,
-  ChevronRight,
-  Clock,
-  Star,
-  Users,
-  Zap,
-} from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight, Clock, Star, Users, Zap } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 import {
   AiAnalysisIcon,
   BeautifulEmailIcon,
+  BeforeAfterComparison,
   CostControlIcon,
   ProductIdeasIcon,
   RoleBasedIcon,
   WeeklyScheduleIcon,
-  BeforeAfterComparison,
 } from "@/components/icons";
-import Image from "next/image";
-import Link from "next/link";
 import { analytics } from "@/lib/analytics";
 
 export default function Home() {
   const faqSchema = {
     "@context": "https://schema.org",
     "@type": "FAQPage",
-    "mainEntity": [
+    mainEntity: [
       {
         "@type": "Question",
-        "name": "How secure is my Gmail connection?",
-        "acceptedAnswer": {
+        name: "How secure is my Gmail connection?",
+        acceptedAnswer: {
           "@type": "Answer",
-          "text": "We use OAuth 2.0 for secure authentication. We can only read emails, not send or delete them. Your credentials are never stored, and you can revoke access anytime from your Google account."
-        }
+          text: "We use OAuth 2.0 for secure authentication. We can only read emails, not send or delete them. Your credentials are never stored, and you can revoke access anytime from your Google account.",
+        },
       },
       {
         "@type": "Question",
-        "name": "Which newsletters do you process?",
-        "acceptedAnswer": {
+        name: "Which newsletters do you process?",
+        acceptedAnswer: {
           "@type": "Answer",
-          "text": "We intelligently identify and process AI, tech, and innovation newsletters. This includes publications like The Neuron, TLDR, Benedict Evans, Stratechery, and 100+ others. Non-tech emails are ignored."
-        }
+          text: "We intelligently identify and process AI, tech, and innovation newsletters. This includes publications like The Neuron, TLDR, Benedict Evans, Stratechery, and 100+ others. Non-tech emails are ignored.",
+        },
       },
       {
         "@type": "Question",
-        "name": "Can I customize the delivery schedule?",
-        "acceptedAnswer": {
+        name: "Can I customize the delivery schedule?",
+        acceptedAnswer: {
           "@type": "Answer",
-          "text": "Currently, digests are sent every Sunday at 8 AM. Custom schedules (daily, bi-weekly) are coming soon based on user feedback."
-        }
+          text: "Currently, digests are sent every Sunday at 8 AM. Custom schedules (daily, bi-weekly) are coming soon based on user feedback.",
+        },
       },
       {
         "@type": "Question",
-        "name": "What if I'm not satisfied?",
-        "acceptedAnswer": {
+        name: "What if I'm not satisfied?",
+        acceptedAnswer: {
           "@type": "Answer",
-          "text": "Try it free for a week. If you're not saving hours and feeling more informed, simply don't subscribe. No tricks, no hassle."
-        }
+          text: "Try it free for a week. If you're not saving hours and feeling more informed, simply don't subscribe. No tricks, no hassle.",
+        },
       },
       {
         "@type": "Question",
-        "name": "How is this different from Unroll.Me or SaneBox?",
-        "acceptedAnswer": {
+        name: "How is this different from Unroll.Me or SaneBox?",
+        acceptedAnswer: {
           "@type": "Answer",
-          "text": "Those tools just organize emails. We actually read, analyze, and synthesize content using GPT-4. You get insights and recommendations, not just a list of links."
-        }
-      }
-    ]
+          text: "Those tools just organize emails. We actually read, analyze, and synthesize content using GPT-4. You get insights and recommendations, not just a list of links.",
+        },
+      },
+    ],
   };
 
   return (
@@ -103,7 +95,7 @@ export default function Home() {
               <Link
                 href="/sign-up"
                 className="inline-flex items-center justify-center rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-blue-700 transition-colors"
-                onClick={() => analytics.trackCTAClick('hero', 'Start Your Free Week')}
+                onClick={() => analytics.trackCTAClick("hero", "Start Your Free Week")}
               >
                 Start Your Free Week
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -170,7 +162,7 @@ export default function Home() {
               Important insights get buried. Opportunities slip by. Your inbox becomes a source of
               anxiety, not knowledge.
             </p>
-            
+
             {/* Before/After Comparison Graphic */}
             <div className="mt-12">
               <BeforeAfterComparison className="w-full max-w-5xl mx-auto rounded-xl shadow-xl" />
@@ -457,7 +449,7 @@ export default function Home() {
                 <Link
                   href="/sign-up"
                   className="inline-flex items-center justify-center w-full rounded-lg bg-blue-600 px-8 py-4 text-lg font-semibold text-white shadow-lg hover:bg-blue-700 transition-colors"
-                  onClick={() => analytics.trackCTAClick('pricing', 'Start Your Free Week')}
+                  onClick={() => analytics.trackCTAClick("pricing", "Start Your Free Week")}
                 >
                   Start Your Free Week
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -552,7 +544,7 @@ export default function Home() {
             <Link
               href="/sign-up"
               className="inline-flex items-center justify-center rounded-lg bg-white px-8 py-4 text-lg font-semibold text-blue-600 shadow-lg hover:bg-gray-50 transition-colors"
-              onClick={() => analytics.trackCTAClick('final-cta', 'Start Your Free Week Now')}
+              onClick={() => analytics.trackCTAClick("final-cta", "Start Your Free Week Now")}
             >
               Start Your Free Week Now
               <ArrowRight className="ml-2 h-5 w-5" />

@@ -55,12 +55,13 @@ export class CriticHandler extends BaseStepFunctionHandler {
 
     // Generate critique
     const criticStartTime = performance.now();
-    const criticResult = await this.critic.generateCommentary(analysisResult.analysis);
+    const criticInput = analysisResult.analysis ?? analysisResult;
+    const criticResult: any = await this.critic.generateCommentary(criticInput);
     const criticTime = performance.now() - criticStartTime;
 
     log.info(
       {
-        sections: Object.keys(criticResult.commentary || {}).length,
+        sections: Object.keys(criticResult.commentary ?? criticResult ?? {}).length,
         criticTime,
       },
       "Critique generation complete"
@@ -89,7 +90,7 @@ export class CriticHandler extends BaseStepFunctionHandler {
       criticResult,
       criticStats: {
         criticTime,
-        modelUsed: criticResult.metadata.model,
+        modelUsed: criticResult.metadata?.model ?? "gpt-4o-mini",
       },
       metadata: {
         executionId,

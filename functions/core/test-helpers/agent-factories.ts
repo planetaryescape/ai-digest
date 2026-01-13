@@ -11,8 +11,8 @@ import { CostTracker } from "../../lib/cost-tracker";
 export function createTestCostTracker(): CostTracker {
   const tracker = new CostTracker();
   // Spy on methods if needed
-  vi.spyOn(tracker, "trackApiCall");
-  vi.spyOn(tracker, "canProceed");
+  vi.spyOn(tracker, "recordApiCall");
+  vi.spyOn(tracker, "canAfford");
   vi.spyOn(tracker, "getTotalCost");
   return tracker;
 }

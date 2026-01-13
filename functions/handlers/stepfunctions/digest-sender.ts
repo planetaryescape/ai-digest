@@ -340,7 +340,7 @@ export class DigestSenderHandler extends BaseStepFunctionHandler {
     };
 
     // Prepare summary for email template
-    const summary = {
+    const summary: any = {
       digest: transformedDigest,
       message: `Weekly AI Digest - ${emails.length} emails processed`,
       items: emails,

@@ -1,5 +1,5 @@
 import type { APIGatewayProxyEvent, Context } from "aws-lambda";
-import { createLogger, Logger } from "./logger";
+import { createLogger, type Logger } from "./logger";
 
 export interface RequestContext {
   requestId: string;

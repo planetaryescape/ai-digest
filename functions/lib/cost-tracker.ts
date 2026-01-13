@@ -10,6 +10,14 @@ export interface ApiCost {
   timestamp: Date;
 }
 
+// Aggregated costs by service for state storage
+export interface ApiCosts {
+  openai?: { cost: number; calls: number };
+  firecrawl?: { cost: number; calls: number };
+  brave?: { cost: number; calls: number };
+  [key: string]: { cost: number; calls: number } | undefined;
+}
+
 export class CostTracker {
   private costs: ApiCost[] = [];
   private totalCost = 0;

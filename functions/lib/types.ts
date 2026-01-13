@@ -1,12 +1,12 @@
 export interface Summary {
-  title: string;
-  summary: string;
+  title?: string;
+  summary?: string;
   keyInsights?: string[];
   whyItMatters?: string;
   actionItems?: string[];
   category?: string;
-  sender: string;
-  date: string;
+  sender?: string;
+  date?: string;
   critique?: string;
   digest?: any; // Can be DigestOutput or string
   message?: string;
@@ -15,6 +15,7 @@ export interface Summary {
   whatHappened?: string;
   takeaways?: string;
   generatedAt?: string;
+  period?: string; // For historical digests
 }
 
 export interface EmailMessage {
@@ -59,9 +60,13 @@ export interface EmailItem {
 }
 
 export interface ProcessedEmail {
-  id: string;
+  id?: string;
+  emailId?: string;
   subject: string;
-  processed_at: string;
+  processed_at?: string;
+  processedAt?: string;
+  partitionKey?: string;
+  rowKey?: string;
 }
 
 export interface Article {

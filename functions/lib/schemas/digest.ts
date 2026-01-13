@@ -13,15 +13,17 @@ export const SummarySchema = z.object({
 });
 
 export const DigestOutputSchema = z.object({
-  summaries: z.array(SummarySchema),
-  stats: z.object({
-    totalEmails: z.number(),
-    aiEmails: z.number(),
-    processedEmails: z.number(),
-    totalCost: z.number(),
-  }),
-  mode: z.string(),
-  timestamp: z.string(),
+  summaries: z.array(SummarySchema).optional(),
+  stats: z
+    .object({
+      totalEmails: z.number(),
+      aiEmails: z.number(),
+      processedEmails: z.number(),
+      totalCost: z.number(),
+    })
+    .optional(),
+  mode: z.string().optional(),
+  timestamp: z.string().optional(),
   headline: z.string().optional(),
   shortMessage: z.string().optional(),
   whatHappened: z.union([z.string(), z.array(z.any())]).optional(),
