@@ -48,16 +48,19 @@ export abstract class PipelineLambdaHandler<TInput = any, TOutput = any> {
         event.Records.map((record: any) => this.processSQSRecord(record))
       );
 
-      // Check for failures
-      const failures = results.filter((r) => r.status === "rejected");
-      if (failures.length > 0) {
-        console.error(`Failed to process ${failures.length} messages`);
-        // Return partial batch failure response
-        return {
-          batchItemFailures: failures.map((_, index) => ({
-            itemIdentifier: event.Records[index].messageId,
-          })),
-        };
+      // Collect failures with their original indices
+      const batchItemFailures: Array<{ itemIdentifier: string }> = [];
+      for (let i = 0; i < results.length; i++) {
+        if (results[i].status === "rejected") {
+          batchItemFailures.push({
+            itemIdentifier: event.Records[i].messageId,
+          });
+        }
+      }
+
+      if (batchItemFailures.length > 0) {
+        console.error(`Failed to process ${batchItemFailures.length} messages`);
+        return { batchItemFailures };
       }
 
       return { statusCode: 200 };

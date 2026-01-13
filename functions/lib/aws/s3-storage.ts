@@ -18,6 +18,29 @@ export class S3StorageClient implements IStorageClient {
     this.bucketName = process.env.S3_BUCKET || "ai-digest-processed-emails";
   }
 
+  private async listAllObjects(prefix: string): Promise<Array<{ Key?: string; LastModified?: Date }>> {
+    const allObjects: Array<{ Key?: string; LastModified?: Date }> = [];
+    let continuationToken: string | undefined;
+
+    do {
+      const response = await this.s3.send(
+        new ListObjectsV2Command({
+          Bucket: this.bucketName,
+          Prefix: prefix,
+          ContinuationToken: continuationToken,
+        })
+      );
+
+      if (response.Contents) {
+        allObjects.push(...response.Contents);
+      }
+
+      continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+    } while (continuationToken);
+
+    return allObjects;
+  }
+
   async markProcessed(emailId: string, subject: string): Promise<void> {
     const weekStart = this.getWeekStart();
     const key = `processed/${weekStart}/${emailId}.json`;
@@ -48,18 +71,9 @@ export class S3StorageClient implements IStorageClient {
     const prefix = `processed/${weekStart}/`;
 
     try {
-      const response = await this.s3.send(
-        new ListObjectsV2Command({
-          Bucket: this.bucketName,
-          Prefix: prefix,
-        })
-      );
+      const objects = await this.listAllObjects(prefix);
 
-      if (!response.Contents) {
-        return [];
-      }
-
-      return response.Contents.map((obj) => {
+      return objects.map((obj) => {
         const key = obj.Key || "";
         const filename = key.split("/").pop() || "";
         return filename.replace(".json", "");
@@ -72,19 +86,10 @@ export class S3StorageClient implements IStorageClient {
 
   async getAllProcessed(): Promise<ProcessedEmail[]> {
     try {
-      const response = await this.s3.send(
-        new ListObjectsV2Command({
-          Bucket: this.bucketName,
-          Prefix: "processed/",
-        })
-      );
-
-      if (!response.Contents) {
-        return [];
-      }
+      const objects = await this.listAllObjects("processed/");
 
       const emails: ProcessedEmail[] = [];
-      for (const obj of response.Contents) {
+      for (const obj of objects) {
         if (obj.Key) {
           try {
             const data = await this.s3.send(
@@ -111,18 +116,9 @@ export class S3StorageClient implements IStorageClient {
 
   async getAllProcessedIds(): Promise<string[]> {
     try {
-      const response = await this.s3.send(
-        new ListObjectsV2Command({
-          Bucket: this.bucketName,
-          Prefix: "processed/",
-        })
-      );
+      const objects = await this.listAllObjects("processed/");
 
-      if (!response.Contents) {
-        return [];
-      }
-
-      return response.Contents.map((obj) => {
+      return objects.map((obj) => {
         const key = obj.Key || "";
         const filename = key.split("/").pop() || "";
         return filename.replace(".json", "");
@@ -155,18 +151,9 @@ export class S3StorageClient implements IStorageClient {
     cutoffDate.setDate(cutoffDate.getDate() - daysToKeep);
 
     try {
-      const response = await this.s3.send(
-        new ListObjectsV2Command({
-          Bucket: this.bucketName,
-          Prefix: "processed/",
-        })
-      );
+      const objects = await this.listAllObjects("processed/");
 
-      if (!response.Contents) {
-        return 0;
-      }
-
-      const oldObjects = response.Contents.filter((obj) => {
+      const oldObjects = objects.filter((obj) => {
         if (!obj.LastModified) return false;
         return obj.LastModified < cutoffDate;
       });

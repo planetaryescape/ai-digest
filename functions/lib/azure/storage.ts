@@ -29,9 +29,15 @@ function parseConnectionString(connectionString: string): {
  * Azure Table Storage implementation of IStorageClient
  */
 export class AzureStorageClient implements IStorageClient {
-  private tableClient: TableClient;
+  private tableClient: TableClient | null;
 
   constructor() {
+    if (!config.azure.storageConnectionString) {
+      log.warn("Azure storage connection string not configured - storage operations will be skipped");
+      this.tableClient = null;
+      return;
+    }
+
     try {
       const { accountName, accountKey } = parseConnectionString(
         config.azure.storageConnectionString
@@ -43,9 +49,9 @@ export class AzureStorageClient implements IStorageClient {
         config.azure.tableName,
         credential
       );
-    } catch (_error) {
-      // Create a dummy client that doesn't do anything if storage is not configured
-      this.tableClient = null as unknown as TableClient;
+    } catch (error) {
+      log.warn({ error }, "Failed to initialize Azure storage client - storage operations will be skipped");
+      this.tableClient = null;
     }
   }
 
