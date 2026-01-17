@@ -2,6 +2,7 @@ import type { OAuth2Client } from "google-auth-library";
 import { google } from "googleapis";
 import { err, ok, type Result } from "neverthrow";
 import { createLogger } from "../logger";
+import { saveToken } from "./token-storage";
 
 const log = createLogger("gmail-token-manager");
 
@@ -131,6 +132,19 @@ export class GmailTokenManager {
         this.oauth2Client.setCredentials({
           refresh_token: credentials.refresh_token,
         });
+
+        // Persist new token to DynamoDB
+        try {
+          await saveToken({
+            userId: "default",
+            refreshToken: credentials.refresh_token,
+            accessToken: credentials.access_token,
+            expiresAt: credentials.expiry_date || Date.now() + 3600000,
+          });
+          log.info("Saved new refresh token to DynamoDB");
+        } catch (saveError) {
+          log.warn({ error: saveError }, "Failed to persist new token to DynamoDB");
+        }
       }
 
       // Reset attempt counter on success
@@ -212,7 +226,7 @@ export class GmailTokenManager {
       return err({
         code: "INVALID_REFRESH_TOKEN",
         message:
-          "Gmail refresh token is invalid or expired. Please run 'bun run generate:oauth' to get a new token.",
+          "Gmail refresh token is invalid or expired. Please re-authorize via the dashboard or run 'bun run generate:oauth'.",
       });
     }
 
