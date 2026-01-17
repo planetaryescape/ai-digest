@@ -18,7 +18,9 @@ export class S3StorageClient implements IStorageClient {
     this.bucketName = process.env.S3_BUCKET || "ai-digest-processed-emails";
   }
 
-  private async listAllObjects(prefix: string): Promise<Array<{ Key?: string; LastModified?: Date }>> {
+  private async listAllObjects(
+    prefix: string
+  ): Promise<Array<{ Key?: string; LastModified?: Date }>> {
     const allObjects: Array<{ Key?: string; LastModified?: Date }> = [];
     let continuationToken: string | undefined;
 
@@ -73,11 +75,13 @@ export class S3StorageClient implements IStorageClient {
     try {
       const objects = await this.listAllObjects(prefix);
 
-      return objects.map((obj) => {
-        const key = obj.Key || "";
-        const filename = key.split("/").pop() || "";
-        return filename.replace(".json", "");
-      }).filter((id) => id);
+      return objects
+        .map((obj) => {
+          const key = obj.Key || "";
+          const filename = key.split("/").pop() || "";
+          return filename.replace(".json", "");
+        })
+        .filter((id) => id);
     } catch (error) {
       console.error("Error listing processed emails:", error);
       return [];
@@ -118,11 +122,13 @@ export class S3StorageClient implements IStorageClient {
     try {
       const objects = await this.listAllObjects("processed/");
 
-      return objects.map((obj) => {
-        const key = obj.Key || "";
-        const filename = key.split("/").pop() || "";
-        return filename.replace(".json", "");
-      }).filter((id) => id);
+      return objects
+        .map((obj) => {
+          const key = obj.Key || "";
+          const filename = key.split("/").pop() || "";
+          return filename.replace(".json", "");
+        })
+        .filter((id) => id);
     } catch (error) {
       console.error("Error listing all processed email IDs:", error);
       return [];

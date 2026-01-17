@@ -1,8 +1,4 @@
-import {
-  DynamoDBClient,
-  GetItemCommand,
-  PutItemCommand,
-} from "@aws-sdk/client-dynamodb";
+import { DynamoDBClient, GetItemCommand, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import { createLogger } from "../logger";
 
@@ -17,7 +13,8 @@ export interface TokenData {
   lastUsed?: string;
 }
 
-const TABLE_NAME = process.env.OAUTH_TOKENS_TABLE || `${process.env.PROJECT_NAME || "ai-digest"}-oauth-tokens`;
+const TABLE_NAME =
+  process.env.OAUTH_TOKENS_TABLE || `${process.env.PROJECT_NAME || "ai-digest"}-oauth-tokens`;
 
 let client: DynamoDBClient | null = null;
 

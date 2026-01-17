@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import crypto from "crypto";
+import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
@@ -14,25 +14,20 @@ export async function GET(request: Request) {
     const expectedSecret = process.env.GMAIL_REAUTH_SECRET;
 
     if (expectedSecret && secret !== expectedSecret) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const clientId = process.env.GMAIL_CLIENT_ID;
     if (!clientId) {
-      return NextResponse.json(
-        { error: "Gmail client ID not configured" },
-        { status: 500 }
-      );
+      return NextResponse.json({ error: "Gmail client ID not configured" }, { status: 500 });
     }
 
     // Generate state token for CSRF protection
     const state = crypto.randomBytes(32).toString("hex");
 
     // Store state in a cookie for validation in callback
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
     const redirectUri = `${baseUrl}/api/gmail/callback`;
 
     const params = new URLSearchParams({
@@ -59,9 +54,6 @@ export async function GET(request: Request) {
     return response;
   } catch (error) {
     console.error("Gmail connect error:", error);
-    return NextResponse.json(
-      { error: "Failed to initiate OAuth flow" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Failed to initiate OAuth flow" }, { status: 500 });
   }
 }

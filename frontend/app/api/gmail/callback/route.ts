@@ -33,9 +33,7 @@ export async function GET(request: Request) {
 
     // Verify state token (CSRF protection)
     const cookies = request.headers.get("cookie") || "";
-    const stateCookie = cookies
-      .split(";")
-      .find((c) => c.trim().startsWith("gmail_oauth_state="));
+    const stateCookie = cookies.split(";").find((c) => c.trim().startsWith("gmail_oauth_state="));
     const storedState = stateCookie?.split("=")[1]?.trim();
 
     if (!storedState || storedState !== state) {
@@ -50,7 +48,8 @@ export async function GET(request: Request) {
       return renderErrorPage("Gmail credentials not configured");
     }
 
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
+    const baseUrl =
+      process.env.NEXT_PUBLIC_APP_URL || process.env.FRONTEND_URL || "http://localhost:3000";
     const redirectUri = `${baseUrl}/api/gmail/callback`;
 
     const tokenResponse = await fetch(GOOGLE_TOKEN_URL, {
@@ -78,7 +77,7 @@ export async function GET(request: Request) {
     if (!tokens.refresh_token) {
       return renderErrorPage(
         "No refresh token received. This might happen if you've already authorized this app. " +
-        "Try revoking access at https://myaccount.google.com/permissions and try again."
+          "Try revoking access at https://myaccount.google.com/permissions and try again."
       );
     }
 

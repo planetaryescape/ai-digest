@@ -4,8 +4,8 @@ import { OAuth2Client } from "google-auth-library";
 import { type gmail_v1, google } from "googleapis";
 import { BATCH_LIMITS, RATE_LIMITS } from "../constants";
 import type { CostTracker } from "../cost-tracker";
-import { GmailBatchOperations } from "../gmail-batch-operations";
 import { getStoredToken, updateLastUsed } from "../gmail/token-storage";
+import { GmailBatchOperations } from "../gmail-batch-operations";
 import { createLogger } from "../logger";
 
 const log = createLogger("EmailFetcherAgent");
@@ -82,7 +82,8 @@ export class EmailFetcherAgent {
       return {
         error: {
           type: "NO_CREDENTIALS",
-          message: "No Gmail credentials found. Please run 'bun run generate:oauth' or re-authorize via the dashboard.",
+          message:
+            "No Gmail credentials found. Please run 'bun run generate:oauth' or re-authorize via the dashboard.",
         },
       };
     }
@@ -185,7 +186,8 @@ export class EmailFetcherAgent {
           ...emptyBatch,
           authError: {
             type: "INVALID_REFRESH_TOKEN",
-            message: "Gmail refresh token is invalid or expired. Please re-authorize via the dashboard.",
+            message:
+              "Gmail refresh token is invalid or expired. Please re-authorize via the dashboard.",
           },
         };
       }

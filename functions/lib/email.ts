@@ -90,8 +90,11 @@ export async function sendErrorNotification(
 }
 
 export async function sendReauthNotification(errorMessage: string): Promise<void> {
-  const recipientEmail = process.env.RECIPIENT_EMAIL || process.env.ADMIN_EMAIL || "admin@example.com";
-  const reauthUrl = process.env.REAUTH_URL || `${process.env.FRONTEND_URL || "http://localhost:3000"}/api/gmail/connect`;
+  const recipientEmail =
+    process.env.RECIPIENT_EMAIL || process.env.ADMIN_EMAIL || "admin@example.com";
+  const reauthUrl =
+    process.env.REAUTH_URL ||
+    `${process.env.FRONTEND_URL || "http://localhost:3000"}/api/gmail/connect`;
 
   log.info({ recipientEmail }, "Sending re-auth notification");
 
