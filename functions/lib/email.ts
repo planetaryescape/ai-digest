@@ -89,6 +89,55 @@ export async function sendErrorNotification(
   }
 }
 
+export async function sendReauthNotification(errorMessage: string): Promise<void> {
+  const recipientEmail = process.env.RECIPIENT_EMAIL || process.env.ADMIN_EMAIL || "admin@example.com";
+  const reauthUrl = process.env.REAUTH_URL || `${process.env.FRONTEND_URL || "http://localhost:3000"}/api/gmail/connect`;
+
+  log.info({ recipientEmail }, "Sending re-auth notification");
+
+  try {
+    const { data } = await getResendClient().emails.send({
+      from: "AI Digest <digest@aiweeklydigest.com>",
+      to: recipientEmail,
+      subject: "[Action Required] Re-authorize Gmail Access",
+      html: `
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+              .alert { background: #FEF3CD; border: 1px solid #FFE69C; border-radius: 8px; padding: 20px; margin-bottom: 20px; }
+              .button { display: inline-block; background: #0066CC; color: white; padding: 12px 24px; border-radius: 6px; text-decoration: none; margin: 20px 0; }
+              .footer { color: #666; font-size: 14px; margin-top: 30px; }
+            </style>
+          </head>
+          <body>
+            <h2>Gmail Access Expired</h2>
+            <div class="alert">
+              <p><strong>Your weekly digest couldn't be generated</strong> because Gmail access has expired.</p>
+              <p>${errorMessage}</p>
+            </div>
+            <p>This happens periodically when:</p>
+            <ul>
+              <li>Your Google password changed</li>
+              <li>You enabled/disabled 2FA</li>
+              <li>The token hasn't been used for 6+ months</li>
+              <li>You revoked the app's access in Google settings</li>
+            </ul>
+            <p>Click below to re-authorize access:</p>
+            <a href="${reauthUrl}" class="button">Re-authorize Gmail</a>
+            <p class="footer">After re-authorizing, your next scheduled digest will run normally.</p>
+          </body>
+        </html>
+      `,
+    });
+
+    log.info({ emailId: data?.id }, "Re-auth notification sent");
+  } catch (notificationError) {
+    log.error({ notificationError }, "Failed to send re-auth notification");
+  }
+}
+
 function generateDigestHtml(summaries: Summary[], mode: string): string {
   // Simple HTML template - in production this would use React Email
   const summaryHtml = summaries
