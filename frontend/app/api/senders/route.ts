@@ -5,7 +5,7 @@ import {
   PutCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
 import type { KnownSender } from "@/types/sender";
 
@@ -54,13 +54,10 @@ export async function GET(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled while Clerk is not configured
-    // if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    //   const { userId } = await auth();
-    //   if (!userId) {
-    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    //   }
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -229,13 +226,10 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled while Clerk is not configured
-    // if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    //   const { userId } = await auth();
-    //   if (!userId) {
-    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    //   }
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     const body = await request.json();
     const { email, name, newsletterName, confidence = 90 } = body;
@@ -317,13 +311,10 @@ export async function DELETE(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled while Clerk is not configured
-    // if (process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
-    //   const { userId } = await auth();
-    //   if (!userId) {
-    //     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    //   }
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     const body = await request.json();
     const { emails } = body;

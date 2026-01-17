@@ -1,6 +1,6 @@
 import { InvokeCommand } from "@aws-sdk/client-lambda";
 import { StartExecutionCommand } from "@aws-sdk/client-sfn";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { getLambdaClient, getSFNClient } from "@/lib/aws/clients";
 import { CircuitBreaker } from "@/lib/circuit-breaker";
@@ -27,12 +27,10 @@ const httpCircuitBreaker = CircuitBreaker.getBreaker("lambda-http", {
 
 export async function POST(request: Request) {
   try {
-    // Auth temporarily disabled while Clerk is not configured
-    // const { userId } = await auth();
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
-    const userId = "demo-user";
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     const rateLimitResult = checkRateLimit(userId, "digest-trigger");
     if (!rateLimitResult.allowed) {

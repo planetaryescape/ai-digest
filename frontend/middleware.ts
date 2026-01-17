@@ -1,17 +1,20 @@
-import type { NextRequest } from "next/server";
-import { NextResponse } from "next/server";
+import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// Temporarily bypass auth middleware if Clerk isn't configured
-// This allows the app to build and run without Clerk credentials
-export default function middleware(_request: NextRequest) {
-  // In production with proper Clerk setup, replace this with:
-  // export default clerkMiddleware(async (auth, req) => {
-  //   if (isProtectedRoute(req)) {
-  //     await auth.protect();
-  //   }
-  // });
-  return NextResponse.next();
-}
+// Public routes that don't require authentication
+const isPublicRoute = createRouteMatcher([
+  "/",
+  "/sign-in(.*)",
+  "/sign-up(.*)",
+  "/api/health(.*)",
+  "/api/gmail/callback(.*)", // OAuth callback
+]);
+
+export default clerkMiddleware(async (auth, req) => {
+  // Protect all routes except public ones
+  if (!isPublicRoute(req)) {
+    await auth.protect();
+  }
+});
 
 export const config = {
   matcher: ["/((?!.*\\..*|_next).*)", "/", "/(api|trpc)(.*)"],
