@@ -2,8 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle, Mail, Users } from "lucide-react";
+import { CostAnalytics } from "@/components/dashboard/CostAnalytics";
+import { DigestHistory } from "@/components/dashboard/DigestHistory";
 import { DigestTrigger } from "@/components/dashboard/DigestTrigger";
 import { ExecutionHistory } from "@/components/dashboard/ExecutionHistory";
+import { NextDigestCountdown } from "@/components/dashboard/NextDigestCountdown";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 
@@ -36,45 +39,43 @@ export default function DashboardPage() {
         </p>
       </div>
 
-      {/* Quick Actions */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
-        <DigestTrigger />
+      {/* Top Row: Next Digest + Trigger */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <NextDigestCountdown />
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-medium mb-4">Quick Actions</h3>
+          <DigestTrigger />
+        </div>
       </div>
 
-      {/* Statistics Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      {/* Statistics Grid - No fake trends */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
           title="Total Senders"
           value={stats.totalSenders}
           icon={Users}
-          trend="+12%"
-          trendUp={true}
         />
         <StatsCard
           title="High Confidence"
           value={stats.highConfidence}
           icon={CheckCircle}
-          trend="+5%"
-          trendUp={true}
         />
         <StatsCard
           title="Low Confidence"
           value={stats.lowConfidence}
           icon={AlertCircle}
-          trend="-3%"
-          trendUp={false}
         />
         <StatsCard
           title="Total Emails"
           value={stats.recentEmails}
           icon={Mail}
-          trend="+25%"
-          trendUp={true}
         />
       </div>
 
-      {/* Two Column Layout for Activity and Executions */}
+      {/* Digest History */}
+      <DigestHistory />
+
+      {/* Bottom Row: Recent Activity + Cost Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Recent Activity */}
         <div className="bg-white rounded-lg shadow">
@@ -84,11 +85,14 @@ export default function DashboardPage() {
           <RecentActivity />
         </div>
 
-        {/* Step Functions Executions */}
-        <div className="bg-white rounded-lg shadow">
-          <div className="px-6 py-4">
-            <ExecutionHistory />
-          </div>
+        {/* Cost Analytics */}
+        <CostAnalytics />
+      </div>
+
+      {/* Executions - Keep existing component */}
+      <div className="bg-white rounded-lg shadow">
+        <div className="px-6 py-4">
+          <ExecutionHistory />
         </div>
       </div>
     </div>
