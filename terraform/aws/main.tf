@@ -421,8 +421,8 @@ resource "aws_lambda_function_url" "weekly_digest" {
 # EventBridge rule for weekly schedule
 resource "aws_cloudwatch_event_rule" "weekly_schedule" {
   name                = "${var.PROJECT_NAME}-weekly-schedule"
-  description         = "Trigger weekly digest every Sunday at 8 AM UTC"
-  schedule_expression = "cron(0 8 ? * SUN *)"
+  description         = "Trigger digest twice weekly (Sun/Thu) at 10 AM UTC"
+  schedule_expression = "cron(0 10 ? * SUN,THU *)"
 }
 
 resource "aws_cloudwatch_event_target" "weekly_digest" {

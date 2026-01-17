@@ -236,8 +236,8 @@ resource "aws_iam_role_policy_attachment" "eventbridge_stepfunctions_policy" {
 # Weekly schedule rule
 resource "aws_cloudwatch_event_rule" "weekly_pipeline" {
   name                = "${var.PROJECT_NAME}-weekly-pipeline"
-  description         = "Trigger AI Digest pipeline every Sunday at 10am UTC"
-  schedule_expression = "cron(0 10 ? * SUN *)"
+  description         = "Trigger AI Digest pipeline twice weekly (Sun/Thu) at 10 AM UTC"
+  schedule_expression = "cron(0 10 ? * SUN,THU *)"
   state               = "ENABLED"
 
   tags = {

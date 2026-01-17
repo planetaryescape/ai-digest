@@ -426,11 +426,11 @@ resource "aws_iam_role_policy_attachment" "orchestrator_invoke" {
 # EVENTBRIDGE RULES FOR SCHEDULING
 # ========================================
 
-# Weekly digest schedule for pipeline (Sundays at 10 AM UTC)
+# Twice-weekly digest schedule for pipeline (Sun/Thu at 10 AM UTC)
 resource "aws_cloudwatch_event_rule" "pipeline_weekly_digest" {
   name                = "${var.PROJECT_NAME}-pipeline-weekly-schedule"
-  description         = "Trigger weekly digest pipeline"
-  schedule_expression = "cron(0 10 ? * SUN *)"
+  description         = "Trigger digest pipeline twice weekly (Sun/Thu)"
+  schedule_expression = "cron(0 10 ? * SUN,THU *)"
   state               = var.enable_weekly_schedule ? "ENABLED" : "DISABLED"
 }
 
