@@ -57,7 +57,7 @@ export default defineConfig({
       },
     },
     include: ["functions/**/*.{test,spec}.{ts,tsx}", "test/**/*.{test,spec}.{ts,tsx}"],
-    exclude: ["node_modules/**", "terraform/**", "frontend/**", "dist/**"],
+    exclude: ["node_modules/**", "terraform/**", "frontend/**", "dist/**", "test/e2e/**"],
   },
   resolve: {
     alias: {
