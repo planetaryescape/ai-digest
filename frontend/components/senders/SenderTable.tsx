@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { useCallback, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { EditSenderDialog } from "@/components/senders/EditSenderDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -59,6 +60,8 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [globalFilter, setGlobalFilter] = useState("");
   const [rowSelection, setRowSelection] = useState({});
+  const [editingSender, setEditingSender] = useState<ExtendedSender | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const {
     data: senders = [],
@@ -237,7 +240,12 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => {}}>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setEditingSender(row.original);
+                    setEditDialogOpen(true);
+                  }}
+                >
                   <Edit className="mr-2 h-4 w-4" />
                   Edit
                 </DropdownMenuItem>
@@ -410,6 +418,12 @@ export function SenderTable({ filter = "all" }: SenderTableProps) {
           </Button>
         </div>
       </div>
+
+      <EditSenderDialog
+        sender={editingSender}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
     </div>
   );
 }
