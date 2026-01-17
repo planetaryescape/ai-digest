@@ -4,10 +4,13 @@ import { OAuth2Client } from "google-auth-library";
 import { type gmail_v1, google } from "googleapis";
 import { BATCH_LIMITS, RATE_LIMITS } from "../constants";
 import type { CostTracker } from "../cost-tracker";
+import { getStoredToken, updateLastUsed } from "../gmail/token-storage";
 import { GmailBatchOperations } from "../gmail-batch-operations";
 import { createLogger } from "../logger";
 
 const log = createLogger("EmailFetcherAgent");
+
+export type AuthErrorType = "INVALID_REFRESH_TOKEN" | "AUTH_FAILED" | "NO_CREDENTIALS";
 
 export interface FetchEmailsOptions {
   mode: "weekly" | "cleanup" | "historical";
@@ -31,13 +34,18 @@ export interface EmailBatch {
     unknown?: number;
     archived?: number;
   };
+  authError?: {
+    type: AuthErrorType;
+    message: string;
+  };
 }
 
 export class EmailFetcherAgent {
   private gmail?: gmail_v1.Gmail;
   private oauth2Client: OAuth2Client;
   private dynamodb: DynamoDBDocumentClient;
-  private batchOps: GmailBatchOperations;
+  private batchOps!: GmailBatchOperations;
+  private initialized = false;
   private stats = {
     emailsFetched: 0,
     apisCallsMade: 0,
@@ -52,15 +60,6 @@ export class EmailFetcherAgent {
       "urn:ietf:wg:oauth:2.0:oob"
     );
 
-    if (process.env.GMAIL_REFRESH_TOKEN) {
-      this.oauth2Client.setCredentials({
-        refresh_token: process.env.GMAIL_REFRESH_TOKEN,
-      });
-
-      this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
-      this.batchOps = new GmailBatchOperations(this.gmail, this.costTracker);
-    }
-
     // Initialize DynamoDB
     const dynamoClient = new DynamoDBClient({
       region: process.env.AWS_REGION || "us-east-1",
@@ -68,9 +67,63 @@ export class EmailFetcherAgent {
     this.dynamodb = DynamoDBDocumentClient.from(dynamoClient);
   }
 
+  /**
+   * Initialize Gmail client with token from DynamoDB or env var
+   */
+  private async initialize(): Promise<{ error?: { type: AuthErrorType; message: string } }> {
+    if (this.initialized) {
+      return {};
+    }
+
+    // Try to get token from DynamoDB first, fall back to env var
+    const tokenData = await getStoredToken();
+
+    if (!tokenData) {
+      return {
+        error: {
+          type: "NO_CREDENTIALS",
+          message:
+            "No Gmail credentials found. Please run 'bun run generate:oauth' or re-authorize via the dashboard.",
+        },
+      };
+    }
+
+    this.oauth2Client.setCredentials({
+      refresh_token: tokenData.refreshToken,
+    });
+
+    this.gmail = google.gmail({ version: "v1", auth: this.oauth2Client });
+    this.batchOps = new GmailBatchOperations(this.gmail, this.costTracker);
+    this.initialized = true;
+
+    return {};
+  }
+
   async fetchEmails(options: FetchEmailsOptions): Promise<EmailBatch> {
+    const emptyBatch: EmailBatch = {
+      fullEmails: [],
+      metadata: [],
+      aiEmailIds: [],
+      unknownEmailIds: [],
+      classifications: new Map(),
+      stats: { totalFetched: 0 },
+    };
+
+    // Initialize and check for auth errors
+    const initResult = await this.initialize();
+    if (initResult.error) {
+      log.error({ error: initResult.error }, "Gmail initialization failed");
+      return { ...emptyBatch, authError: initResult.error };
+    }
+
     if (!this.gmail) {
-      throw new Error("Gmail client not initialized");
+      return {
+        ...emptyBatch,
+        authError: {
+          type: "NO_CREDENTIALS",
+          message: "Gmail client not initialized",
+        },
+      };
     }
 
     log.info({ options }, "Fetching emails");
@@ -104,6 +157,9 @@ export class EmailFetcherAgent {
 
       log.info({ stats, duration: Date.now() - startTime }, "Email fetch complete");
 
+      // Update last used timestamp on success
+      await updateLastUsed();
+
       return {
         fullEmails: categorizedEmails.emails,
         metadata: categorizedEmails.metadata,
@@ -112,9 +168,41 @@ export class EmailFetcherAgent {
         classifications: new Map(),
         stats,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.stats.errors++;
       log.error({ error }, "Email fetch failed");
+
+      // Check for auth-related errors
+      const errorMessage = error?.message || String(error);
+      const errorCode = error?.code;
+
+      if (
+        errorMessage.includes("invalid_grant") ||
+        errorMessage.includes("Token has been expired or revoked") ||
+        errorMessage.includes("refresh token") ||
+        errorCode === 401
+      ) {
+        return {
+          ...emptyBatch,
+          authError: {
+            type: "INVALID_REFRESH_TOKEN",
+            message:
+              "Gmail refresh token is invalid or expired. Please re-authorize via the dashboard.",
+          },
+        };
+      }
+
+      if (errorCode === 403 || errorMessage.includes("Forbidden")) {
+        return {
+          ...emptyBatch,
+          authError: {
+            type: "AUTH_FAILED",
+            message: "Gmail API access denied. Please check API permissions and re-authorize.",
+          },
+        };
+      }
+
+      // Re-throw non-auth errors
       throw error;
     }
   }

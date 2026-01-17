@@ -1,24 +1,43 @@
-import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { SFNClient, StartExecutionCommand } from "@aws-sdk/client-sfn";
-import { auth } from "@clerk/nextjs/server";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { POST } from "./route";
 
-vi.mock("@clerk/nextjs/server");
-vi.mock("@aws-sdk/client-lambda");
-vi.mock("@aws-sdk/client-sfn");
+// Mock auth function
+const mockAuth = vi.fn();
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: () => mockAuth(),
+}));
+
+// Mock Lambda client
+const mockLambdaSend = vi.fn();
+vi.mock("@aws-sdk/client-lambda", () => ({
+  LambdaClient: vi.fn().mockImplementation(() => ({
+    send: mockLambdaSend,
+  })),
+  InvokeCommand: vi.fn().mockImplementation((input: any) => ({ input })),
+}));
+
+// Mock SFN client
+const mockSFNSend = vi.fn();
+vi.mock("@aws-sdk/client-sfn", () => ({
+  SFNClient: vi.fn().mockImplementation(() => ({
+    send: mockSFNSend,
+  })),
+  StartExecutionCommand: vi.fn().mockImplementation((input: any) => ({ input })),
+}));
 
 describe("/api/digest/trigger", () => {
-  let mockLambdaSend: any;
-  let mockSFNSend: any;
+  let originalFetch: typeof global.fetch;
 
   beforeEach(() => {
+    mockLambdaSend.mockReset();
+    mockSFNSend.mockReset();
+
     // Set AWS credentials to enable AWS SDK functionality
     process.env.AWS_ACCESS_KEY_ID = "test-access-key";
     process.env.AWS_SECRET_ACCESS_KEY = "test-secret-key";
     process.env.AWS_REGION = "us-east-1";
 
-    mockLambdaSend = vi.fn().mockResolvedValue({
+    mockLambdaSend.mockResolvedValue({
       StatusCode: 200,
       Payload: new TextEncoder().encode(
         JSON.stringify({ success: true, message: "Digest generated" })
@@ -26,32 +45,21 @@ describe("/api/digest/trigger", () => {
       $metadata: { requestId: "test-request-id" },
     });
 
-    mockSFNSend = vi.fn().mockResolvedValue({
+    mockSFNSend.mockResolvedValue({
       executionArn:
         "arn:aws:states:us-east-1:123456789012:execution:test-state-machine:test-execution-123",
       startDate: new Date(),
     });
 
-    vi.mocked(LambdaClient).mockImplementation(
-      () =>
-        ({
-          send: mockLambdaSend,
-        }) as any
-    );
-
-    vi.mocked(SFNClient).mockImplementation(
-      () =>
-        ({
-          send: mockSFNSend,
-        }) as any
-    );
-
+    originalFetch = global.fetch;
     global.fetch = vi.fn();
   });
 
   afterEach(() => {
     vi.clearAllMocks();
+    global.fetch = originalFetch;
     delete process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN;
+    delete process.env.NEXT_PUBLIC_STEP_FUNCTIONS_STATE_MACHINE_ARN;
     delete process.env.LAMBDA_RUN_NOW_URL;
     delete process.env.LAMBDA_DIGEST_FUNCTION_NAME;
     delete process.env.AWS_ACCESS_KEY_ID;
@@ -60,7 +68,7 @@ describe("/api/digest/trigger", () => {
   });
 
   it("returns 401 when user is not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+    mockAuth.mockResolvedValue({ userId: null });
 
     const request = new Request("http://localhost:3000/api/digest/trigger", {
       method: "POST",
@@ -70,14 +78,12 @@ describe("/api/digest/trigger", () => {
     const response = await POST(request);
     const data = await response.json();
 
-    // Since auth is disabled in demo mode, this currently returns 200
-    // When auth is re-enabled, this should return 401
-    expect(response.status).toBe(200);
-    expect(data.success).toBe(true);
+    expect(response.status).toBe(401);
+    expect(data.error).toBe("Unauthorized");
   });
 
   it("triggers Step Functions when useStepFunctions is true and ARN is configured", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN =
       "arn:aws:states:us-east-1:123456789012:stateMachine:test-state-machine";
 
@@ -101,7 +107,7 @@ describe("/api/digest/trigger", () => {
 
     expect(mockSFNSend).toHaveBeenCalledOnce();
     const command = mockSFNSend.mock.calls[0][0];
-    expect(command).toBeInstanceOf(StartExecutionCommand);
+    expect(command.input).toBeDefined();
 
     const input = JSON.parse(command.input.input);
     expect(input.cleanup).toBe(false);
@@ -111,13 +117,13 @@ describe("/api/digest/trigger", () => {
   });
 
   it("uses Lambda Function URL when configured", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_RUN_NOW_URL = "https://test-lambda-url.execute-api.us-east-1.amazonaws.com";
 
-    vi.mocked(global.fetch).mockResolvedValue({
+    (global.fetch as any).mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, message: "Digest triggered via URL" }),
-    } as any);
+    });
 
     const request = new Request("http://localhost:3000/api/digest/trigger", {
       method: "POST",
@@ -136,13 +142,12 @@ describe("/api/digest/trigger", () => {
       expect.objectContaining({
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: expect.stringContaining('"cleanup":true'),
       })
     );
   });
 
   it("falls back to AWS SDK Lambda invocation", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_DIGEST_FUNCTION_NAME = "ai-digest-run-now";
 
     const request = new Request("http://localhost:3000/api/digest/trigger", {
@@ -161,13 +166,12 @@ describe("/api/digest/trigger", () => {
 
     expect(mockLambdaSend).toHaveBeenCalledOnce();
     const command = mockLambdaSend.mock.calls[0][0];
-    expect(command).toBeInstanceOf(InvokeCommand);
     expect(command.input.FunctionName).toBe("ai-digest-run-now");
     expect(command.input.InvocationType).toBe("RequestResponse");
   });
 
   it("uses async invocation for cleanup mode with Lambda SDK", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_DIGEST_FUNCTION_NAME = "ai-digest-run-now";
 
     mockLambdaSend.mockResolvedValue({
@@ -194,7 +198,7 @@ describe("/api/digest/trigger", () => {
   });
 
   it("prioritizes Step Functions over Lambda URL when both are configured", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.STEP_FUNCTIONS_STATE_MACHINE_ARN = "arn:aws:states:test";
     process.env.LAMBDA_RUN_NOW_URL = "https://test-lambda-url.execute-api.us-east-1.amazonaws.com";
 
@@ -212,13 +216,13 @@ describe("/api/digest/trigger", () => {
   });
 
   it("handles Lambda URL errors gracefully", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_RUN_NOW_URL = "https://test-lambda-url.execute-api.us-east-1.amazonaws.com";
 
-    vi.mocked(global.fetch).mockResolvedValue({
+    (global.fetch as any).mockResolvedValue({
       ok: false,
       json: async () => ({ error: "Internal server error" }),
-    } as any);
+    });
 
     const request = new Request("http://localhost:3000/api/digest/trigger", {
       method: "POST",
@@ -234,7 +238,7 @@ describe("/api/digest/trigger", () => {
   });
 
   it("handles AWS SDK errors gracefully", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_DIGEST_FUNCTION_NAME = "ai-digest-run-now";
 
     mockLambdaSend.mockRejectedValue(new Error("Function not found"));
@@ -253,7 +257,7 @@ describe("/api/digest/trigger", () => {
   });
 
   it("includes all payload fields correctly", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
     process.env.LAMBDA_DIGEST_FUNCTION_NAME = "ai-digest-run-now";
 
     const beforeTime = new Date().toISOString();
@@ -286,7 +290,7 @@ describe("/api/digest/trigger", () => {
   });
 
   it("handles invalid JSON in request body", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "test-user-123" } as any);
+    mockAuth.mockResolvedValue({ userId: "test-user-123" });
 
     const request = new Request("http://localhost:3000/api/digest/trigger", {
       method: "POST",

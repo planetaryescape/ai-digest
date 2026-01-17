@@ -60,6 +60,12 @@ variable "RECIPIENT_EMAIL" {
   type        = string
 }
 
+variable "frontend_url" {
+  description = "Frontend URL for re-auth links"
+  type        = string
+  default     = "https://ai-digest-vert.vercel.app"
+}
+
 # Processing Configuration
 variable "older_than_days" {
   description = "Process emails older than this many days"

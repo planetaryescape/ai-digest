@@ -1,5 +1,5 @@
 import { ListExecutionsCommand } from "@aws-sdk/client-sfn";
-// import { auth } from "@clerk/nextjs/server";
+import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getSFNClient } from "@/lib/aws/clients";
@@ -26,11 +26,10 @@ const querySchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    // Auth temporarily disabled while Clerk is not configured
-    // const { userId } = await auth();
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
     // Check if AWS credentials are configured
     if (!process.env.AWS_ACCESS_KEY_ID || !process.env.AWS_SECRET_ACCESS_KEY) {

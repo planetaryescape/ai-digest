@@ -8,7 +8,7 @@ import { ResearchAgent } from "../lib/agents/ResearchAgent";
 import { EnhancedCircuitBreaker } from "../lib/circuit-breaker-enhanced";
 import { BATCH_LIMITS } from "../lib/constants";
 import { CostTracker } from "../lib/cost-tracker";
-import { sendDigest, sendErrorNotification } from "../lib/email";
+import { sendDigest, sendErrorNotification, sendReauthNotification } from "../lib/email";
 import type { GmailBatchOperations } from "../lib/gmail-batch-operations";
 import type { ILogger } from "../lib/interfaces/logger";
 import type { IStorageClient } from "../lib/interfaces/storage";
@@ -138,6 +138,19 @@ export class DigestProcessor {
       );
       timings.fetchTime = performance.now() - fetchStart;
 
+      // Check for auth errors
+      if (emailBatch.authError) {
+        this.logger.error("Gmail authentication failed", emailBatch.authError);
+        await sendReauthNotification(emailBatch.authError.message);
+        return {
+          success: false,
+          emailsFound: 0,
+          emailsProcessed: 0,
+          message: "Gmail authentication failed - re-auth notification sent",
+          error: emailBatch.authError.message,
+        };
+      }
+
       this.logger.info(
         `Fetched ${emailBatch.metadata.length} emails, ${emailBatch.stats.totalFetched} need processing`
       );
@@ -258,8 +271,7 @@ export class DigestProcessor {
         };
       }
 
-      // TODO: Fix sendDigest call - needs recipientEmail and Summary array
-      // await sendDigest(digest, this.platform);
+      await sendDigest(digest, this.platform);
 
       // Step 8: Archive processed emails
       this.logger.info("Step 8: Archiving processed emails");
@@ -316,6 +328,19 @@ export class DigestProcessor {
       const emailBatch = await this.gmailBreaker.execute(() =>
         this.emailFetcher.fetchEmails({ mode: "cleanup", batchSize, cleanup: true })
       );
+
+      // Check for auth errors
+      if (emailBatch.authError) {
+        this.logger.error("Gmail authentication failed", emailBatch.authError);
+        await sendReauthNotification(emailBatch.authError.message);
+        return {
+          success: false,
+          emailsFound: 0,
+          emailsProcessed: 0,
+          message: "Gmail authentication failed - re-auth notification sent",
+          error: emailBatch.authError.message,
+        };
+      }
 
       const aiEmails = emailBatch.fullEmails;
 
@@ -402,6 +427,19 @@ export class DigestProcessor {
         })
       );
       timings.fetchTime = performance.now() - fetchStart;
+
+      // Check for auth errors
+      if (emailBatch.authError) {
+        this.logger.error("Gmail authentication failed", emailBatch.authError);
+        await sendReauthNotification(emailBatch.authError.message);
+        return {
+          success: false,
+          emailsFound: 0,
+          emailsProcessed: 0,
+          message: "Gmail authentication failed - re-auth notification sent",
+          error: emailBatch.authError.message,
+        };
+      }
 
       const emails = emailBatch.fullEmails;
       this.logger.info(`Found ${emails.length} emails in historical date range`);
@@ -491,8 +529,7 @@ export class DigestProcessor {
       if (digest) {
         // Add historical period info to the digest
         digest.period = `${startDate} to ${endDate}`;
-        // TODO: Fix sendDigest call - needs recipientEmail and Summary array
-        // await sendDigest(digest, this.platform);
+        await sendDigest(digest, this.platform);
       }
 
       // Don't archive historical emails - they might already be archived

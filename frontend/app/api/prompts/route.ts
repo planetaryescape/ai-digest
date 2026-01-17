@@ -6,8 +6,8 @@ import {
   PutCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { auth } from "@clerk/nextjs/server";
 import { type NextRequest, NextResponse } from "next/server";
-// import { auth } from "@clerk/nextjs/server";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -111,11 +111,10 @@ export async function GET(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled
-    // const { userId } = await auth();
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get("promptId");
@@ -193,11 +192,10 @@ export async function POST(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled
-    // const { userId } = await auth();
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     const body = await request.json();
     const { promptId, name, description, template, variables, category, isActive = true } = body;
@@ -297,11 +295,10 @@ export async function DELETE(request: NextRequest) {
   };
 
   try {
-    // Auth temporarily disabled
-    // const { userId } = await auth();
-    // if (!userId) {
-    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
-    // }
+    const { userId } = await auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers });
+    }
 
     const { searchParams } = new URL(request.url);
     const promptId = searchParams.get("promptId");

@@ -146,6 +146,28 @@ resource "aws_dynamodb_table" "digest_prompts" {
   }
 }
 
+# DynamoDB table for OAuth tokens
+resource "aws_dynamodb_table" "oauth_tokens" {
+  name           = "${var.PROJECT_NAME}-oauth-tokens"
+  billing_mode   = "PAY_PER_REQUEST"
+  hash_key       = "userId"
+
+  attribute {
+    name = "userId"
+    type = "S"
+  }
+
+  point_in_time_recovery {
+    enabled = true
+  }
+
+  tags = {
+    Project     = var.PROJECT_NAME
+    Environment = var.environment
+    ManagedBy   = "Terraform"
+  }
+}
+
 resource "aws_s3_bucket_versioning" "processed_emails" {
   bucket = aws_s3_bucket.processed_emails.id
 
@@ -231,7 +253,9 @@ resource "aws_iam_policy" "dynamodb_access" {
           aws_dynamodb_table.known_ai_senders.arn,
           "${aws_dynamodb_table.known_ai_senders.arn}/index/*",
           aws_dynamodb_table.known_non_ai_senders.arn,
-          "${aws_dynamodb_table.known_non_ai_senders.arn}/index/*"
+          "${aws_dynamodb_table.known_non_ai_senders.arn}/index/*",
+          aws_dynamodb_table.digest_prompts.arn,
+          aws_dynamodb_table.oauth_tokens.arn
         ]
       }
     ]
@@ -308,9 +332,11 @@ resource "aws_lambda_function" "weekly_digest" {
       STORAGE_TYPE = "s3"
       S3_BUCKET    = aws_s3_bucket.processed_emails.id
       DYNAMODB_TABLE = aws_dynamodb_table.known_ai_senders.name
+      OAUTH_TOKENS_TABLE = aws_dynamodb_table.oauth_tokens.name
 
       # Email Configuration (non-sensitive)
       RECIPIENT_EMAIL   = var.RECIPIENT_EMAIL
+      FRONTEND_URL      = var.frontend_url
 
       # Processing Configuration
       OLDER_THAN_DAYS       = var.older_than_days
@@ -588,6 +614,11 @@ output "known_non_ai_senders_table" {
 output "digest_prompts_table" {
   value       = aws_dynamodb_table.digest_prompts.name
   description = "DynamoDB table for digest prompts"
+}
+
+output "oauth_tokens_table" {
+  value       = aws_dynamodb_table.oauth_tokens.name
+  description = "DynamoDB table for OAuth tokens"
 }
 
 output "run_now_function_url" {

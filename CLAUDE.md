@@ -1,25 +1,31 @@
 # AI Digest Codebase Overview
 
-## 🚀 INDIE DEVELOPER CONTEXT
-**This is an indie SaaS project focused on rapid market validation.**
-- Target: Tens of thousands of users (not millions)
-- Philosophy: Ship fast, validate, iterate
-- Priority: Working features over perfect code
-- Stage: Personal automation tool with SaaS potential
+## Indie Context
 
-## 💰 THE MONEY FEATURE
-**CRITICAL: This is what users pay for and MUST work perfectly**
+Indie SaaS rapid market validation
 
-**Core Value**: Automated weekly digest that transforms overwhelming AI/tech newsletters into actionable insights
-- **What it does**: Fetches Gmail → Classifies AI content → Extracts articles → Analyzes with GPT → Sends beautiful digest
-- **Why people pay**: Saves 2-3 hours/week of newsletter reading, provides role-specific advice
-- **Critical path**: Gmail fetch → OpenAI analysis → Email delivery
-- **Key files**:
-  - `functions/core/digest-processor.ts` - Main orchestrator (595 lines)
-  - `functions/lib/agents/AnalysisAgent.ts` - Core value generation
-  - `functions/lib/email.ts` - Digest delivery
-- **Dependencies**: Gmail API, OpenAI GPT-4o/5, Resend for email
-- **Failure impact**: No digest = no value = angry users
+Target: tens of thousands users not millions
+Philosophy: ship fast validate iterate
+Priority: working features over perfect code
+Stage: personal automation tool with SaaS potential
+
+## Money Feature
+
+CRITICAL: what users pay for MUST work perfectly
+
+**Core**: Automated weekly digest transforms overwhelming AI/tech newsletters into actionable insights
+- Fetches Gmail → Classifies AI content → Extracts articles → Analyzes with GPT → Sends beautiful digest
+- Saves 2-3 hours/week newsletter reading, provides role-specific advice
+- Critical path: Gmail fetch → OpenAI analysis → Email delivery
+
+**Key files**:
+- `functions/core/digest-processor.ts` - Main orchestrator (806 lines)
+- `functions/lib/agents/AnalysisAgent.ts` - Core value generation
+- `functions/lib/email.ts` - Digest delivery
+- `emails/WeeklyDigestRedesigned.tsx` - Beautiful React Email template
+
+**Dependencies**: Gmail API, OpenAI GPT-4o/5, Resend for email
+**Failure impact**: No digest = no value = angry users
 
 ## Quick Start
 
@@ -43,7 +49,7 @@ bun run deploy:aws
 curl https://your-function-url/run-now
 ```
 
-**That's it!** You're processing emails in < 5 minutes.
+Processing emails in < 5 minutes.
 
 ## Architecture Overview
 
@@ -85,43 +91,54 @@ Gmail → Lambda Functions → OpenAI → Beautiful Email
 - Scaling to millions (worry at 10K users)
 - Minor TypeScript errors (20 remaining, not critical)
 
-## 🔥 REAL PROBLEMS TO FIX
+### Issue Tracking with Beads
+Use [beads](https://github.com/steveyegge/beads) for issue tracking. Git-backed, agent-friendly.
 
-### Critical Issues (Fix This Week)
-1. **No secrets management** - API keys in env vars (HIGH RISK)
-   - Solution: Add AWS Secrets Manager ($1/month)
-   - Files: `functions/lib/aws/secrets-loader.ts`
+```bash
+bd init              # Setup (once)
+bd ready             # List unblocked tasks
+bd create "Title"    # New task
+bd show <id>         # Task details
+bd dep add <a> <b>   # Add dependency
+```
 
-2. **Failing tests** - 8 core tests broken
-   - Solution: Fix digest-processor mocks
-   - Files: `functions/core/digest-processor.test.ts`
+Tasks stored in `.beads/` as JSONL. Hash IDs like `bd-a1b2`. Hierarchical: `bd-a3f8.1.1` (epic.task.subtask).
 
-3. **No API authentication** - Frontend routes unprotected
-   - Issue: Clerk auth exists but incomplete
-   - Files: `frontend/app/api/*/route.ts`
+## Real Problems to Fix
 
-### Important Issues (Fix This Month)
-1. **TypeScript errors** - 20 compilation errors
-   - Mostly Result type and missing properties
-   - Files: Check `bun run typecheck`
+### Critical (This Week)
+1. **Failing tests** - 48 tests failing (104 passing)
+   - Mostly digest-processor integration tests + token-manager tests
+   - Root cause: Mock setup issues, Result type expectations
+   - Files: `functions/core/digest-processor.test.ts`, `functions/lib/gmail/token-manager.test.ts`
 
-2. **No backups** - DynamoDB data unprotected
-   - Solution: Enable point-in-time recovery
-   - Cost: ~$0.20/GB/month
+2. **Frontend auth bypassed** - Clerk middleware commented out
+   - All API routes unprotected, using hardcoded "demo-user"
+   - Files: `frontend/middleware.ts`, `frontend/app/api/digest/trigger/route.ts`
 
-3. **Incomplete frontend** - Dashboard half-built
-   - Missing: Sender management, execution history
-   - Path: `frontend/app/dashboard/`
+3. **sendDigest not called in main flow** - TODOs in digest-processor.ts:274,533
+   - Deep analysis pipeline builds digest but never sends it
+   - Only simple/research fallback paths actually send
 
-### Technical Debt (Clean Up Later)
-1. **~1,801 lines of reinvented wheels**:
-   - Custom circuit breaker → Use `opossum` library
-   - Custom Result type → Use `neverthrow`
-   - Custom cost tracker → Use `rate-limiter-flexible`
+### Important (This Month)
+1. **Many TODOs in gmail.ts** - Missing implementations
+   - Sender tracking not implemented
+   - AI classification not implemented
+   - Batch classification not implemented
 
-2. **Inconsistent error handling**
-   - Some async/await, some promises
-   - Mix of Result pattern and try/catch
+2. **QueueClient stub** - Pipeline queue client is entirely TODO
+   - `functions/lib/pipeline/QueueClient.ts` - all methods return errors
+
+### Already Fixed (Update Issue #85)
+✅ **Secrets management implemented** - AWS Secrets Manager configured
+- `terraform/aws/secrets.tf` - Secret created + IAM policy
+- Lambda env vars use SECRET_ARN
+- DynamoDB point-in-time recovery enabled
+
+### Tech Debt (Later)
+1. Both `opossum` and custom `circuit-breaker.ts` exist - consolidate
+2. Both `neverthrow` and custom `Result.ts` exist - consolidate
+3. Email template in `email.ts` duplicates `WeeklyDigestRedesigned.tsx`
 
 ## 💡 Quick Wins (Ship These Features)
 
@@ -244,40 +261,40 @@ Use `async function<T>()` not arrow functions for generics
 ## Metrics & Performance
 
 ### Current State
-- **Codebase**: 8,298 lines TypeScript
-- **Test Coverage**: 11% (needs work)
-- **TypeScript Errors**: 20 (non-critical)
+- **Codebase**: 33,032 lines TypeScript (functions: 18,058)
+- **Tests**: 104 passing, 48 failing (68% pass rate)
+- **TypeScript**: Clean (0 errors)
 - **Processing Time**: 2-4 min (weekly), 5-15 min (cleanup)
 - **Cost per Digest**: ~$0.10
 - **API Efficiency**: 70% Gmail API reduction
 
-### Production Readiness: 6.5/10
+### Production Readiness: 7/10
 ✅ Strengths:
 - Core feature works reliably
-- Good cost controls
-- Multi-cloud abstraction
+- Good cost controls ($1/run limit)
+- Secrets Manager implemented
+- DynamoDB point-in-time recovery enabled
 - Circuit breakers for resilience
+- Beautiful React Email template
 
 ❌ Gaps:
-- No secrets management (CRITICAL)
-- Poor test coverage
-- Missing API auth
-- No monitoring dashboards
-- Manual deployments only
+- Test failures need fixing
+- Frontend auth bypassed
+- Main digest flow doesn't send email (TODO)
+- Several gmail.ts TODOs unimplemented
 
 ## Next Steps for Growth
 
-### Week 1 (Security & Stability)
-1. Add AWS Secrets Manager
-2. Fix failing tests
-3. Complete API authentication
-4. Enable DynamoDB backups
+### Week 1 (Stability)
+1. Fix sendDigest TODO in digest-processor.ts (main flow doesn't send!)
+2. Fix failing tests (mock setup issues)
+3. Enable Clerk auth middleware
 
 ### Month 1 (Polish & Features)
-1. Complete frontend dashboard
-2. Add webhook notifications
-3. Multi-user support
-4. Improve test coverage to 50%
+1. Consolidate circuit breaker (opossum vs custom)
+2. Consolidate Result type (neverthrow vs custom)
+3. Implement gmail.ts TODOs (sender tracking, classification)
+4. Add webhook notifications
 
 ### Quarter 1 (Scale & Monetize)
 1. Add billing with Stripe
@@ -342,6 +359,32 @@ Remember: Ship first, polish based on user feedback.
 
 ---
 
-Last Updated: 2025-08-21
-Version: 4.0.0
+Last Updated: 2026-01-16
+Version: 4.1.0
 Type: Indie SaaS in validation phase
+
+## Landing the Plane (Session Completion)
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd sync
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds

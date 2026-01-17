@@ -33,7 +33,9 @@ export class AzureStorageClient implements IStorageClient {
 
   constructor() {
     if (!config.azure.storageConnectionString) {
-      log.warn("Azure storage connection string not configured - storage operations will be skipped");
+      log.warn(
+        "Azure storage connection string not configured - storage operations will be skipped"
+      );
       this.tableClient = null;
       return;
     }
@@ -50,7 +52,10 @@ export class AzureStorageClient implements IStorageClient {
         credential
       );
     } catch (error) {
-      log.warn({ error }, "Failed to initialize Azure storage client - storage operations will be skipped");
+      log.warn(
+        { error },
+        "Failed to initialize Azure storage client - storage operations will be skipped"
+      );
       this.tableClient = null;
     }
   }
