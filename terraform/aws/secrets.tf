@@ -18,13 +18,15 @@ resource "aws_secretsmanager_secret_version" "ai_digest_secrets" {
   secret_id = aws_secretsmanager_secret.ai_digest_secrets.id
   
   secret_string = jsonencode({
-    gmail_client_id     = var.GMAIL_CLIENT_ID
-    gmail_client_secret = var.GMAIL_CLIENT_SECRET
-    gmail_refresh_token = var.GMAIL_REFRESH_TOKEN
-    openai_api_key      = var.OPENAI_API_KEY
-    helicone_api_key    = var.HELICONE_API_KEY
-    resend_api_key      = var.RESEND_API_KEY
-    resend_from         = var.RECIPIENT_EMAIL
+    gmail_client_id      = var.GMAIL_CLIENT_ID
+    gmail_client_secret  = var.GMAIL_CLIENT_SECRET
+    gmail_refresh_token  = var.GMAIL_REFRESH_TOKEN
+    openai_api_key       = var.OPENAI_API_KEY
+    helicone_api_key     = var.HELICONE_API_KEY
+    resend_api_key       = var.RESEND_API_KEY
+    resend_from          = var.RECIPIENT_EMAIL
+    firecrawl_api_key    = var.FIRECRAWL_API_KEY
+    brave_search_api_key = var.BRAVE_API_KEY
   })
 }
 
