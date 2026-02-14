@@ -1,0 +1,300 @@
+{
+  "name": "AI Digest Daily Podcast",
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [256, 400],
+      "id": "e379bcc7-63f8-4515-a348-5391b4cbe08c"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 6 * * *"
+            }
+          ]
+        }
+      },
+      "name": "Schedule: 6am Daily",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [256, 200],
+      "id": "af5337d4-cc78-4080-a09c-b1630eae8ed9"
+    },
+    {
+      "parameters": {
+        "jsCode": "const feeds = [\n  'https://jack-clark.net/feed/',\n  'https://www.latent.space/feed',\n  'https://datamachina.substack.com/feed',\n  'https://www.interconnects.ai/feed',\n  'https://magazine.sebastianraschka.com/feed',\n  'https://www.aisnakeoil.com/feed',\n  'https://www.supervised.news/feed',\n  'https://nextword.substack.com/feed',\n  'https://www.aitidbits.ai/feed',\n  'https://thesequence.substack.com/feed'\n];\nreturn feeds.map(url => ({ json: { url } }));"
+      },
+      "name": "Load Feeds",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [464, 304],
+      "id": "fa798565-09be-4a3f-9367-9e213913f34e"
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "options": {}
+      },
+      "name": "RSS Read",
+      "type": "n8n-nodes-base.rssFeedRead",
+      "typeVersion": 1,
+      "position": [656, 304],
+      "id": "e7af0240-ccc0-44bd-90f6-c4648cc1500b",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function getDomain(url) {\n  try {\n    const match = (url || '').match(/https?:\\/\\/([^\\/]+)/);\n    return match ? match[1].replace('www.', '') : 'unknown';\n  } catch { return 'unknown'; }\n}\n\nconst items = $input.all();\nconst now = new Date();\nconst cutoff24h = new Date(now.getTime() - 24 * 60 * 60 * 1000);\nconst cutoff72h = new Date(now.getTime() - 72 * 60 * 60 * 1000);\n\n// Extract articles from RSS items\nlet articles = items\n  .filter(item => item.json.title && !item.json.error)\n  .map(item => ({\n    title: item.json.title || '',\n    link: item.json.link || '',\n    snippet: (item.json.contentSnippet || '').substring(0, 300),\n    pubDate: item.json.isoDate || item.json.pubDate || '',\n    source: getDomain(item.json.link)\n  }));\n\nif (articles.length === 0) {\n  throw new Error('No articles fetched from any feed');\n}\n\n// Filter to last 24h, fallback to 72h\nlet recent = articles.filter(a => {\n  if (!a.pubDate) return true;\n  return new Date(a.pubDate) >= cutoff24h;\n});\nif (recent.length < 5) {\n  recent = articles.filter(a => {\n    if (!a.pubDate) return true;\n    return new Date(a.pubDate) >= cutoff72h;\n  });\n}\n\n// Dedup by normalized title\nconst seen = new Set();\nconst unique = recent.filter(a => {\n  const key = a.title.toLowerCase().replace(/[^a-z0-9]/g, '').substring(0, 50);\n  if (seen.has(key)) return false;\n  seen.add(key);\n  return true;\n});\n\n// Sort newest first\nconst sorted = unique.sort((a, b) => new Date(b.pubDate || 0) - new Date(a.pubDate || 0));\n\n// Diversify: max 2 per source\nconst counts = {};\nconst diverse = sorted.filter(a => {\n  counts[a.source] = (counts[a.source] || 0) + 1;\n  return counts[a.source] <= 2;\n}).slice(0, 8);\n\nconst today = now.toLocaleDateString('en-US', {\n  weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'\n});\n\nconst articlesText = diverse.map((a, i) =>\n  `${i + 1}. ${a.title} (${a.source})\\n${a.snippet}`\n).join('\\n\\n');\n\nconst systemPrompt = `You are the host of \"AI Digest Daily\", a daily podcast covering the most important AI news. Your style is conversational but informed — like a knowledgeable friend catching someone up over coffee.\n\nRules:\n- Cover 4-6 of the most interesting stories from these articles\n- Spend roughly 30-60 seconds per story\n- Use natural transitions (\"Speaking of...\", \"Meanwhile...\", \"On a related note...\")\n- Short, punchy sentences — this will be read by text-to-speech\n- NO jargon without brief explanation\n- NO stage directions, sound effects, or markdown formatting\n- Write EXACTLY as it should be spoken aloud\n- Start with \"Welcome to AI Digest Daily for ${today}\"\n- End with a brief sign-off like \"That's your AI digest for today. Stay curious.\"\n- Total: 600-800 words (about 5 min spoken)\n- CRITICAL: Stay under 3500 characters total\n- Do NOT use asterisks, bullets, or any formatting — pure spoken text only`;\n\nconst userMessage = `Here are today's top AI stories:\n\n${articlesText}\n\nWrite the podcast script now.`;\n\nreturn [{ json: { systemPrompt, userMessage, date: today, articleCount: diverse.length } }];"
+      },
+      "name": "Build Script Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [864, 304],
+      "id": "3600ad3b-3b55-4ef7-ab87-3846a20c4d4e"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-5-mini', messages: [{ role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.userMessage }], temperature: 0.7, max_tokens: 2000 }) }}",
+        "options": {}
+      },
+      "name": "Generate Script",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1056, 304],
+      "id": "91fa9223-bf95-4d42-885e-a71566af220f",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZaO8eEbEqvWtxLc0",
+          "name": "OpenAi account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\nlet script = '';\nif (input.choices) {\n  script = input.choices[0].message.content || '';\n} else {\n  script = input.text || input.content || '';\n}\n\nif (!script) {\n  throw new Error('No script text generated');\n}\n\n// Safety: truncate at sentence boundary if over 4000 chars\nif (script.length > 4000) {\n  const truncated = script.substring(0, 4000);\n  const lastPeriod = truncated.lastIndexOf('.');\n  if (lastPeriod > 3000) {\n    script = truncated.substring(0, lastPeriod + 1);\n  } else {\n    script = truncated;\n  }\n  script += \" That's your AI digest for today. Stay curious.\";\n}\n\nreturn [{ json: { text: script } }];"
+      },
+      "name": "Trim Script",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1256, 304],
+      "id": "b1c5a3d2-4e6f-7890-abcd-ef0123456789"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/speech",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ model: 'tts-1', input: $json.text, voice: 'onyx', response_format: 'mp3' }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file",
+              "outputPropertyName": "data"
+            }
+          }
+        }
+      },
+      "name": "Generate Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1456, 304],
+      "id": "f1bfbdcf-1b6d-4bbb-b364-3ed7633fb3f6",
+      "credentials": {
+        "openAiApi": {
+          "id": "ZaO8eEbEqvWtxLc0",
+          "name": "OpenAi account"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "operation": "upload",
+        "bucketName": "ai-digest",
+        "fileName": "=episodes/ai-digest-{{ $now.format('yyyy-MM-dd') }}.mp3",
+        "additionalFields": {}
+      },
+      "name": "Upload to R2",
+      "type": "n8n-nodes-base.s3",
+      "typeVersion": 1,
+      "position": [1656, 304],
+      "id": "3187408a-69a3-44a6-9513-2133c2e40f16",
+      "credentials": {
+        "s3": {
+          "id": "ERypNysOry3hAjsQ",
+          "name": "Cloudflare R2 - AI Digest"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 4,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "jsCode": "const date = new Date().toISOString().split('T')[0];\nconst filename = `episodes/ai-digest-${date}.mp3`;\nconst publicUrl = `https://pub-9b797e802d6047af9f356783bf25a650.r2.dev/${filename}`;\n\nlet articleCount = 0;\ntry {\n  articleCount = $('Build Script Prompt').first().json.articleCount;\n} catch {}\n\nconst content = `🎙️ **AI Digest Daily — ${date}**\\n\\n🔊 Listen: ${publicUrl}\\n\\n📊 Generated from ${articleCount} articles\\n✅ New episode is live!`;\n\nreturn [{ json: { content } }];"
+      },
+      "name": "Format Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1856, 304],
+      "id": "9d4dc90e-fe8e-44fc-bef7-083a870ca20b"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.DISCORD_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ content: $json.content }) }}",
+        "options": {}
+      },
+      "name": "Discord",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2056, 304],
+      "id": "ef0d4d70-d476-4752-b18e-e23bad8a9abb",
+      "continueOnFail": true
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Load Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule: 6am Daily": {
+      "main": [
+        [
+          {
+            "node": "Load Feeds",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Feeds": {
+      "main": [
+        [
+          {
+            "node": "RSS Read",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "RSS Read": {
+      "main": [
+        [
+          {
+            "node": "Build Script Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Script Prompt": {
+      "main": [
+        [
+          {
+            "node": "Generate Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Script": {
+      "main": [
+        [
+          {
+            "node": "Trim Script",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trim Script": {
+      "main": [
+        [
+          {
+            "node": "Generate Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Audio": {
+      "main": [
+        [
+          {
+            "node": "Upload to R2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to R2": {
+      "main": [
+        [
+          {
+            "node": "Format Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Message": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "timezone": "UTC"
+  },
+  "staticData": null,
+  "tags": [],
+  "pinData": {}
+}
