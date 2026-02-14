@@ -66,7 +66,7 @@
         "nodeCredentialType": "openAiApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ model: 'gpt-5-mini', messages: [{ role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.userMessage }], temperature: 0.7, max_tokens: 2000 }) }}",
+        "jsonBody": "={{ JSON.stringify({ model: 'gpt-5-mini', messages: [{ role: 'system', content: $json.systemPrompt }, { role: 'user', content: $json.userMessage }], temperature: 0.7 }) }}",
         "options": {}
       },
       "name": "Generate Script",
