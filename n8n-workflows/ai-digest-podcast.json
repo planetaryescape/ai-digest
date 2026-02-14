@@ -132,6 +132,8 @@
         "operation": "upload",
         "bucketName": "ai-digest",
         "fileName": "=episodes/ai-digest-{{ $now.format('yyyy-MM-dd') }}.mp3",
+        "binaryData": true,
+        "binaryPropertyName": "data",
         "additionalFields": {}
       },
       "name": "Upload to R2",
