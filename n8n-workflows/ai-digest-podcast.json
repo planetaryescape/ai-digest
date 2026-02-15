@@ -129,24 +129,13 @@
     },
     {
       "parameters": {
-        "operation": "upload",
-        "bucketName": "ai-digest",
-        "fileName": "=episodes/ai-digest-{{ $now.format('yyyy-MM-dd') }}.mp3",
-        "binaryData": true,
-        "binaryPropertyName": "data",
-        "additionalFields": {}
+        "jsCode": "const crypto = require('crypto');\n\nconst accessKey = $env.R2_ACCESS_KEY_ID;\nconst secretKey = $env.R2_SECRET_ACCESS_KEY;\nconst accountId = $env.R2_ACCOUNT_ID;\nif (!accessKey || !secretKey || !accountId) {\n  throw new Error('Set R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_ACCOUNT_ID in n8n env vars');\n}\n\nconst binaryItem = $input.first().binary;\nif (!binaryItem || !binaryItem.data) {\n  throw new Error('No binary data in property \"data\"');\n}\nconst bodyBuffer = Buffer.from(binaryItem.data.data, 'base64');\n\nconst bucket = 'ai-digest';\nconst date = new Date().toISOString().split('T')[0];\nconst objectKey = `episodes/ai-digest-${date}.mp3`;\nconst host = `${accountId}.r2.cloudflarestorage.com`;\n\nconst now = new Date();\nconst amzDate = now.toISOString().replace(/[:-]|\\..*/g, '') + 'Z';\nconst dateStamp = amzDate.substring(0, 8);\nconst contentSha256 = 'UNSIGNED-PAYLOAD';\nconst canonicalUri = `/${bucket}/${objectKey}`;\n\nconst canonicalHeaders = `content-type:audio/mpeg\\nhost:${host}\\nx-amz-content-sha256:${contentSha256}\\nx-amz-date:${amzDate}\\n`;\nconst signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date';\nconst canonicalRequest = `PUT\\n${canonicalUri}\\n\\n${canonicalHeaders}\\n${signedHeaders}\\n${contentSha256}`;\n\nconst credentialScope = `${dateStamp}/auto/s3/aws4_request`;\nconst stringToSign = `AWS4-HMAC-SHA256\\n${amzDate}\\n${credentialScope}\\n${crypto.createHash('sha256').update(canonicalRequest).digest('hex')}`;\n\nlet key = crypto.createHmac('sha256', `AWS4${secretKey}`).update(dateStamp).digest();\nkey = crypto.createHmac('sha256', key).update('auto').digest();\nkey = crypto.createHmac('sha256', key).update('s3').digest();\nkey = crypto.createHmac('sha256', key).update('aws4_request').digest();\nconst signature = crypto.createHmac('sha256', key).update(stringToSign).digest('hex');\n\nconst authorization = `AWS4-HMAC-SHA256 Credential=${accessKey}/${credentialScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;\n\nconst response = await fetch(`https://${host}${canonicalUri}`, {\n  method: 'PUT',\n  headers: {\n    'Authorization': authorization,\n    'x-amz-date': amzDate,\n    'x-amz-content-sha256': contentSha256,\n    'Content-Type': 'audio/mpeg',\n    'Content-Length': bodyBuffer.length.toString(),\n  },\n  body: bodyBuffer,\n});\n\nif (!response.ok) {\n  const errText = await response.text();\n  throw new Error(`R2 upload failed (${response.status}): ${errText}`);\n}\n\nreturn [{ json: { uploaded: true, key: objectKey, status: response.status } }];"
       },
       "name": "Upload to R2",
-      "type": "n8n-nodes-base.s3",
-      "typeVersion": 1,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [1656, 304],
       "id": "3187408a-69a3-44a6-9513-2133c2e40f16",
-      "credentials": {
-        "s3": {
-          "id": "ERypNysOry3hAjsQ",
-          "name": "Cloudflare R2 - AI Digest"
-        }
-      },
       "retryOnFail": true,
       "maxTries": 4,
       "waitBetweenTries": 5000
