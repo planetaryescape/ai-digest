@@ -8,6 +8,9 @@ updates:
       day: "monday"
       time: "03:00"
     open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: "axios"
+        versions: ["1.14.1", "0.30.4"]
     groups:
       # Group all minor and patch updates together
       minor-and-patch:
