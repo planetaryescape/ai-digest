@@ -8,6 +8,8 @@ export interface SecretValues {
   helicone_api_key?: string;
   resend_api_key?: string;
   resend_from?: string;
+  firecrawl_api_key?: string;
+  brave_search_api_key?: string;
 }
 
 /**
@@ -62,6 +64,8 @@ export class SecretsLoader {
     process.env.HELICONE_API_KEY = secrets.helicone_api_key || process.env.HELICONE_API_KEY;
     process.env.RESEND_API_KEY = secrets.resend_api_key || process.env.RESEND_API_KEY;
     process.env.RESEND_FROM = secrets.resend_from || process.env.RESEND_FROM;
+    process.env.FIRECRAWL_API_KEY = secrets.firecrawl_api_key || process.env.FIRECRAWL_API_KEY;
+    process.env.BRAVE_SEARCH_API_KEY = secrets.brave_search_api_key || process.env.BRAVE_SEARCH_API_KEY;
   }
 
   /**
