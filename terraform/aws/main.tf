@@ -316,7 +316,7 @@ resource "aws_lambda_function" "weekly_digest" {
   function_name = "${var.PROJECT_NAME}-weekly-digest"
   role          = aws_iam_role.lambda_role.arn
   handler       = "weekly-digest.handler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 300
   memory_size   = 512
 
@@ -363,7 +363,7 @@ resource "aws_lambda_function" "run_now" {
   function_name = "${var.PROJECT_NAME}-run-now"
   role          = aws_iam_role.lambda_role.arn
   handler       = "run-now.handler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 30
   memory_size   = 256
 

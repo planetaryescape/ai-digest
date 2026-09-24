@@ -69,7 +69,7 @@ resource "aws_lambda_function" "email_fetcher" {
   function_name = "${var.PROJECT_NAME}-email-fetcher"
   role          = aws_iam_role.lambda_role.arn
   handler       = "email-fetcher.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 60
   memory_size   = 512
 
@@ -104,7 +104,7 @@ resource "aws_lambda_function" "classifier" {
   function_name = "${var.PROJECT_NAME}-classifier"
   role          = aws_iam_role.lambda_role.arn
   handler       = "classifier.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 60
   memory_size   = 256
 
@@ -141,7 +141,7 @@ resource "aws_lambda_function" "content_extractor" {
   function_name = "${var.PROJECT_NAME}-content-extractor"
   role          = aws_iam_role.lambda_role.arn
   handler       = "content-extractor.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 300
   memory_size   = 512
 
@@ -175,7 +175,7 @@ resource "aws_lambda_function" "research" {
   function_name = "${var.PROJECT_NAME}-research"
   role          = aws_iam_role.lambda_role.arn
   handler       = "research.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 60
   memory_size   = 256
 
@@ -209,7 +209,7 @@ resource "aws_lambda_function" "analysis" {
   function_name = "${var.PROJECT_NAME}-analysis"
   role          = aws_iam_role.lambda_role.arn
   handler       = "analysis.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 120
   memory_size   = 1024
 
@@ -243,7 +243,7 @@ resource "aws_lambda_function" "critic" {
   function_name = "${var.PROJECT_NAME}-critic"
   role          = aws_iam_role.lambda_role.arn
   handler       = "critic.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 120
   memory_size   = 1024
 
@@ -277,7 +277,7 @@ resource "aws_lambda_function" "digest_sender" {
   function_name = "${var.PROJECT_NAME}-digest-sender"
   role          = aws_iam_role.lambda_role.arn
   handler       = "digest-sender.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 30
   memory_size   = 256
 
@@ -313,7 +313,7 @@ resource "aws_lambda_function" "orchestrator" {
   function_name = "${var.PROJECT_NAME}-orchestrator"
   role          = aws_iam_role.lambda_role.arn
   handler       = "orchestrator.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 60
   memory_size   = 512
 

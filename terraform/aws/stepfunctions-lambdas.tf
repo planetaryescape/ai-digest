@@ -69,7 +69,7 @@ resource "aws_lambda_function" "sf_email_fetcher" {
   function_name = "${var.PROJECT_NAME}-sf-email-fetcher"
   role          = aws_iam_role.lambda_role.arn
   handler       = "email-fetcher.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 256
 
@@ -105,7 +105,7 @@ resource "aws_lambda_function" "sf_classifier" {
   function_name = "${var.PROJECT_NAME}-sf-classifier"
   role          = aws_iam_role.lambda_role.arn
   handler       = "classifier.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes  # 5 minutes for classification
   memory_size   = 512
 
@@ -140,7 +140,7 @@ resource "aws_lambda_function" "sf_content_extractor" {
   function_name = "${var.PROJECT_NAME}-sf-content-extractor"
   role          = aws_iam_role.lambda_role.arn
   handler       = "content-extractor.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes  # 5 minutes for content extraction
   memory_size   = 1024
 
@@ -174,7 +174,7 @@ resource "aws_lambda_function" "sf_research" {
   function_name = "${var.PROJECT_NAME}-sf-research"
   role          = aws_iam_role.lambda_role.arn
   handler       = "research.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 512
 
@@ -207,7 +207,7 @@ resource "aws_lambda_function" "sf_analysis" {
   function_name = "${var.PROJECT_NAME}-sf-analysis"
   role          = aws_iam_role.lambda_role.arn
   handler       = "analysis.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 1024
 
@@ -241,7 +241,7 @@ resource "aws_lambda_function" "sf_critic" {
   function_name = "${var.PROJECT_NAME}-sf-critic"
   role          = aws_iam_role.lambda_role.arn
   handler       = "critic.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 1024
 
@@ -276,7 +276,7 @@ resource "aws_lambda_function" "sf_digest_sender" {
   function_name = "${var.PROJECT_NAME}-sf-digest-sender"
   role          = aws_iam_role.lambda_role.arn
   handler       = "digest-sender.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 256
 
@@ -313,7 +313,7 @@ resource "aws_lambda_function" "sf_error_handler" {
   function_name = "${var.PROJECT_NAME}-sf-error-handler"
   role          = aws_iam_role.lambda_role.arn
   handler       = "error-handler.lambdaHandler"
-  runtime       = "nodejs20.x"
+  runtime       = "nodejs22.x"
   timeout       = 900  # 15 minutes
   memory_size   = 256
 
