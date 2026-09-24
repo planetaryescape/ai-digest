@@ -158,7 +158,7 @@ Designed to run within free/minimal tiers:
 - [Architecture Overview](docs/ARCHITECTURE.md)
 - [CORS Setup Guide](docs/CORS_SETUP.md)
 - [Prompt Optimization](docs/PROMPT_OPTIMIZATION.md)
-- [Development Guide](CLAUDE.md)
+- [Development Guide](AGENTS.md)
 
 ## Troubleshooting
 
